@@ -1,0 +1,225 @@
+<!-- src/app/features/dashboard/dashboard.component.html -->
+
+<div class="dashboard-container" dir="rtl">
+  <!-- Header Section -->
+  <div class="dashboard-header">
+    <div class="welcome-section">
+      <h1 class="welcome-title">
+        {{ getGreeting() }}، {{ currentUser?.full_name }}! 👋
+      </h1>
+      <p class="welcome-subtitle">
+        إليك ملخص شامل لعمليات دار الزيبق اليوم
+      </p>
+    </div>
+
+    <div class="quick-actions">
+      <button class="btn btn-primary" routerLink="/projects/new">
+        <i class="icon-plus"></i>
+        مشروع جديد
+      </button>
+      <button class="btn btn-secondary" routerLink="/invoices/new">
+        <i class="icon-file"></i>
+        فاتورة جديدة
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل البيانات...</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div *ngIf="!loading && stats" class="stats-grid">
+    <!-- Revenue Today -->
+    <div class="stat-card revenue-card">
+      <div class="stat-icon">
+        <i class="icon-dollar-sign"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-label">إيرادات اليوم</h3>
+        <p class="stat-value">{{ formatCurrency(stats.todayRevenue) }}</p>
+        <span class="stat-trend positive">+12.5%</span>
+      </div>
+    </div>
+
+    <!-- Monthly Revenue -->
+    <div class="stat-card profit-card">
+      <div class="stat-icon">
+        <i class="icon-trending-up"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-label">إيرادات الشهر</h3>
+        <p class="stat-value">{{ formatCurrency(stats.monthlyRevenue) }}</p>
+        <span class="stat-trend positive">+8.3%</span>
+      </div>
+    </div>
+
+    <!-- Monthly Expenses -->
+    <div class="stat-card expense-card">
+      <div class="stat-icon">
+        <i class="icon-arrow-down"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-label">مصاريف الشهر</h3>
+        <p class="stat-value">{{ formatCurrency(stats.monthlyExpenses) }}</p>
+        <span class="stat-trend negative">-5.2%</span>
+      </div>
+    </div>
+
+    <!-- Net Profit -->
+    <div class="stat-card net-profit-card">
+      <div class="stat-icon">
+        <i class="icon-activity"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-label">صافي الربح</h3>
+        <p class="stat-value">{{ formatCurrency(stats.monthlyProfit) }}</p>
+        <span class="stat-trend positive">+15.7%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secondary Stats -->
+  <div *ngIf="!loading && stats" class="secondary-stats">
+    <div class="stat-item">
+      <span class="stat-number">{{ stats.activeProjects }}</span>
+      <span class="stat-text">مشاريع نشطة</span>
+    </div>
+    <div class="stat-item warning">
+      <span class="stat-number">{{ stats.overdueProjects }}</span>
+      <span class="stat-text">مشاريع متأخرة</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ stats.pendingTasks }}</span>
+      <span class="stat-text">مهام معلقة</span>
+    </div>
+    <div class="stat-item danger">
+      <span class="stat-number">{{ stats.overdueTasks }}</span>
+      <span class="stat-text">مهام متأخرة</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">{{ stats.pendingInvoices }}</span>
+      <span class="stat-text">فواتير معلقة</span>
+    </div>
+    <div class="stat-item warning">
+      <span class="stat-number">{{ stats.lowStockBooks }}</span>
+      <span class="stat-text">كتب منخفضة المخزون</span>
+    </div>
+  </div>
+
+  <!-- Charts and Tables Section -->
+  <div class="content-grid">
+    <!-- Revenue Chart -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h2 class="card-title">الإيرادات الشهرية</h2>
+        <button class="btn-icon">
+          <i class="icon-more"></i>
+        </button>
+      </div>
+      <div class="card-body">
+        <div class="chart-placeholder">
+          <p>📊 مخطط الإيرادات (يتطلب مكتبة Charts)</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Books -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">الكتب الأكثر مبيعاً</h2>
+        <a routerLink="/books" class="card-link">عرض الكل</a>
+      </div>
+      <div class="card-body">
+        <div class="book-list" *ngIf="topBooks.length > 0; else noBooks">
+          <div class="book-item" *ngFor="let book of topBooks; let i = index">
+            <div class="book-rank">{{ i + 1 }}</div>
+            <div class="book-cover">
+              <img [src]="book.cover_image_url || 'assets/images/book-placeholder.png'"
+                   [alt]="book.title"
+                   loading="lazy">
+            </div>
+            <div class="book-info">
+              <h4 class="book-title">{{ book.title }}</h4>
+              <p class="book-sales">{{ book.sales }} نسخة</p>
+            </div>
+            <div class="book-revenue">
+              {{ formatCurrency(book.revenue) }}
+            </div>
+          </div>
+        </div>
+        <ng-template #noBooks>
+          <p class="empty-state">لا توجد بيانات مبيعات حالياً</p>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">النشاطات الأخيرة</h2>
+      </div>
+      <div class="card-body">
+        <div class="activity-list" *ngIf="recentActivities.length > 0; else noActivities">
+          <div class="activity-item" *ngFor="let activity of recentActivities">
+            <div class="activity-icon" [ngClass]="activity.type">
+              <i [class]="'icon-' + activity.icon"></i>
+            </div>
+            <div class="activity-content">
+              <p class="activity-text">{{ activity.description }}</p>
+              <span class="activity-time">{{ activity.time }}</span>
+            </div>
+          </div>
+        </div>
+        <ng-template #noActivities>
+          <p class="empty-state">لا توجد نشاطات حديثة</p>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="card quick-links-card">
+      <div class="card-header">
+        <h2 class="card-title">وصول سريع</h2>
+      </div>
+      <div class="card-body">
+        <div class="quick-links-grid">
+          <a routerLink="/customers" class="quick-link">
+            <i class="icon-users"></i>
+            <span>العملاء</span>
+          </a>
+          <a routerLink="/suppliers" class="quick-link">
+            <i class="icon-truck"></i>
+            <span>الموردين</span>
+          </a>
+          <a routerLink="/books" class="quick-link">
+            <i class="icon-book"></i>
+            <span>الكتب</span>
+          </a>
+          <a routerLink="/projects" class="quick-link">
+            <i class="icon-folder"></i>
+            <span>المشاريع</span>
+          </a>
+          <a routerLink="/tasks" class="quick-link">
+            <i class="icon-check-square"></i>
+            <span>المهام</span>
+          </a>
+          <a routerLink="/invoices" class="quick-link">
+            <i class="icon-file-text"></i>
+            <span>الفواتير</span>
+          </a>
+          <a routerLink="/accounting" class="quick-link">
+            <i class="icon-dollar-sign"></i>
+            <span>المحاسبة</span>
+          </a>
+          <a routerLink="/calendar" class="quick-link">
+            <i class="icon-calendar"></i>
+            <span>التقويم</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
