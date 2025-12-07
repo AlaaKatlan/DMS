@@ -5,7 +5,7 @@
   <div class="dashboard-header">
     <div class="welcome-section">
       <h1 class="welcome-title">
-        {{ getGreeting() }}، {{ currentUser?.full_name }}! 👋
+        {{ getGreeting() }}، {{ currentUser?.full_name || 'مرحباً' }}! 👋
       </h1>
       <p class="welcome-subtitle">
         إليك ملخص شامل لعمليات دار الزيبق اليوم
@@ -14,11 +14,11 @@
 
     <div class="quick-actions">
       <button class="btn btn-primary" routerLink="/projects/new">
-        <i class="icon-plus"></i>
+        <lucide-angular name="folder" [size]="18"></lucide-angular>
         مشروع جديد
       </button>
       <button class="btn btn-secondary" routerLink="/invoices/new">
-        <i class="icon-file"></i>
+        <lucide-angular name="file-text" [size]="18"></lucide-angular>
         فاتورة جديدة
       </button>
     </div>
@@ -35,7 +35,7 @@
     <!-- Revenue Today -->
     <div class="stat-card revenue-card">
       <div class="stat-icon">
-        <i class="icon-dollar-sign"></i>
+        <lucide-angular name="dollar-sign" [size]="24"></lucide-angular>
       </div>
       <div class="stat-content">
         <h3 class="stat-label">إيرادات اليوم</h3>
@@ -47,7 +47,7 @@
     <!-- Monthly Revenue -->
     <div class="stat-card profit-card">
       <div class="stat-icon">
-        <i class="icon-trending-up"></i>
+        <lucide-angular name="trending-up" [size]="24"></lucide-angular>
       </div>
       <div class="stat-content">
         <h3 class="stat-label">إيرادات الشهر</h3>
@@ -59,7 +59,7 @@
     <!-- Monthly Expenses -->
     <div class="stat-card expense-card">
       <div class="stat-icon">
-        <i class="icon-arrow-down"></i>
+        <lucide-angular name="arrow-down" [size]="24"></lucide-angular>
       </div>
       <div class="stat-content">
         <h3 class="stat-label">مصاريف الشهر</h3>
@@ -71,7 +71,7 @@
     <!-- Net Profit -->
     <div class="stat-card net-profit-card">
       <div class="stat-icon">
-        <i class="icon-activity"></i>
+        <lucide-angular name="activity" [size]="24"></lucide-angular>
       </div>
       <div class="stat-content">
         <h3 class="stat-label">صافي الربح</h3>
@@ -116,7 +116,7 @@
       <div class="card-header">
         <h2 class="card-title">الإيرادات الشهرية</h2>
         <button class="btn-icon">
-          <i class="icon-more"></i>
+          <lucide-angular name="more-vertical" [size]="18"></lucide-angular>
         </button>
       </div>
       <div class="card-body">
@@ -137,7 +137,7 @@
           <div class="book-item" *ngFor="let book of topBooks; let i = index">
             <div class="book-rank">{{ i + 1 }}</div>
             <div class="book-cover">
-              <img [src]="book.cover_image_url || 'assets/images/book-placeholder.png'"
+              <img alt="" [src]="book.cover_image_url || 'assets/images/book-placeholder.png'"
                    [alt]="book.title"
                    loading="lazy">
             </div>
@@ -165,7 +165,7 @@
         <div class="activity-list" *ngIf="recentActivities.length > 0; else noActivities">
           <div class="activity-item" *ngFor="let activity of recentActivities">
             <div class="activity-icon" [ngClass]="activity.type">
-              <i [class]="'icon-' + activity.icon"></i>
+              <lucide-angular [name]="activity.icon" [size]="18"></lucide-angular>
             </div>
             <div class="activity-content">
               <p class="activity-text">{{ activity.description }}</p>
@@ -187,35 +187,35 @@
       <div class="card-body">
         <div class="quick-links-grid">
           <a routerLink="/customers" class="quick-link">
-            <i class="icon-users"></i>
+            <lucide-angular name="users" [size]="24"></lucide-angular>
             <span>العملاء</span>
           </a>
           <a routerLink="/suppliers" class="quick-link">
-            <i class="icon-truck"></i>
+            <lucide-angular name="truck" [size]="24"></lucide-angular>
             <span>الموردين</span>
           </a>
           <a routerLink="/books" class="quick-link">
-            <i class="icon-book"></i>
+            <lucide-angular name="book-open" [size]="24"></lucide-angular>
             <span>الكتب</span>
           </a>
           <a routerLink="/projects" class="quick-link">
-            <i class="icon-folder"></i>
+            <lucide-angular name="folder" [size]="24"></lucide-angular>
             <span>المشاريع</span>
           </a>
           <a routerLink="/tasks" class="quick-link">
-            <i class="icon-check-square"></i>
+            <lucide-angular name="check-square" [size]="24"></lucide-angular>
             <span>المهام</span>
           </a>
           <a routerLink="/invoices" class="quick-link">
-            <i class="icon-file-text"></i>
+            <lucide-angular name="file-text" [size]="24"></lucide-angular>
             <span>الفواتير</span>
           </a>
           <a routerLink="/accounting" class="quick-link">
-            <i class="icon-dollar-sign"></i>
+            <lucide-angular name="dollar-sign" [size]="24"></lucide-angular>
             <span>المحاسبة</span>
           </a>
           <a routerLink="/calendar" class="quick-link">
-            <i class="icon-calendar"></i>
+            <lucide-angular name="calendar" [size]="24"></lucide-angular>
             <span>التقويم</span>
           </a>
         </div>

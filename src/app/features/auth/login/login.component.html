@@ -1,1 +1,126 @@
-<p>login works!</p>
+<!-- src/app/features/auth/login/login.component.html -->
+<div class="login-container">
+  <!-- Background Decorations -->
+  <div class="background-decoration">
+    <div class="circle circle-1"></div>
+    <div class="circle circle-2"></div>
+    <div class="circle circle-3"></div>
+  </div>
+
+  <!-- Login Card -->
+  <div class="login-card">
+    <!-- Logo Section -->
+    <div class="logo-section">
+      <div class="logo-icon">
+        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+          <rect width="60" height="60" rx="16" fill="url(#gradient1)"/>
+          <path d="M20 30L27 37L40 22" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="gradient1" x1="0" y1="0" x2="60" y2="60">
+              <stop offset="0%" stop-color="#667eea"/>
+              <stop offset="100%" stop-color="#764ba2"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1 class="logo-title">دار الزيبق</h1>
+      <p class="logo-subtitle">نظام إدارة النشر والإنتاج</p>
+    </div>
+
+    <!-- Welcome Message -->
+    <div class="welcome-section">
+      <h2 class="welcome-title">مرحباً بعودتك! 👋</h2>
+      <p class="welcome-text">سجّل دخولك للوصول إلى لوحة التحكم</p>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <!-- Email Field -->
+      <div class="form-group">
+        <label class="form-label">البريد الإلكتروني</label>
+        <div class="input-wrapper" [class.error]="emailError">
+          <lucide-angular name="mail" [size]="20" class="input-icon"></lucide-angular>
+          <input
+            type="email"
+            formControlName="email"
+            class="form-input"
+            placeholder="example@email.com"
+            [class.error]="emailError"
+          />
+        </div>
+        <span class="error-message" *ngIf="emailError">{{ emailError }}</span>
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label class="form-label">كلمة المرور</label>
+        <div class="input-wrapper" [class.error]="passwordError">
+          <lucide-angular name="lock" [size]="20" class="input-icon"></lucide-angular>
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            formControlName="password"
+            class="form-input"
+            placeholder="••••••••"
+            [class.error]="passwordError"
+          />
+          <button
+            type="button"
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+          >
+            <lucide-angular
+              [name]="showPassword ? 'eye-off' : 'eye'"
+              [size]="18"
+            ></lucide-angular>
+          </button>
+        </div>
+        <span class="error-message" *ngIf="passwordError">{{ passwordError }}</span>
+      </div>
+
+      <!-- Remember Me & Forgot Password -->
+      <div class="form-options">
+        <label class="checkbox-label">
+          <input type="checkbox" class="checkbox-input" />
+          <span>تذكرني</span>
+        </label>
+        <a routerLink="/auth/forgot-password" class="forgot-link">نسيت كلمة المرور؟</a>
+      </div>
+
+      <!-- Error Message -->
+      <div class="alert alert-error" *ngIf="error">
+        <lucide-angular name="alert-circle" [size]="18"></lucide-angular>
+        <span>{{ error }}</span>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="loading"
+        [class.loading]="loading"
+      >
+        <span *ngIf="!loading" class="btn-content">
+          <lucide-angular name="log-in" [size]="20"></lucide-angular>
+          <span>تسجيل الدخول</span>
+        </span>
+        <span *ngIf="loading" class="btn-loading">
+          <div class="spinner"></div>
+          <span>جاري التحميل...</span>
+        </span>
+      </button>
+    </form>
+
+    <!-- Register Link -->
+    <div class="register-section">
+      <p class="register-text">
+        ليس لديك حساب؟
+        <a routerLink="/auth/register" class="register-link">سجّل الآن</a>
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <p>© 2024 دار الزيبق. جميع الحقوق محفوظة.</p>
+    </div>
+  </div>
+</div>

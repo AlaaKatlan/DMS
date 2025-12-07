@@ -1,8 +1,5 @@
 // src/app/app.routes.ts
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth-guard';
-import { guestGuard } from './core/guards/guest-guard';
-import { roleGuard } from './core/guards/role-guard';
 
 export const routes: Routes = [
   // Redirect root to dashboard
@@ -12,10 +9,9 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
 
-  // Auth Routes (Guest only)
+  // Auth Routes (without Layout)
   {
     path: 'auth',
-    canActivate: [guestGuard],
     children: [
       {
         path: 'login',
@@ -32,10 +28,9 @@ export const routes: Routes = [
     ]
   },
 
-  // Main App Routes (Authenticated)
+  // Main App Routes (with Layout)
   {
     path: '',
-    canActivate: [authGuard],
     loadComponent: () => import('./layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
     children: [
       // Dashboard
@@ -161,8 +156,6 @@ export const routes: Routes = [
       // Accounting
       {
         path: 'accounting',
-        canActivate: [roleGuard],
-        data: { roles: ['admin', 'accountant'] },
         children: [
           {
             path: '',
@@ -193,8 +186,6 @@ export const routes: Routes = [
       // Settings
       {
         path: 'settings',
-        canActivate: [roleGuard],
-        data: { roles: ['admin', 'manager'] },
         children: [
           {
             path: '',
@@ -207,19 +198,11 @@ export const routes: Routes = [
           },
           {
             path: 'users',
-            canActivate: [roleGuard],
-            data: { roles: ['admin'] },
             loadComponent: () => import('./features/settings/components/users/users.component').then(m => m.UsersComponent)
           }
         ]
       }
     ]
-  },
-
-  // Unauthorized
-  {
-    path: 'unauthorized',
-    loadComponent: () => import('./shared/components/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
   },
 
   // 404

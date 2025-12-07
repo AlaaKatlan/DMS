@@ -2,6 +2,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationsService } from '../../core/services/notifications.service';
 
@@ -16,7 +17,7 @@ interface MenuItem {
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, LucideAngularModule],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
 })
@@ -34,7 +35,7 @@ export class MainLayoutComponent implements OnInit {
   menuItems: MenuItem[] = [
     {
       label: 'لوحة التحكم',
-      icon: 'dashboard',
+      icon: 'layout-dashboard',
       route: '/dashboard'
     },
     {
@@ -49,7 +50,7 @@ export class MainLayoutComponent implements OnInit {
     },
     {
       label: 'الكتب',
-      icon: 'book',
+      icon: 'book-open',
       route: '/books'
     },
     {

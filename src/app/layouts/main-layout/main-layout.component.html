@@ -1,1 +1,118 @@
-<p>main-layout works!</p>
+<!-- src/app/layouts/main-layout/main-layout.component.html -->
+<div class="main-layout" dir="rtl">
+  <!-- Sidebar -->
+  <aside class="sidebar" [class.collapsed]="!sidebarOpen">
+    <!-- Logo -->
+    <div class="sidebar-header">
+      <div class="logo">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect width="40" height="40" rx="8" fill="#4CAF50"/>
+          <path d="M12 20L18 26L28 14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="logo-text" *ngIf="sidebarOpen">دار الزيبق</span>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+      <a
+        *ngFor="let item of menuItems"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        class="nav-item"
+        [class.hidden]="!hasRole(item.roles)"
+      >
+        <lucide-angular [name]="item.icon" [size]="20"></lucide-angular>
+        <span *ngIf="sidebarOpen">{{ item.label }}</span>
+        <span *ngIf="item.badge && sidebarOpen" class="badge">{{ item.badge }}</span>
+      </a>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer" *ngIf="sidebarOpen">
+      <button class="btn-collapse" (click)="toggleSidebar()">
+        <lucide-angular name="chevron-right" [size]="20"></lucide-angular>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <button class="btn-menu" (click)="toggleSidebar()">
+          <lucide-angular name="menu" [size]="24"></lucide-angular>
+        </button>
+        <div class="breadcrumb">
+          <span>دار الزيبق</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Search -->
+        <div class="search-box">
+          <lucide-angular name="search" [size]="18"></lucide-angular>
+          <input type="text" placeholder="بحث..." />
+        </div>
+
+        <!-- Notifications -->
+        <div class="header-item" (click)="toggleNotifications()">
+          <button class="btn-icon">
+            <lucide-angular name="bell" [size]="22"></lucide-angular>
+            <span *ngIf="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
+          </button>
+        </div>
+
+        <!-- User Menu -->
+        <div class="header-item user-menu" (click)="toggleUserMenu()">
+          <div class="user-avatar">
+            <span>{{ currentUser ? getInitials(currentUser.full_name) : 'NA' }}</span>
+          </div>
+          <div class="user-info">
+            <span class="user-name">{{ currentUser?.full_name }}</span>
+            <span class="user-role">{{ currentUser?.role }}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <main class="page-content">
+      <router-outlet />
+    </main>
+  </div>
+
+  <!-- Notifications Dropdown -->
+  <div class="dropdown notifications-dropdown" *ngIf="showNotifications">
+    <div class="dropdown-header">
+      <h3>الإشعارات</h3>
+      <button class="btn-link">تعليم الكل كمقروء</button>
+    </div>
+    <div class="dropdown-body">
+      <div class="notification-item">
+        <lucide-angular name="info" [size]="20"></lucide-angular>
+        <div class="notification-content">
+          <p>لا توجد إشعارات جديدة</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Dropdown -->
+  <div class="dropdown user-dropdown" *ngIf="showUserMenu">
+    <a routerLink="/settings/profile" class="dropdown-item">
+      <lucide-angular name="user" [size]="18"></lucide-angular>
+      <span>الملف الشخصي</span>
+    </a>
+    <a routerLink="/settings" class="dropdown-item">
+      <lucide-angular name="settings" [size]="18"></lucide-angular>
+      <span>الإعدادات</span>
+    </a>
+    <hr />
+    <button class="dropdown-item" (click)="logout()">
+      <lucide-angular name="log-out" [size]="18"></lucide-angular>
+      <span>تسجيل الخروج</span>
+    </button>
+  </div>
+</div>

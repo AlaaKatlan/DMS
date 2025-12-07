@@ -2,14 +2,19 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { DashboardService } from './dashboard.service';
+ import { DashboardService } from './dashboard.service';
 import { AuthService, UserProfile } from '../../core/services/auth.service';
 import { DashboardStats } from '../../core/models/base.model';
-
+import { LucideAngularModule } from 'lucide-angular'; // <-- Only import the Module
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    LucideAngularModule,
+
+  ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
