@@ -87,29 +87,28 @@ export class AuthService {
   }
 
   // ==================== AUTH METHODS ====================
+signIn(email: string, password: string): Observable<UserProfile> {
+  this.setLoading(true);
 
-  signIn(email: string, password: string): Observable<UserProfile> {
-    this.setLoading(true);
-
-    return from(this.supabase.signIn(email, password)).pipe(
-      switchMap(() => {
-        const userId = this.supabase.currentUserValue?.id;
-        if (!userId) throw new Error('User ID not found');
-        return this.loadUserProfile(userId);
-      }),
-      tap(profile => {
-        this.authState$.next({
-          isAuthenticated: true,
-          user: profile,
-          loading: false
-        });
-      }),
-      catchError(error => {
-        this.setLoading(false);
-        throw error;
-      })
-    );
-  }
+  return from(this.supabase.signIn(email, password)).pipe(
+    switchMap((data: any) => {
+      const userId = data?.user?.id;
+      if (!userId) throw new Error('User ID not found');
+      return this.loadUserProfile(userId);
+    }),
+    tap(profile => {
+      this.authState$.next({
+        isAuthenticated: true,
+        user: profile,
+        loading: false
+      });
+    }),
+    catchError(error => {
+      this.setLoading(false);
+      throw error;
+    })
+  );
+}
 
   signUp(
     email: string,

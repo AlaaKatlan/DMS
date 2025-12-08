@@ -1,1 +1,277 @@
-<p>customer-detail works!</p>
+<!-- src/app/features/customers/components/customer-detail/customer-detail.component.html -->
+<div class="detail-page" dir="rtl">
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل البيانات...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && customer">
+    <!-- Header -->
+    <div class="page-header">
+      <button class="btn-back" (click)="goBack()">
+        <lucide-angular name="arrow-right" [size]="20"></lucide-angular>
+        <span>العودة</span>
+      </button>
+      <div class="header-actions">
+        <button class="btn btn-secondary" (click)="editCustomer()">
+          <lucide-angular name="edit" [size]="18"></lucide-angular>
+          <span>تعديل</span>
+        </button>
+        <button class="btn btn-danger" (click)="deleteCustomer()">
+          <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+          <span>حذف</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Customer Info Card -->
+    <div class="customer-header">
+      <div class="customer-avatar-large">
+        {{ customer.name.charAt(0).toUpperCase() }}
+      </div>
+      <div class="customer-info">
+        <h1 class="customer-name">{{ customer.name }}</h1>
+        <div class="customer-meta">
+          <span class="meta-item" *ngIf="customer.customer_type">
+            <lucide-angular name="tag" [size]="16"></lucide-angular>
+            {{ customer.customer_type.name }}
+          </span>
+          <span class="meta-item" *ngIf="customer.country">
+            <lucide-angular name="map-pin" [size]="16"></lucide-angular>
+            {{ customer.country.name }}
+          </span>
+          <span class="meta-item">
+            <lucide-angular name="calendar" [size]="16"></lucide-angular>
+            عضو منذ {{ formatDate(customer.created_at) }}
+          </span>
+        </div>
+        <div class="contact-info">
+          <a *ngIf="customer.email" [href]="'mailto:' + customer.email" class="contact-link">
+            <lucide-angular name="mail" [size]="18"></lucide-angular>
+            {{ customer.email }}
+          </a>
+          <a *ngIf="customer.phone" [href]="'tel:' + customer.phone" class="contact-link">
+            <lucide-angular name="phone" [size]="18"></lucide-angular>
+            {{ customer.phone }}
+          </a>
+          <span *ngIf="customer.address" class="contact-link">
+            <lucide-angular name="map" [size]="18"></lucide-angular>
+            {{ customer.address }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid" *ngIf="stats">
+      <div class="stat-card">
+        <div class="stat-icon projects">
+          <lucide-angular name="folder" [size]="24"></lucide-angular>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">إجمالي المشاريع</span>
+          <span class="stat-value">{{ stats.totalProjects }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon active">
+          <lucide-angular name="activity" [size]="24"></lucide-angular>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">المشاريع النشطة</span>
+          <span class="stat-value">{{ stats.activeProjects }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon revenue">
+          <lucide-angular name="dollar-sign" [size]="24"></lucide-angular>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">إجمالي الإيرادات</span>
+          <span class="stat-value">{{ formatCurrency(stats.totalRevenue) }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon due">
+          <lucide-angular name="alert-circle" [size]="24"></lucide-angular>
+        </div>
+        <div class="stat-content">
+          <span class="stat-label">المبالغ المستحقة</span>
+          <span class="stat-value">{{ formatCurrency(stats.totalDue) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button
+        class="tab"
+        [class.active]="activeTab === 'info'"
+        (click)="setActiveTab('info')"
+      >
+        <lucide-angular name="info" [size]="18"></lucide-angular>
+        <span>المعلومات</span>
+      </button>
+      <button
+        class="tab"
+        [class.active]="activeTab === 'projects'"
+        (click)="setActiveTab('projects')"
+      >
+        <lucide-angular name="folder" [size]="18"></lucide-angular>
+        <span>المشاريع</span>
+        <span class="badge" *ngIf="customer.projects?.length">
+          <!-- {{ customer.projects.length }} -->
+        </span>
+      </button>
+      <button
+        class="tab"
+        [class.active]="activeTab === 'invoices'"
+        (click)="setActiveTab('invoices')"
+      >
+        <lucide-angular name="file-text" [size]="18"></lucide-angular>
+        <span>الفواتير</span>
+        <span class="badge" *ngIf="customer.invoices?.length">
+          <!-- {{ customer.invoices.length }} -->
+        </span>
+      </button>
+      <button
+        class="tab"
+        [class.active]="activeTab === 'payments'"
+        (click)="setActiveTab('payments')"
+      >
+        <lucide-angular name="credit-card" [size]="18"></lucide-angular>
+        <span>المدفوعات</span>
+      </button>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+      <!-- Info Tab -->
+      <div *ngIf="activeTab === 'info'" class="content-card">
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">الاسم الكامل</span>
+            <span class="info-value">{{ customer.name }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">البريد الإلكتروني</span>
+            <span class="info-value">{{ customer.email || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">رقم الهاتف</span>
+            <span class="info-value">{{ customer.phone || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">البلد</span>
+            <span class="info-value">{{ customer.country?.name || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">نوع العميل</span>
+            <span class="info-value">{{ customer.customer_type?.name || '-' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">تاريخ التسجيل</span>
+            <span class="info-value">{{ formatDate(customer.created_at) }}</span>
+          </div>
+          <div class="info-item full-width" *ngIf="customer.address">
+            <span class="info-label">العنوان</span>
+            <span class="info-value">{{ customer.address }}</span>
+          </div>
+          <div class="info-item full-width" *ngIf="customer.notes">
+            <span class="info-label">ملاحظات</span>
+            <span class="info-value">{{ customer.notes }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projects Tab -->
+      <div *ngIf="activeTab === 'projects'" class="content-card">
+        <div class="section-header">
+          <h3>المشاريع</h3>
+          <button class="btn btn-primary-sm" [routerLink]="['/projects/new']">
+            <lucide-angular name="plus" [size]="16"></lucide-angular>
+            <span>مشروع جديد</span>
+          </button>
+        </div>
+
+        <div *ngIf="!customer.projects || customer.projects.length === 0" class="empty-state">
+          <lucide-angular name="folder" [size]="48"></lucide-angular>
+          <p>لا توجد مشاريع لهذا العميل</p>
+        </div>
+
+        <div *ngIf="customer.projects && customer.projects.length > 0" class="projects-list">
+          <div *ngFor="let project of customer.projects" class="project-item">
+            <div class="project-info">
+              <h4 class="project-title">{{ project.title }}</h4>
+              <span class="project-meta">{{ formatDate(project.created_at) }}</span>
+            </div>
+            <div class="project-meta-info">
+              <span class="status-badge" [ngClass]="getStatusColor(project.status)">
+                {{ project.status }}
+              </span>
+              <span class="project-price" *ngIf="project.total_price">
+                {{ formatCurrency(project.total_price, project.currency) }}
+              </span>
+            </div>
+            <button class="btn-icon-sm" [routerLink]="['/projects', project.id]">
+              <lucide-angular name="arrow-left" [size]="16"></lucide-angular>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invoices Tab -->
+      <div *ngIf="activeTab === 'invoices'" class="content-card">
+        <div class="section-header">
+          <h3>الفواتير</h3>
+          <button class="btn btn-primary-sm" [routerLink]="['/invoices/new']">
+            <lucide-angular name="plus" [size]="16"></lucide-angular>
+            <span>فاتورة جديدة</span>
+          </button>
+        </div>
+
+        <div *ngIf="!customer.invoices || customer.invoices.length === 0" class="empty-state">
+          <lucide-angular name="file-text" [size]="48"></lucide-angular>
+          <p>لا توجد فواتير لهذا العميل</p>
+        </div>
+
+        <div *ngIf="customer.invoices && customer.invoices.length > 0" class="invoices-list">
+          <div *ngFor="let invoice of customer.invoices" class="invoice-item">
+            <div class="invoice-info">
+              <h4 class="invoice-number">{{ invoice.invoice_number }}</h4>
+              <span class="invoice-date">{{ formatDate(invoice.issue_date) }}</span>
+            </div>
+            <div class="invoice-meta-info">
+              <span class="status-badge" [ngClass]="getStatusColor(invoice.status)">
+                {{ invoice.status }}
+              </span>
+              <span class="invoice-amount">
+                {{ formatCurrency(invoice.amount_due, invoice.currency) }}
+              </span>
+            </div>
+            <button class="btn-icon-sm" [routerLink]="['/invoices', invoice.id]">
+              <lucide-angular name="arrow-left" [size]="16"></lucide-angular>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payments Tab -->
+      <div *ngIf="activeTab === 'payments'" class="content-card">
+        <div class="section-header">
+          <h3>المدفوعات</h3>
+        </div>
+
+        <div class="empty-state">
+          <lucide-angular name="credit-card" [size]="48"></lucide-angular>
+          <p>سيتم عرض سجل المدفوعات هنا</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

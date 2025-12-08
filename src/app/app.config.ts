@@ -12,11 +12,11 @@ import {
   Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,
   // NEW ICONS BELOW:
   Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical, Mail,
-    Lock,
-    Eye,
-    EyeOff,
-    LogIn,
-
+  Lock,Grid,
+  Eye,Trash2,Edit,Filter,X,Check,Map,
+  EyeOff, List,
+  LogIn,MapPin,ChevronLeft,
+  UserPlus,Phone,
   // ADD THESE IF MISSING:
   User,
   LogOut,
@@ -36,20 +36,20 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
 
     // 2. Register icons globally here using importProvidersFrom
- importProvidersFrom(LucideAngularModule.pick({
-      DollarSign, TrendingUp, ArrowDown, Activity, Users,
+    importProvidersFrom(LucideAngularModule.pick({
+      DollarSign, TrendingUp, ArrowDown, Activity, Users,ChevronLeft,Grid,
       Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,
       // REGISTER NEW ICONS HERE:
       Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,
-    Mail,
-    Lock,
-    Eye,
-    EyeOff,
-    LogIn,
-  // ADD THESE IF MISSING:
-  User,
-  LogOut,
-  Info
+      Mail,MapPin,
+      Lock, List,Check,Map,
+      Eye,Phone,
+      EyeOff, UserPlus,
+      LogIn,Trash2,Edit,Filter,
+      // ADD THESE IF MISSING:
+      User,X,
+      LogOut,
+      Info
     })),
 
     { provide: LOCALE_ID, useValue: 'ar-SA' }

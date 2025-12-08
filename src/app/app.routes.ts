@@ -1,5 +1,8 @@
 // src/app/app.routes.ts
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth-guard';
+import { guestGuard } from './core/guards/guest-guard';
+import { roleGuard } from './core/guards/role-guard';
 
 export const routes: Routes = [
   // Redirect root to dashboard
@@ -9,9 +12,10 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
 
-  // Auth Routes (without Layout)
+  // Auth Routes (without Layout) - فقط للـ Guests
   {
     path: 'auth',
+    canActivate: [guestGuard],
     children: [
       {
         path: 'login',
@@ -28,10 +32,11 @@ export const routes: Routes = [
     ]
   },
 
-  // Main App Routes (with Layout)
+  // Main App Routes (with Layout) - محمية بـ authGuard
   {
     path: '',
     loadComponent: () => import('./layouts/main-layout/main-layout.component').then(m => m.MainLayoutComponent),
+    canActivate: [authGuard],
     children: [
       // Dashboard
       {
@@ -153,9 +158,11 @@ export const routes: Routes = [
         ]
       },
 
-      // Accounting
+      // Accounting - فقط للـ Admin & Accountant
       {
         path: 'accounting',
+        canActivate: [roleGuard],
+        data: { roles: ['admin', 'accountant', 'manager'] },
         children: [
           {
             path: '',
@@ -183,9 +190,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/calendar/calendar/calendar.component').then(m => m.CalendarComponent)
       },
 
-      // Settings
+      // Settings - فقط للـ Admin & Manager
       {
         path: 'settings',
+        canActivate: [roleGuard],
+        data: { roles: ['admin', 'manager'] },
         children: [
           {
             path: '',
@@ -203,6 +212,12 @@ export const routes: Routes = [
         ]
       }
     ]
+  },
+
+  // Unauthorized
+  {
+    path: 'unauthorized',
+    loadComponent: () => import('./shared/components/unauthorized/unauthorized.component').then(m => m.UnauthorizedComponent)
   },
 
   // 404

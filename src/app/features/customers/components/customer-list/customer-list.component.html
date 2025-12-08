@@ -1,1 +1,186 @@
-<p>customer-list works!</p>
+<!-- src/app/features/customers/components/customer-list/customer-list.component.html -->
+<div class="customers-page" dir="rtl">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">إدارة العملاء</h1>
+      <p class="page-subtitle">عرض وإدارة جميع عملاء دار الزيبق</p>
+    </div>
+    <button class="btn btn-primary" routerLink="/customers/new">
+      <lucide-angular name="user-plus" [size]="20"></lucide-angular>
+      <span>إضافة عميل جديد</span>
+    </button>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="filters-section">
+    <div class="search-box">
+      <lucide-angular name="search" [size]="20"></lucide-angular>
+      <input
+        type="text"
+        placeholder="البحث عن عميل..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+      />
+    </div>
+
+    <div class="filters">
+      <select class="filter-select" [(ngModel)]="selectedCountry" (ngModelChange)="applyFilters()">
+        <option value="">جميع البلدان</option>
+        <option *ngFor="let country of getUniqueCountries()" [value]="country">{{ country }}</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="selectedType" (ngModelChange)="applyFilters()">
+        <option value="">جميع الأنواع</option>
+        <option *ngFor="let type of getUniqueTypes()" [value]="type">{{ type }}</option>
+      </select>
+
+      <button class="btn-icon" (click)="toggleViewMode()" [title]="viewMode === 'grid' ? 'عرض قائمة' : 'عرض شبكة'">
+        <lucide-angular [name]="viewMode === 'grid' ? 'list' : 'grid'" [size]="20"></lucide-angular>
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <lucide-angular name="users" [size]="24"></lucide-angular>
+      <div>
+        <span class="stat-number">{{ customers.length }}</span>
+        <span class="stat-label">إجمالي العملاء</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <lucide-angular name="filter" [size]="24"></lucide-angular>
+      <div>
+        <span class="stat-number">{{ filteredCustomers.length }}</span>
+        <span class="stat-label">نتائج البحث</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل العملاء...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredCustomers.length === 0" class="empty-state">
+    <lucide-angular name="users" [size]="64"></lucide-angular>
+    <h3>لا يوجد عملاء</h3>
+    <p *ngIf="searchQuery || selectedCountry || selectedType">جرّب تغيير معايير البحث</p>
+    <p *ngIf="!searchQuery && !selectedCountry && !selectedType">ابدأ بإضافة عميل جديد</p>
+    <button class="btn btn-primary" routerLink="/customers/new">
+      <lucide-angular name="plus" [size]="18"></lucide-angular>
+      <span>إضافة عميل</span>
+    </button>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="!loading && filteredCustomers.length > 0 && viewMode === 'grid'" class="customers-grid">
+    <div *ngFor="let customer of getPaginatedCustomers()" class="customer-card">
+      <div class="card-header">
+        <div class="customer-avatar">
+          {{ customer.name.charAt(0).toUpperCase() }}
+        </div>
+        <div class="customer-info">
+          <h3 class="customer-name">{{ customer.name }}</h3>
+          <span class="customer-type" *ngIf="customer.customer_type">
+            {{ customer.customer_type.name }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="info-row" *ngIf="customer.email">
+          <lucide-angular name="mail" [size]="16"></lucide-angular>
+          <span>{{ customer.email }}</span>
+        </div>
+        <div class="info-row" *ngIf="customer.phone">
+          <lucide-angular name="phone" [size]="16"></lucide-angular>
+          <span>{{ customer.phone }}</span>
+        </div>
+        <div class="info-row" *ngIf="customer.country">
+          <lucide-angular name="map-pin" [size]="16"></lucide-angular>
+          <span>{{ customer.country.name }}</span>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button class="btn-action view" (click)="viewCustomer(customer.id)" title="عرض">
+          <lucide-angular name="eye" [size]="18"></lucide-angular>
+        </button>
+        <button class="btn-action edit" (click)="editCustomer(customer.id)" title="تعديل">
+          <lucide-angular name="edit" [size]="18"></lucide-angular>
+        </button>
+        <button class="btn-action delete" (click)="deleteCustomer(customer)" title="حذف">
+          <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- List View -->
+  <div *ngIf="!loading && filteredCustomers.length > 0 && viewMode === 'list'" class="customers-table">
+    <table>
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>البريد الإلكتروني</th>
+          <th>الهاتف</th>
+          <th>البلد</th>
+          <th>النوع</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let customer of getPaginatedCustomers()">
+          <td>
+            <div class="table-customer">
+              <div class="customer-avatar-small">
+                {{ customer.name.charAt(0).toUpperCase() }}
+              </div>
+              <span class="customer-name-text">{{ customer.name }}</span>
+            </div>
+          </td>
+          <td>{{ customer.email || '-' }}</td>
+          <td>{{ customer.phone || '-' }}</td>
+          <td>{{ customer.country?.name || '-' }}</td>
+          <td>
+            <span class="type-badge" *ngIf="customer.customer_type">
+              {{ customer.customer_type.name }}
+            </span>
+            <span *ngIf="!customer.customer_type">-</span>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button class="btn-action view" (click)="viewCustomer(customer.id)" title="عرض">
+                <lucide-angular name="eye" [size]="16"></lucide-angular>
+              </button>
+              <button class="btn-action edit" (click)="editCustomer(customer.id)" title="تعديل">
+                <lucide-angular name="edit" [size]="16"></lucide-angular>
+              </button>
+              <button class="btn-action delete" (click)="deleteCustomer(customer)" title="حذف">
+                <lucide-angular name="trash-2" [size]="16"></lucide-angular>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!loading && filteredCustomers.length > 0" class="pagination">
+    <button class="btn-page" [disabled]="currentPage === 1" (click)="prevPage()">
+      <lucide-angular name="chevron-right" [size]="20"></lucide-angular>
+    </button>
+    <span class="page-info">
+      صفحة {{ currentPage }} من {{ totalPages }}
+    </span>
+    <button class="btn-page" [disabled]="currentPage === totalPages" (click)="nextPage()">
+      <lucide-angular name="chevron-left" [size]="20"></lucide-angular>
+    </button>
+  </div>
+</div>

@@ -1,1 +1,182 @@
-<p>customer-form works!</p>
+<!-- src/app/features/customers/components/customer-form/customer-form.component.html -->
+<div class="form-page" dir="rtl">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        {{ isEditMode ? 'تعديل بيانات العميل' : 'إضافة عميل جديد' }}
+      </h1>
+      <p class="page-subtitle">
+        {{ isEditMode ? 'قم بتحديث معلومات العميل' : 'أدخل بيانات العميل الجديد' }}
+      </p>
+    </div>
+    <button class="btn-back" (click)="cancel()">
+      <lucide-angular name="x" [size]="20"></lucide-angular>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل البيانات...</p>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="!loading" class="form-container">
+    <form [formGroup]="customerForm" (ngSubmit)="onSubmit()">
+      <!-- Basic Information Card -->
+      <div class="form-card">
+        <div class="card-header">
+          <lucide-angular name="user" [size]="20"></lucide-angular>
+          <h3>المعلومات الأساسية</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <!-- Name -->
+            <div class="form-group full-width">
+              <label class="form-label">
+                الاسم الكامل <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="name"
+                class="form-input"
+                [class.error]="nameError"
+                placeholder="أدخل اسم العميل الكامل"
+              />
+              <span class="error-message" *ngIf="nameError">{{ nameError }}</span>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <label class="form-label">البريد الإلكتروني</label>
+              <div class="input-with-icon">
+                <lucide-angular name="mail" [size]="18"></lucide-angular>
+                <input
+                  type="email"
+                  formControlName="email"
+                  class="form-input"
+                  [class.error]="emailError"
+                  placeholder="example@email.com"
+                />
+              </div>
+              <span class="error-message" *ngIf="emailError">{{ emailError }}</span>
+            </div>
+
+            <!-- Phone -->
+            <div class="form-group">
+              <label class="form-label">
+                رقم الهاتف <span class="required">*</span>
+              </label>
+              <div class="input-with-icon">
+                <lucide-angular name="phone" [size]="18"></lucide-angular>
+                <input
+                  type="tel"
+                  formControlName="phone"
+                  class="form-input"
+                  [class.error]="phoneError"
+                  placeholder="+974 1234 5678"
+                />
+              </div>
+              <span class="error-message" *ngIf="phoneError">{{ phoneError }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Location Information Card -->
+      <div class="form-card">
+        <div class="card-header">
+          <lucide-angular name="map-pin" [size]="20"></lucide-angular>
+          <h3>معلومات الموقع</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <!-- Country -->
+            <div class="form-group">
+              <label class="form-label">البلد</label>
+              <select formControlName="country_id" class="form-select">
+                <option value="">اختر البلد</option>
+                <option *ngFor="let country of countries" [value]="country.id">
+                  {{ country.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Customer Type -->
+            <div class="form-group">
+              <label class="form-label">نوع العميل</label>
+              <select formControlName="customer_type_id" class="form-select">
+                <option value="">اختر النوع</option>
+                <option *ngFor="let type of customerTypes" [value]="type.id">
+                  {{ type.name }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Address -->
+            <div class="form-group full-width">
+              <label class="form-label">العنوان</label>
+              <div class="input-with-icon">
+                <lucide-angular name="map" [size]="18"></lucide-angular>
+                <input
+                  type="text"
+                  formControlName="address"
+                  class="form-input"
+                  placeholder="أدخل العنوان الكامل"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes Card -->
+      <div class="form-card">
+        <div class="card-header">
+          <lucide-angular name="file-text" [size]="20"></lucide-angular>
+          <h3>ملاحظات إضافية</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">ملاحظات</label>
+            <textarea
+              formControlName="notes"
+              class="form-textarea"
+              rows="4"
+              placeholder="أي ملاحظات أو معلومات إضافية..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancel()"
+          [disabled]="saving"
+        >
+          <lucide-angular name="x" [size]="18"></lucide-angular>
+          <span>إلغاء</span>
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="saving || customerForm.invalid"
+          [class.loading]="saving"
+        >
+          <span *ngIf="!saving" class="btn-content">
+            <lucide-angular name="check" [size]="18"></lucide-angular>
+            <span>{{ isEditMode ? 'تحديث' : 'حفظ' }}</span>
+          </span>
+          <span *ngIf="saving" class="btn-loading">
+            <div class="spinner-small"></div>
+            <span>جاري الحفظ...</span>
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
