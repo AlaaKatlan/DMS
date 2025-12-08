@@ -1,0 +1,27 @@
+
+
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn {
+  @apply font-medium rounded-lg transition-all duration-200;
+}
+
+.btn-primary {
+  @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2 hover:from-indigo-700 hover:to-purple-700 shadow-sm;
+}
+
+.btn-outline {
+  @apply border border-gray-300 text-gray-700 px-3 py-1.5 hover:bg-gray-50;
+}

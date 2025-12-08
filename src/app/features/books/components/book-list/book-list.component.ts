@@ -6,10 +6,11 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { BooksService } from '../../books.service';
 import { Book } from '../../../../core/models/base.model';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-book-list',
-  standalone: true, // تأكد من وجود هذا
+  standalone: true,
   imports: [CommonModule, RouterModule, FormsModule, LucideAngularModule],
   templateUrl: './book-list.component.html',
   styleUrls: ['./book-list.component.scss']
@@ -17,13 +18,17 @@ import { Book } from '../../../../core/models/base.model';
 export class BookListComponent implements OnInit {
   private booksService = inject(BooksService);
   private router = inject(Router);
-  private cd = inject(ChangeDetectorRef); // لحل مشكلة التحديث
+  private cd = inject(ChangeDetectorRef);
 
   books: Book[] = [];
   filteredBooks: Book[] = [];
   loading = false;
   searchQuery = '';
   viewMode: 'grid' | 'list' = 'grid';
+
+  // المخزون - سيتم تفعيله لاحقاً
+  bookStocks: Map<number, number> = new Map();
+  loadingStocks = false;
 
   ngOnInit(): void {
     this.loadBooks();
@@ -36,14 +41,54 @@ export class BookListComponent implements OnInit {
         this.books = data;
         this.filteredBooks = data;
         this.loading = false;
-        this.cd.detectChanges(); // تحديث الواجهة فوراً
+        this.cd.detectChanges();
+
+        // يمكن تفعيل تحميل المخزون هنا إذا أردت
+        // this.loadBookStocks();
       },
       error: (error) => {
         console.error('Error loading books:', error);
+        alert('حدث خطأ أثناء تحميل الكتب');
         this.loading = false;
         this.cd.detectChanges();
       }
     });
+  }
+
+  /**
+   * تحميل كميات المخزون لجميع الكتب
+   * يمكن تفعيله عند الحاجة
+   */
+  loadBookStocks(): void {
+    if (this.books.length === 0) return;
+
+    this.loadingStocks = true;
+
+    // جلب المخزون لجميع الكتب دفعة واحدة
+    const stockRequests = this.books.map(book =>
+      this.booksService.getBookStock(book.book_id)
+    );
+
+    forkJoin(stockRequests).subscribe({
+      next: (stocks) => {
+        this.books.forEach((book, index) => {
+          this.bookStocks.set(book.book_id, stocks[index]);
+        });
+        this.loadingStocks = false;
+        this.cd.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error loading stocks:', error);
+        this.loadingStocks = false;
+      }
+    });
+  }
+
+  /**
+   * الحصول على كمية المخزون لكتاب معين
+   */
+  getBookStock(bookId: number): number {
+    return this.bookStocks.get(bookId) || 0;
   }
 
   applyFilters(): void {
@@ -61,11 +106,15 @@ export class BookListComponent implements OnInit {
 
   deleteBook(book: Book): void {
     if (confirm(`هل أنت متأكد من حذف كتاب: ${book.title}؟`)) {
-      this.booksService.delete(book.book_id).subscribe({ // انتبه: book_id وليس id
+      this.booksService.delete(book.book_id).subscribe({
         next: () => {
-          this.loadBooks(); // إعادة التحميل بعد الحذف
+          alert('تم حذف الكتاب بنجاح');
+          this.loadBooks();
         },
-        error: (err) => alert('حدث خطأ أثناء الحذف')
+        error: (err) => {
+          console.error('Error deleting book:', err);
+          alert('حدث خطأ أثناء حذف الكتاب');
+        }
       });
     }
   }
@@ -81,5 +130,21 @@ export class BookListComponent implements OnInit {
     if (quantity <= 0) return 'bg-red-100 text-red-800';
     if (quantity < 10) return 'bg-yellow-100 text-yellow-800';
     return 'bg-green-100 text-green-800';
+  }
+
+  /**
+   * تنسيق السعر
+   */
+  formatPrice(amount: number | undefined, currency: string = 'USD'): string {
+    if (!amount) return '-';
+
+    const symbols: Record<string, string> = {
+      USD: '$',
+      AED: 'د.إ',
+      QR: 'ر.ق',
+      SYP: 'ل.س'
+    };
+
+    return `${symbols[currency] || ''} ${amount.toLocaleString('ar-SA')}`;
   }
 }

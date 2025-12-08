@@ -1,4 +1,4 @@
-// src/app/features/books/books.service.ts
+// src/app/features/books/books.service.ts - النسخة المصلحة والمحسّنة
 import { Injectable } from '@angular/core';
 import { Observable, map, forkJoin } from 'rxjs';
 import { BaseService } from '../../core/services/base.service';
@@ -24,6 +24,7 @@ export class BooksService extends BaseService<Book> {
 
   /**
    * Get books with full relations
+   * ⚠️ مهم: نستخدم book_id بدلاً من id
    */
   getBooksWithRelations(): Observable<Book[]> {
     this.setLoading(true);
@@ -55,6 +56,7 @@ export class BooksService extends BaseService<Book> {
 
   /**
    * Get book by ID with full details
+   * ⚠️ استخدام book_id بدلاً من id
    */
   getBookDetail(bookId: number): Observable<Book | null> {
     this.setLoading(true);
@@ -67,7 +69,7 @@ export class BooksService extends BaseService<Book> {
           country:countries(id, name, code),
           images:book_images(id, image_url, caption, created_at)
         `)
-        .eq('book_id', bookId)
+        .eq('book_id', bookId) // ← استخدام book_id
         .single()
         .then(({ data, error }: any) => {
           if (error) {
@@ -85,12 +87,90 @@ export class BooksService extends BaseService<Book> {
   }
 
   /**
+   * Override delete method لاستخدام book_id
+   */
+  override delete(bookId: string | number): Observable<void> {
+    this.setLoading(true);
+
+    return new Observable(observer => {
+      this.supabase.client
+        .from(this.tableName)
+        .delete()
+        .eq('book_id', bookId) // ← استخدام book_id
+        .then(({ error }: any) => {
+          if (error) {
+            this.setError(error.message);
+            observer.error(error);
+          } else {
+            // حذف من القائمة المحلية
+            const currentItems = this.items$.value;
+            this.items$.next(
+              currentItems.filter((item: any) => item.book_id !== bookId)
+            );
+            this.clearError();
+            observer.next();
+            observer.complete();
+          }
+
+          this.setLoading(false);
+        });
+    });
+  }
+
+  /**
+   * Override update method لاستخدام book_id
+   */
+updateBook(bookId: number, data: Partial<Book>): Observable<Book> {
+    this.setLoading(true);
+
+    return new Observable(observer => {
+      // 👇 الحل هو إضافة (as any) بعد دالة from مباشرة
+      (this.supabase.client.from(this.tableName) as any)
+        .update(data) // الآن سيقبل البيانات بدون مشاكل
+        .eq('book_id', bookId)
+        .select()
+        .single()
+        .then(({ data: result, error }: any) => { // 👈 وأيضاً هنا نستخدم any للنتيجة
+          if (error) {
+            this.setError(error.message);
+            observer.error(error);
+          } else {
+            // تحديث القائمة المحلية لتظهر التعديلات فوراً
+            const currentItems = this.items$.value;
+            // تأكد من استخدام المفتاح الصحيح للمقارنة
+            const index = currentItems.findIndex((item: any) => item.book_id === bookId);
+            if (index !== -1) {
+              currentItems[index] = result as Book;
+              this.items$.next([...currentItems]);
+            }
+            this.clearError();
+            observer.next(result as Book);
+            observer.complete();
+          }
+
+          this.setLoading(false);
+        });
+    });
+  }
+
+  /**
    * Get books by category
    */
   getBooksByCategory(category: string): Observable<Book[]> {
-    return this.getFiltered({
-      column: 'category',
-      value: category
+    return new Observable(observer => {
+      this.supabase.client
+        .from(this.tableName)
+        .select('*')
+        .eq('category', category)
+        .order('title', { ascending: true })
+        .then(({ data, error }: any) => {
+          if (error) {
+            observer.error(error);
+          } else {
+            observer.next(data as Book[]);
+            observer.complete();
+          }
+        });
     });
   }
 
@@ -98,9 +178,20 @@ export class BooksService extends BaseService<Book> {
    * Get books by country
    */
   getBooksByCountry(countryId: number): Observable<Book[]> {
-    return this.getFiltered({
-      column: 'country_id',
-      value: countryId
+    return new Observable(observer => {
+      this.supabase.client
+        .from(this.tableName)
+        .select('*')
+        .eq('country_id', countryId)
+        .order('title', { ascending: true })
+        .then(({ data, error }: any) => {
+          if (error) {
+            observer.error(error);
+          } else {
+            observer.next(data as Book[]);
+            observer.complete();
+          }
+        });
     });
   }
 
@@ -136,7 +227,7 @@ export class BooksService extends BaseService<Book> {
   /**
    * Add image to book
    */
-  addBookImage(bookId: string, imageUrl: string, caption?: string): Observable<BookImage> {
+  addBookImage(bookId: number, imageUrl: string, caption?: string): Observable<BookImage> {
     return new Observable(observer => {
       this.supabase.client
         .from('book_images')

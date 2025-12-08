@@ -1,4 +1,6 @@
+<!-- src/app/features/books/components/book-list/book-list.component.html -->
 <div class="p-6" dir="rtl">
+  <!-- Header -->
   <div class="flex justify-between items-center mb-6">
     <div>
       <h1 class="text-2xl font-bold text-gray-900">المكتبة والمخزون</h1>
@@ -10,6 +12,7 @@
     </button>
   </div>
 
+  <!-- Search & View Toggle -->
   <div class="bg-white p-4 rounded-lg shadow-sm mb-6 flex gap-4">
     <div class="relative flex-1">
       <lucide-angular name="search" class="absolute right-3 top-2.5 text-gray-400" [size]="20"></lucide-angular>
@@ -22,90 +25,175 @@
       >
     </div>
     <div class="flex gap-2">
-      <button (click)="viewMode = 'grid'" [class.bg-gray-100]="viewMode === 'grid'" class="p-2 rounded hover:bg-gray-100">
+      <button
+        (click)="viewMode = 'grid'"
+        [class.bg-gray-100]="viewMode === 'grid'"
+        class="p-2 rounded hover:bg-gray-100 transition-colors"
+        title="عرض شبكة"
+      >
         <lucide-angular name="grid" [size]="20"></lucide-angular>
       </button>
-      <button (click)="viewMode = 'list'" [class.bg-gray-100]="viewMode === 'list'" class="p-2 rounded hover:bg-gray-100">
+      <button
+        (click)="viewMode = 'list'"
+        [class.bg-gray-100]="viewMode === 'list'"
+        class="p-2 rounded hover:bg-gray-100 transition-colors"
+        title="عرض قائمة"
+      >
         <lucide-angular name="list" [size]="20"></lucide-angular>
       </button>
     </div>
   </div>
 
+  <!-- Loading -->
   <div *ngIf="loading" class="text-center py-10">
-    <div class="spinner"></div>
-    <p class="mt-2 text-gray-500">جاري تحميل الكتب...</p>
+    <div class="spinner mx-auto mb-4"></div>
+    <p class="text-gray-500">جاري تحميل الكتب...</p>
   </div>
 
-  <div *ngIf="!loading">
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredBooks.length === 0" class="text-center py-12 bg-white rounded-lg shadow-sm">
+    <lucide-angular name="book-open" class="mx-auto text-gray-300 mb-3" [size]="48"></lucide-angular>
+    <h3 class="text-xl font-semibold text-gray-700 mb-2">لا توجد كتب</h3>
+    <p class="text-gray-500 mb-4">
+      {{ searchQuery ? 'لا توجد نتائج تطابق بحثك' : 'ابدأ بإضافة كتاب جديد' }}
+    </p>
+    <button *ngIf="!searchQuery" routerLink="/books/new" class="btn btn-primary">
+      <lucide-angular name="plus" [size]="18"></lucide-angular>
+      إضافة كتاب
+    </button>
+  </div>
 
-    <div *ngIf="viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      <div *ngFor="let book of filteredBooks" class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border">
-        <div class="h-48 bg-gray-100 flex items-center justify-center relative">
-            <span class="text-gray-400">لا توجد صورة</span>
-            <!-- TO DO: إضافة دعم لتحميل وعرض صور الكتب -->
-            <!-- <div class="absolute top-2 left-2 px-2 py-1 rounded text-xs font-medium" [ngClass]="getStockClass(book.stock_quantity || 0)">
-                {{ getStockStatus(book.stock_quantity || 0) }}
-            </div> -->
+  <!-- Grid View -->
+  <div *ngIf="!loading && filteredBooks.length > 0 && viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div *ngFor="let book of filteredBooks" class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden border">
+      <!-- Book Cover -->
+      <div class="h-48 bg-gray-100 flex items-center justify-center relative">
+        <img alt=""
+          *ngIf="book.cover_image_url"
+          [src]="book.cover_image_url"
+          [alt]="book.title"
+          class="h-full w-full object-cover"
+        />
+        <span *ngIf="!book.cover_image_url" class="text-gray-400">لا توجد صورة</span>
+
+        <!-- Stock Badge - يمكن تفعيله عند الحاجة -->
+        <!-- <div
+          *ngIf="bookStocks.has(book.book_id)"
+          class="absolute top-2 left-2 px-2 py-1 rounded text-xs font-medium"
+          [ngClass]="getStockClass(getBookStock(book.book_id))"
+        >
+          {{ getStockStatus(getBookStock(book.book_id)) }}
+        </div> -->
+      </div>
+
+      <!-- Book Info -->
+      <div class="p-4">
+        <h3 class="font-bold text-lg mb-1 truncate" [title]="book.title">{{ book.title }}</h3>
+        <p class="text-sm text-gray-500 mb-2 truncate">{{ book.author || 'مؤلف غير معروف' }}</p>
+
+        <!-- Pricing -->
+        <div class="flex justify-between items-center mb-3 text-sm">
+          <span class="font-bold text-primary">{{ formatPrice(book.price_usd, 'USD') }}</span>
+          <span *ngIf="book.isbn" class="text-gray-400 text-xs">{{ book.isbn }}</span>
         </div>
 
-        <div class="p-4">
-          <h3 class="font-bold text-lg mb-1 truncate">{{ book.title }}</h3>
-          <p class="text-sm text-gray-500 mb-3">{{ book.author }}</p>
-<!-- TO DO: إعادة إضافة عداد المخزون عند تفعيل ميزة المخزون -->
-          <!-- <div class="flex justify-between items-center mb-4">
-            <span class="font-bold text-primary">{{ book.price_usd | currency:'USD' }}</span>
-            <span class="text-sm text-gray-500">الكمية: {{ book.stock_quantity || 0 }}</span>
-          </div> -->
+        <!-- Stock Info - يمكن تفعيله -->
+        <!-- <div *ngIf="bookStocks.has(book.book_id)" class="text-sm text-gray-600 mb-3">
+          الكمية: {{ getBookStock(book.book_id) }}
+        </div> -->
 
-          <div class="flex gap-2 border-t pt-3">
-             <button [routerLink]="['/books', book.book_id]" class="flex-1 text-sm btn btn-outline">عرض</button>
-             <button [routerLink]="['/books', book.book_id, 'edit']" class="p-2 text-blue-600 hover:bg-blue-50 rounded">
-                <lucide-angular name="edit" [size]="16"></lucide-angular>
-             </button>
-             <button (click)="deleteBook(book)" class="p-2 text-red-600 hover:bg-red-50 rounded">
-                <lucide-angular name="trash-2" [size]="16"></lucide-angular>
-             </button>
-          </div>
+        <!-- Actions -->
+        <div class="flex gap-2 border-t pt-3">
+          <button
+            [routerLink]="['/books', book.book_id]"
+            class="flex-1 text-sm btn btn-outline"
+          >
+            عرض
+          </button>
+          <button
+            [routerLink]="['/books', book.book_id, 'edit']"
+            class="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            title="تعديل"
+          >
+            <lucide-angular name="edit" [size]="16"></lucide-angular>
+          </button>
+          <button
+            (click)="deleteBook(book)"
+            class="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+            title="حذف"
+          >
+            <lucide-angular name="trash-2" [size]="16"></lucide-angular>
+          </button>
         </div>
       </div>
     </div>
+  </div>
 
-    <div *ngIf="viewMode === 'list'" class="bg-white rounded-lg shadow overflow-hidden">
+  <!-- List View -->
+  <div *ngIf="!loading && filteredBooks.length > 0 && viewMode === 'list'" class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="overflow-x-auto">
       <table class="w-full text-right">
         <thead class="bg-gray-50 border-b">
           <tr>
-            <th class="p-4">العنوان</th>
-            <th class="p-4">المؤلف</th>
-            <th class="p-4">ISBN</th>
-            <th class="p-4">السعر</th>
-            <th class="p-4">الكمية</th>
-            <th class="p-4">الإجراءات</th>
+            <th class="p-4 text-sm font-semibold text-gray-700">العنوان</th>
+            <th class="p-4 text-sm font-semibold text-gray-700">المؤلف</th>
+            <th class="p-4 text-sm font-semibold text-gray-700">ISBN</th>
+            <th class="p-4 text-sm font-semibold text-gray-700">الفئة</th>
+            <th class="p-4 text-sm font-semibold text-gray-700">السعر</th>
+            <!-- <th class="p-4 text-sm font-semibold text-gray-700">الكمية</th> -->
+            <th class="p-4 text-sm font-semibold text-gray-700">الإجراءات</th>
           </tr>
         </thead>
-        <tbody>
-          <tr *ngFor="let book of filteredBooks" class="border-b hover:bg-gray-50">
-            <td class="p-4 font-medium">{{ book.title }}</td>
-            <td class="p-4 text-gray-600">{{ book.author }}</td>
-            <td class="p-4 text-gray-500">{{ book.isbn || '-' }}</td>
-            <td class="p-4">{{ book.price_usd | currency:'USD' }}</td>
-            <td class="p-4">
-              <!-- TO DO: إعادة إضافة عداد المخزون عند تفعيل ميزة المخزون -->
-                <!-- <span class="px-2 py-1 rounded text-xs" [ngClass]="getStockClass(book.stock_quantity || 0)">
-                    {{ book.stock_quantity || 0 }}
-                </span> -->
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let book of filteredBooks" class="hover:bg-gray-50 transition-colors">
+            <td class="p-4 font-medium text-gray-900">{{ book.title }}</td>
+            <td class="p-4 text-gray-600">{{ book.author || '-' }}</td>
+            <td class="p-4 text-gray-500 font-mono text-sm">{{ book.isbn || '-' }}</td>
+            <td class="p-4 text-gray-600">
+              <span *ngIf="book.category" class="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs">
+                {{ book.category }}
+              </span>
+              <span *ngIf="!book.category" class="text-gray-400">-</span>
             </td>
-            <td class="p-4 flex gap-2">
-                <button [routerLink]="['/books', book.book_id]" class="text-blue-600 hover:underline">عرض</button>
-                <button (click)="deleteBook(book)" class="text-red-600 hover:underline">حذف</button>
+            <td class="p-4 font-semibold text-gray-800">{{ formatPrice(book.price_usd, 'USD') }}</td>
+            <!-- Stock Column - يمكن تفعيله -->
+            <!-- <td class="p-4">
+              <span
+                *ngIf="bookStocks.has(book.book_id)"
+                class="px-2 py-1 rounded text-xs font-medium"
+                [ngClass]="getStockClass(getBookStock(book.book_id))"
+              >
+                {{ getBookStock(book.book_id) }}
+              </span>
+            </td> -->
+            <td class="p-4">
+              <div class="flex gap-2">
+                <button
+                  [routerLink]="['/books', book.book_id]"
+                  class="text-blue-600 hover:underline text-sm"
+                  title="عرض"
+                >
+                  عرض
+                </button>
+                <button
+                  [routerLink]="['/books', book.book_id, 'edit']"
+                  class="text-gray-600 hover:underline text-sm"
+                  title="تعديل"
+                >
+                  تعديل
+                </button>
+                <button
+                  (click)="deleteBook(book)"
+                  class="text-red-600 hover:underline text-sm"
+                  title="حذف"
+                >
+                  حذف
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <div *ngIf="filteredBooks.length === 0" class="text-center py-12">
-        <lucide-angular name="book-open" class="mx-auto text-gray-300 mb-3" [size]="48"></lucide-angular>
-        <p class="text-gray-500">لا توجد كتب تطابق بحثك</p>
     </div>
   </div>
 </div>
