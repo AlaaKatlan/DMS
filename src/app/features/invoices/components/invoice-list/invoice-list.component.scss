@@ -1,27 +1,549 @@
 // src/app/features/invoices/components/invoice-list/invoice-list.component.scss
 
+// ==================== COLORS ====================
+$primary: #667eea;
+$primary-dark: #5a67d8;
+$success: #10b981;
+$warning: #f59e0b;
+$danger: #ef4444;
+$info: #3b82f6;
+$white: #ffffff;
+$background: #f8fafc;
+$gray-50: #f9fafb;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-300: #d1d5db;
+$gray-400: #9ca3af;
+$gray-500: #6b7280;
+$gray-600: #4b5563;
+$gray-700: #374151;
+$gray-900: #111827;
+$border-radius: 16px;
+$shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+// ==================== ANIMATIONS ====================
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ==================== PAGE CONTAINER ====================
 :host {
   display: block;
 }
 
-// ضمان توسيط المحتوى داخل خلايا الجدول
-td, th {
-  vertical-align: middle;
+.invoices-page {
+  padding: 2rem;
+  animation: fadeIn 0.5s;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 }
 
-// تحسين شكل الزر الأساسي إذا لم يكن معرفاً
+// ==================== PAGE HEADER ====================
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1.5rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-content {
+    .page-title {
+      font-size: 2rem;
+      font-weight: 800;
+      color: $gray-900;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .page-subtitle {
+      color: $gray-500;
+      font-size: 1rem;
+      margin: 0;
+    }
+  }
+}
+
+// ==================== BUTTONS ====================
 .btn {
-  @apply transition-all duration-200 font-medium;
+  padding: 0.875rem 1.75rem;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: $shadow;
+  font-size: 1rem;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 
   &-primary {
-    @apply bg-blue-600 text-white hover:bg-blue-700;
+    background: linear-gradient(135deg, $primary 0%, #764ba2 100%);
+    color: $white;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: $shadow-lg;
+    }
   }
 
   &-outline {
-    @apply border border-gray-300 text-gray-700 hover:border-gray-400;
+    background: $white;
+    color: $gray-700;
+    border: 2px solid $gray-200;
+    font-size: 0.875rem;
+    padding: 0.625rem 1.25rem;
+
+    &:hover:not(:disabled) {
+      background: $gray-50;
+      border-color: $gray-300;
+    }
   }
 
   &-sm {
-    @apply text-sm py-1 px-3;
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+}
+
+// ==================== STATUS TABS ====================
+.status-tabs {
+  display: flex;
+  background: $white;
+  border-radius: 12px;
+  padding: 0.5rem;
+  gap: 0.5rem;
+  box-shadow: $shadow;
+  margin-bottom: 2rem;
+  overflow-x: auto;
+
+  @media (max-width: 768px) {
+    flex-wrap: nowrap;
+  }
+
+  button {
+    flex: 1;
+    padding: 0.875rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    color: $gray-600;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    white-space: nowrap;
+    position: relative;
+
+    &:hover {
+      background: $gray-50;
+      color: $gray-900;
+    }
+
+    &.active {
+      background: linear-gradient(135deg, $primary 0%, #764ba2 100%);
+      color: $white;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+
+      &::before {
+        content: '';
+        position: absolute;
+        bottom: -0.5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid $primary;
+      }
+    }
+  }
+}
+
+// ==================== LOADING ====================
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid $gray-200;
+    border-top-color: $primary;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  p {
+    margin-top: 1rem;
+    color: $gray-500;
+    font-weight: 600;
+  }
+}
+
+// ==================== EMPTY STATE ====================
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: $white;
+  border-radius: $border-radius;
+  box-shadow: $shadow;
+
+  lucide-angular {
+    color: $gray-300;
+    margin-bottom: 1rem;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    color: $gray-900;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: $gray-500;
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+// ==================== INVOICES TABLE ====================
+.invoices-table {
+  background: $white;
+  border-radius: $border-radius;
+  box-shadow: $shadow;
+  overflow: hidden;
+  animation: slideUp 0.5s;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: linear-gradient(to bottom, $gray-50, $white);
+      border-bottom: 2px solid $gray-200;
+
+      th {
+        padding: 1.25rem 1.5rem;
+        text-align: right;
+        font-weight: 700;
+        color: $gray-700;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $gray-100;
+        transition: all 0.3s;
+
+        &:hover {
+          background: $gray-50;
+          transform: scale(1.005);
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        td {
+          padding: 1.25rem 1.5rem;
+          color: $gray-700;
+          font-weight: 500;
+
+          // Invoice Number
+          &:nth-child(1) {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: $primary;
+
+            a {
+              color: $primary;
+              text-decoration: none;
+              transition: all 0.3s;
+              position: relative;
+
+              &::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                right: 0;
+                width: 0;
+                height: 2px;
+                background: $primary;
+                transition: width 0.3s;
+              }
+
+              &:hover {
+                color: $primary-dark;
+
+                &::after {
+                  width: 100%;
+                }
+              }
+            }
+          }
+
+          // Customer Name
+          &:nth-child(2) {
+            font-weight: 700;
+            color: $gray-900;
+          }
+
+          // Dates
+          &:nth-child(3),
+          &:nth-child(4) {
+            color: $gray-600;
+            font-size: 0.875rem;
+          }
+
+          // Amount
+          &:nth-child(5) {
+            font-size: 1.125rem;
+            font-weight: 800;
+            color: $gray-900;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ==================== STATUS BADGES ====================
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.875rem;
+  border-radius: 20px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.paid {
+    background: rgba($success, 0.1);
+    color: $success;
+  }
+
+  &.unpaid {
+    background: rgba($danger, 0.1);
+    color: $danger;
+  }
+
+  &.partially_paid {
+    background: rgba($warning, 0.1);
+    color: $warning;
+  }
+
+  &.overdue {
+    background: rgba($danger, 0.2);
+    color: $danger;
+    animation: pulse 2s infinite;
+  }
+
+  &.draft {
+    background: rgba($gray-500, 0.1);
+    color: $gray-600;
+  }
+}
+
+// ==================== TABLE ACTIONS ====================
+.table-actions {
+  display: flex;
+  gap: 0.5rem;
+
+  button {
+    padding: 0.5rem 0.75rem;
+    border: none;
+    background: $gray-50;
+    color: $gray-600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+
+    &:hover {
+      background: $primary;
+      color: $white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+  }
+}
+
+// ==================== STATS CARDS ====================
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  .stat-card {
+    background: $white;
+    padding: 1.75rem;
+    border-radius: $border-radius;
+    box-shadow: $shadow;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: all 0.3s;
+    animation: slideUp 0.5s;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: $shadow-lg;
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $white;
+
+      &.total {
+        background: linear-gradient(135deg, $primary 0%, #764ba2 100%);
+      }
+
+      &.paid {
+        background: linear-gradient(135deg, $success 0%, #059669 100%);
+      }
+
+      &.unpaid {
+        background: linear-gradient(135deg, $danger 0%, #dc2626 100%);
+      }
+
+      &.overdue {
+        background: linear-gradient(135deg, $warning 0%, #f97316 100%);
+      }
+    }
+
+    .stat-content {
+      flex: 1;
+
+      .stat-label {
+        font-size: 0.875rem;
+        color: $gray-500;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      .stat-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: $gray-900;
+        line-height: 1;
+      }
+
+      .stat-subtext {
+        font-size: 0.8125rem;
+        color: $gray-400;
+        margin-top: 0.25rem;
+      }
+    }
+  }
+}
+
+// ==================== FILTERS ====================
+.filters-section {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+
+  .search-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    background: $white;
+    padding: 0.875rem 1.25rem;
+    border-radius: 12px;
+    border: 2px solid $gray-100;
+    transition: all 0.3s;
+    min-width: 300px;
+
+    &:focus-within {
+      border-color: $primary;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    lucide-angular {
+      color: $gray-400;
+    }
+
+    input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      outline: none;
+      font-size: 1rem;
+      color: $gray-900;
+
+      &::placeholder {
+        color: $gray-400;
+      }
+    }
+  }
+
+  .filter-select {
+    padding: 0.875rem 1rem;
+    border: 2px solid $gray-100;
+    border-radius: 12px;
+    background: $white;
+    color: $gray-700;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover, &:focus {
+      border-color: $primary;
+      outline: none;
+    }
+  }
+}
+
+// ==================== RESPONSIVE ====================
+@media (max-width: 768px) {
+  .invoices-table {
+    overflow-x: auto;
+
+    table {
+      min-width: 800px;
+    }
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .status-tabs {
+    button {
+      flex: none;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+    }
   }
 }
