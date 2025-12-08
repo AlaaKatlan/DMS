@@ -1,5 +1,5 @@
 // src/app/features/customers/components/customer-list/customer-list.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -17,7 +17,7 @@ import { Customer } from '../../../../core/models/base.model';
 export class CustomerListComponent implements OnInit {
   private customersService = inject(CustomersService);
   private router = inject(Router);
-
+private cd = inject(ChangeDetectorRef); // 2. قم بحقن ChangeDetectorRef
   customers: Customer[] = [];
   filteredCustomers: Customer[] = [];
   loading = false;
@@ -44,6 +44,7 @@ export class CustomerListComponent implements OnInit {
         this.customers = data;
         this.applyFilters();
         this.loading = false;
+        this.cd.detectChanges();
       },
       error: (error) => {
         console.error('Error loading customers:', error);

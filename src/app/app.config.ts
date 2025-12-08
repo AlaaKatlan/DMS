@@ -12,7 +12,7 @@ import {
   Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,
   // NEW ICONS BELOW:
   Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical, Mail,
-  Lock,Grid,
+  Lock,Grid,Plus,FileQuestion,
   Eye,Trash2,Edit,Filter,X,Check,Map,
   EyeOff, List,
   LogIn,MapPin,ChevronLeft,
@@ -41,9 +41,9 @@ export const appConfig: ApplicationConfig = {
       Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,
       // REGISTER NEW ICONS HERE:
       Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,
-      Mail,MapPin,
+      Mail,MapPin,FileQuestion,
       Lock, List,Check,Map,
-      Eye,Phone,
+      Eye,Phone,Plus,
       EyeOff, UserPlus,
       LogIn,Trash2,Edit,Filter,
       // ADD THESE IF MISSING:

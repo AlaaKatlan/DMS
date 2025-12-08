@@ -1,1 +1,74 @@
-<p>invoice-list works!</p>
+<div class="p-6" dir="rtl">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">الفواتير المالية</h1>
+
+    <button routerLink="/invoices/new" class="btn btn-primary flex items-center gap-2 px-4 py-2 rounded-lg shadow-sm">
+      <lucide-angular name="plus" [size]="20"></lucide-angular>
+      <span>فاتورة جديدة</span>
+    </button>
+  </div>
+
+  <div class="flex gap-2 mb-6 border-b border-gray-200">
+    <button
+      *ngFor="let status of ['all', 'paid', 'unpaid', 'partially_paid']"
+      (click)="statusFilter = status; applyFilter()"
+      class="pb-3 px-6 transition-all font-medium text-sm relative"
+      [class.text-primary]="statusFilter === status"
+      [class.text-gray-500]="statusFilter !== status"
+      [class.border-b-2]="true"
+      [class.border-primary]="statusFilter === status"
+      [class.border-transparent]="statusFilter !== status"
+    >
+      {{ getStatusLabel(status) }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="flex justify-center items-center py-12">
+    <div class="spinner border-4 border-gray-200 border-t-primary rounded-full w-8 h-8 animate-spin"></div>
+  </div>
+
+  <div *ngIf="!loading" class="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-right">
+        <thead class="bg-gray-50 border-b border-gray-200 text-gray-600 text-sm uppercase tracking-wider">
+          <tr>
+            <th class="p-4 font-semibold">رقم الفاتورة</th>
+            <th class="p-4 font-semibold">العميل</th>
+            <th class="p-4 font-semibold">تاريخ الإصدار</th>
+            <th class="p-4 font-semibold">تاريخ الاستحقاق</th>
+            <th class="p-4 font-semibold">المبلغ</th>
+            <th class="p-4 font-semibold">الحالة</th>
+            <th class="p-4 font-semibold">الإجراءات</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          <tr *ngFor="let inv of filteredInvoices" class="hover:bg-gray-50 transition-colors">
+            <td class="p-4 font-mono font-medium text-primary whitespace-nowrap">
+                <a [routerLink]="['/invoices', inv.id]" class="hover:underline">{{ inv.invoice_number }}</a>
+            </td>
+            <td class="p-4 font-medium text-gray-900 whitespace-nowrap">{{ inv.customer?.name || '-' }}</td>
+            <td class="p-4 text-gray-500 whitespace-nowrap text-sm">{{ inv.issue_date | date:'shortDate' }}</td>
+            <td class="p-4 text-gray-500 whitespace-nowrap text-sm">{{ inv.due_date | date:'shortDate' }}</td>
+            <td class="p-4 font-bold text-gray-800 whitespace-nowrap">{{ inv.amount_due | currency:inv.currency }}</td>
+            <td class="p-4 whitespace-nowrap">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="getStatusClass(inv.status)">
+                {{ getStatusLabel(inv.status) }}
+              </span>
+            </td>
+            <td class="p-4 whitespace-nowrap">
+              <button [routerLink]="['/invoices', inv.id]" class="btn btn-sm btn-outline text-xs px-3 py-1 flex items-center gap-1 hover:bg-gray-100 rounded">
+                <span>عرض</span>
+                <lucide-angular name="arrow-left" [size]="14"></lucide-angular>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="filteredInvoices.length === 0" class="p-12 text-center">
+      <lucide-angular name="file-question" class="mx-auto text-gray-300 mb-3" [size]="48"></lucide-angular>
+      <p class="text-gray-500 text-lg">لا توجد فواتير لعرضها حالياً.</p>
+    </div>
+  </div>
+</div>

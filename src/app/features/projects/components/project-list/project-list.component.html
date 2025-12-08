@@ -1,1 +1,275 @@
-<p>project-list works!</p>
+<!-- src/app/features/projects/components/project-list/project-list.component.html -->
+<div class="projects-page" dir="rtl">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">إدارة المشاريع</h1>
+      <p class="page-subtitle">عرض وإدارة جميع المشاريع</p>
+    </div>
+    <button class="btn btn-primary" routerLink="/projects/new">
+      <lucide-angular name="plus" [size]="20"></lucide-angular>
+      <span>مشروع جديد</span>
+    </button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card total">
+      <lucide-angular name="folder" [size]="24"></lucide-angular>
+      <div>
+        <span class="stat-number">{{ stats.total }}</span>
+        <span class="stat-label">إجمالي المشاريع</span>
+      </div>
+    </div>
+    <div class="stat-card active">
+      <lucide-angular name="activity" [size]="24"></lucide-angular>
+      <div>
+        <span class="stat-number">{{ stats.active }}</span>
+        <span class="stat-label">مشاريع نشطة</span>
+      </div>
+    </div>
+    <div class="stat-card completed">
+      <lucide-angular name="check-circle" [size]="24"></lucide-angular>
+      <div>
+        <span class="stat-number">{{ stats.completed }}</span>
+        <span class="stat-label">مشاريع مكتملة</span>
+      </div>
+    </div>
+    <div class="stat-card overdue">
+      <lucide-angular name="alert-circle" [size]="24"></lucide-angular>
+      <div>
+        <span class="stat-number">{{ stats.overdue }}</span>
+        <span class="stat-label">مشاريع متأخرة</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & View Toggle -->
+  <div class="filters-section">
+    <div class="search-box">
+      <lucide-angular name="search" [size]="20"></lucide-angular>
+      <input
+        type="text"
+        placeholder="البحث عن مشروع..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+      />
+    </div>
+
+    <div class="filters">
+      <select class="filter-select" [(ngModel)]="selectedStatus" (ngModelChange)="applyFilters()">
+        <option value="">جميع الحالات</option>
+        <option value="active">نشط</option>
+        <option value="completed">مكتمل</option>
+        <option value="on_hold">متوقف</option>
+        <option value="cancelled">ملغي</option>
+      </select>
+
+      <select class="filter-select" [(ngModel)]="selectedCustomer" (ngModelChange)="applyFilters()">
+        <option value="">جميع العملاء</option>
+        <option *ngFor="let customer of getUniqueCustomers()" [value]="customer">{{ customer }}</option>
+      </select>
+
+      <div class="view-toggle">
+        <button
+          class="view-btn"
+          [class.active]="viewMode === 'grid'"
+          (click)="setViewMode('grid')"
+          title="عرض شبكة"
+        >
+          <lucide-angular name="grid" [size]="20"></lucide-angular>
+        </button>
+        <button
+          class="view-btn"
+          [class.active]="viewMode === 'kanban'"
+          (click)="setViewMode('kanban')"
+          title="عرض كانبان"
+        >
+          <lucide-angular name="columns" [size]="20"></lucide-angular>
+        </button>
+        <button
+          class="view-btn"
+          [class.active]="viewMode === 'timeline'"
+          (click)="setViewMode('timeline')"
+          title="عرض الجدول الزمني"
+        >
+          <lucide-angular name="bar-chart" [size]="20"></lucide-angular>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل المشاريع...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredProjects.length === 0" class="empty-state">
+    <lucide-angular name="folder" [size]="64"></lucide-angular>
+    <h3>لا توجد مشاريع</h3>
+    <p *ngIf="searchQuery || selectedStatus || selectedCustomer">جرّب تغيير معايير البحث</p>
+    <p *ngIf="!searchQuery && !selectedStatus && !selectedCustomer">ابدأ بإضافة مشروع جديد</p>
+    <button class="btn btn-primary" routerLink="/projects/new">
+      <lucide-angular name="plus" [size]="18"></lucide-angular>
+      <span>إضافة مشروع</span>
+    </button>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="!loading && filteredProjects.length > 0 && viewMode === 'grid'" class="projects-grid">
+    <div *ngFor="let project of getPaginatedProjects()" class="project-card">
+      <!-- Status Badge -->
+      <div class="card-status" [ngClass]="getStatusColor(project.status)">
+        {{ getStatusLabel(project.status) }}
+      </div>
+
+      <!-- Card Header -->
+      <div class="card-header">
+        <h3 class="project-title">{{ project.title }}</h3>
+        <span class="project-type" *ngIf="project.project_type">{{ project.project_type }}</span>
+      </div>
+
+      <!-- Card Body -->
+      <div class="card-body">
+        <!-- Customer -->
+        <div class="info-row" *ngIf="project.customer">
+          <lucide-angular name="user" [size]="16"></lucide-angular>
+          <span>{{ project.customer.name }}</span>
+        </div>
+
+        <!-- Dates -->
+        <div class="info-row" *ngIf="project.due_date">
+          <lucide-angular name="calendar" [size]="16"></lucide-angular>
+          <span>موعد التسليم: {{ formatDate(project.due_date) }}</span>
+          <span class="overdue-badge" *ngIf="isOverdue(project)">متأخر</span>
+        </div>
+
+        <!-- Price -->
+        <div class="info-row" *ngIf="project.total_price">
+          <lucide-angular name="dollar-sign" [size]="16"></lucide-angular>
+          <span>{{ formatCurrency(project.total_price, project.currency) }}</span>
+        </div>
+
+        <!-- Tasks Progress -->
+        <div class="progress-section" *ngIf="project.tasks && project.tasks.length > 0">
+          <div class="progress-header">
+            <span class="progress-label">التقدم</span>
+            <span class="progress-value">{{ calculateProgress(project) }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="calculateProgress(project)"></div>
+          </div>
+            <!-- To Do: إعادة إضافة عداد المهام عند تفعيل ميزة المهام -->
+          <!-- <span class="tasks-count">
+            {{ project.tasks.filter(t => t.status === 'completed').length }} / {{ project.tasks.length }} مهام
+          </span> -->
+        </div>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="card-actions">
+        <button class="btn-action view" (click)="viewProject(project.id)" title="عرض">
+          <lucide-angular name="eye" [size]="18"></lucide-angular>
+        </button>
+        <button class="btn-action edit" (click)="editProject(project.id)" title="تعديل">
+          <lucide-angular name="edit" [size]="18"></lucide-angular>
+        </button>
+        <button class="btn-action delete" (click)="deleteProject(project)" title="حذف">
+          <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kanban View -->
+  <div *ngIf="!loading && filteredProjects.length > 0 && viewMode === 'kanban'" class="kanban-board">
+    <!-- Active Column -->
+    <div class="kanban-column">
+      <div class="column-header active">
+        <lucide-angular name="activity" [size]="20"></lucide-angular>
+        <h3>نشط</h3>
+        <span class="column-count">{{ getProjectsByStatus('active').length }}</span>
+      </div>
+      <div class="column-body">
+        <div *ngFor="let project of getProjectsByStatus('active')" class="kanban-card" (click)="viewProject(project.id)">
+          <h4>{{ project.title }}</h4>
+          <p *ngIf="project.customer">{{ project.customer.name }}</p>
+          <div class="kanban-progress" *ngIf="project.tasks && project.tasks.length > 0">
+            <div class="progress-bar-small">
+              <div class="progress-fill-small" [style.width.%]="calculateProgress(project)"></div>
+            </div>
+            <span>{{ calculateProgress(project) }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- On Hold Column -->
+    <div class="kanban-column">
+      <div class="column-header on-hold">
+        <lucide-angular name="pause-circle" [size]="20"></lucide-angular>
+        <h3>متوقف</h3>
+        <span class="column-count">{{ getProjectsByStatus('on_hold').length }}</span>
+      </div>
+      <div class="column-body">
+        <div *ngFor="let project of getProjectsByStatus('on_hold')" class="kanban-card" (click)="viewProject(project.id)">
+          <h4>{{ project.title }}</h4>
+          <p *ngIf="project.customer">{{ project.customer.name }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed Column -->
+    <div class="kanban-column">
+      <div class="column-header completed">
+        <lucide-angular name="check-circle" [size]="20"></lucide-angular>
+        <h3>مكتمل</h3>
+        <span class="column-count">{{ getProjectsByStatus('completed').length }}</span>
+      </div>
+      <div class="column-body">
+        <div *ngFor="let project of getProjectsByStatus('completed')" class="kanban-card" (click)="viewProject(project.id)">
+          <h4>{{ project.title }}</h4>
+          <p *ngIf="project.customer">{{ project.customer.name }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cancelled Column -->
+    <div class="kanban-column">
+      <div class="column-header cancelled">
+        <lucide-angular name="x-circle" [size]="20"></lucide-angular>
+        <h3>ملغي</h3>
+        <span class="column-count">{{ getProjectsByStatus('cancelled').length }}</span>
+      </div>
+      <div class="column-body">
+        <div *ngFor="let project of getProjectsByStatus('cancelled')" class="kanban-card" (click)="viewProject(project.id)">
+          <h4>{{ project.title }}</h4>
+          <p *ngIf="project.customer">{{ project.customer.name }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline View -->
+  <div *ngIf="!loading && filteredProjects.length > 0 && viewMode === 'timeline'" class="timeline-view">
+    <div class="timeline-placeholder">
+      <lucide-angular name="bar-chart" [size]="64"></lucide-angular>
+      <p>عرض الجدول الزمني - قريباً</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!loading && filteredProjects.length > 0 && viewMode === 'grid'" class="pagination">
+    <button class="btn-page" [disabled]="currentPage === 1" (click)="prevPage()">
+      <lucide-angular name="chevron-right" [size]="20"></lucide-angular>
+    </button>
+    <span class="page-info">
+      صفحة {{ currentPage }} من {{ totalPages }}
+    </span>
+    <button class="btn-page" [disabled]="currentPage === totalPages" (click)="nextPage()">
+      <lucide-angular name="chevron-left" [size]="20"></lucide-angular>
+    </button>
+  </div>
+</div>

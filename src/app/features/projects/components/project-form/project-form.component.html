@@ -1,1 +1,217 @@
 <p>project-form works!</p>
+<!-- src/app/features/projects/components/project-form/project-form.component.html -->
+<div class="form-page" dir="rtl">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">
+        {{ isEditMode ? 'تعديل بيانات المشروع' : 'إضافة مشروع جديد' }}
+      </h1>
+      <p class="page-subtitle">
+        {{ isEditMode ? 'قم بتحديث معلومات المشروع' : 'أدخل بيانات المشروع الجديد' }}
+      </p>
+    </div>
+    <button class="btn-back" (click)="cancel()">
+      <lucide-angular name="x" [size]="20"></lucide-angular>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل البيانات...</p>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="!loading" class="form-container">
+    <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
+      <!-- Basic Information -->
+      <div class="form-card">
+        <div class="card-header">
+          <lucide-angular name="folder" [size]="20"></lucide-angular>
+          <h3>المعلومات الأساسية</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <!-- Title -->
+            <div class="form-group full-width">
+              <label class="form-label">
+                عنوان المشروع <span class="required">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="title"
+                class="form-input"
+                [class.error]="titleError"
+                placeholder="أدخل عنوان المشروع"
+              />
+              <span class="error-message" *ngIf="titleError">{{ titleError }}</span>
+            </div>
+
+            <!-- Customer -->
+            <div class="form-group">
+              <label class="form-label">
+                العميل <span class="required">*</span>
+              </label>
+              <select
+                formControlName="customer_id"
+                class="form-select"
+                [class.error]="customerError"
+              >
+                <option value="">اختر العميل</option>
+                <option *ngFor="let customer of customers" [value]="customer.id">
+                  {{ customer.name }}
+                </option>
+              </select>
+              <span class="error-message" *ngIf="customerError">{{ customerError }}</span>
+            </div>
+
+            <!-- Project Type -->
+            <div class="form-group">
+              <label class="form-label">نوع المشروع</label>
+              <select formControlName="project_type" class="form-select">
+                <option value="">اختر النوع</option>
+                <option *ngFor="let type of projectTypes" [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Status -->
+            <div class="form-group">
+              <label class="form-label">الحالة</label>
+              <select formControlName="status" class="form-select">
+                <option *ngFor="let status of statuses" [value]="status">
+                  {{ getStatusLabel(status) }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Information -->
+      <div class="form-card">
+        <div class="card-header">
+          <lucide-angular name="dollar-sign" [size]="20"></lucide-angular>
+          <h3>المعلومات المالية</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <!-- Total Price -->
+            <div class="form-group">
+              <label class="form-label">السعر الإجمالي</label>
+              <div class="input-with-icon">
+                <lucide-angular name="dollar-sign" [size]="18"></lucide-angular>
+                <input
+                  type="number"
+                  formControlName="total_price"
+                  class="form-input"
+                  [class.error]="priceError"
+                  placeholder="0"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <span class="error-message" *ngIf="priceError">{{ priceError }}</span>
+            </div>
+
+            <!-- Currency -->
+            <div class="form-group">
+              <label class="form-label">العملة</label>
+              <select formControlName="currency" class="form-select">
+                <option *ngFor="let currency of currencies" [value]="currency">
+                  {{ currency }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule -->
+      <div class="form-card">
+        <div class="card-header">
+          <lucide-angular name="calendar" [size]="20"></lucide-angular>
+          <h3>الجدول الزمني</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <!-- Start Date -->
+            <div class="form-group">
+              <label class="form-label">تاريخ البدء</label>
+              <div class="input-with-icon">
+                <lucide-angular name="calendar" [size]="18"></lucide-angular>
+                <input
+                  type="date"
+                  formControlName="start_date"
+                  class="form-input"
+                />
+              </div>
+            </div>
+
+            <!-- Due Date -->
+            <div class="form-group">
+              <label class="form-label">تاريخ التسليم</label>
+              <div class="input-with-icon">
+                <lucide-angular name="calendar" [size]="18"></lucide-angular>
+                <input
+                  type="date"
+                  formControlName="due_date"
+                  class="form-input"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="form-card">
+        <div class="card-header">
+          <lucide-angular name="file-text" [size]="20"></lucide-angular>
+          <h3>ملاحظات</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">ملاحظات المشروع</label>
+            <textarea
+              formControlName="notes"
+              class="form-textarea"
+              rows="4"
+              placeholder="أي ملاحظات أو معلومات إضافية..."
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cancel()"
+          [disabled]="saving"
+        >
+          <lucide-angular name="x" [size]="18"></lucide-angular>
+          <span>إلغاء</span>
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="saving || projectForm.invalid"
+          [class.loading]="saving"
+        >
+          <span *ngIf="!saving" class="btn-content">
+            <lucide-angular name="check" [size]="18"></lucide-angular>
+            <span>{{ isEditMode ? 'تحديث' : 'حفظ' }}</span>
+          </span>
+          <span *ngIf="saving" class="btn-loading">
+            <div class="spinner-small"></div>
+            <span>جاري الحفظ...</span>
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

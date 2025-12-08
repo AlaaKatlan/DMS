@@ -1,0 +1,27 @@
+// src/app/features/invoices/components/invoice-list/invoice-list.component.scss
+
+:host {
+  display: block;
+}
+
+// ضمان توسيط المحتوى داخل خلايا الجدول
+td, th {
+  vertical-align: middle;
+}
+
+// تحسين شكل الزر الأساسي إذا لم يكن معرفاً
+.btn {
+  @apply transition-all duration-200 font-medium;
+
+  &-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
+  }
+
+  &-outline {
+    @apply border border-gray-300 text-gray-700 hover:border-gray-400;
+  }
+
+  &-sm {
+    @apply text-sm py-1 px-3;
+  }
+}

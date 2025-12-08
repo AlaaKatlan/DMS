@@ -1,1 +1,45 @@
 <p>users works!</p>
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">إدارة المستخدمين</h1>
+    <button (click)="loadUsers()" class="btn btn-outline">تحديث القائمة</button>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-10">جاري التحميل...</div>
+
+  <div *ngIf="error" class="bg-red-100 text-red-700 p-4 rounded mb-4">{{ error }}</div>
+
+  <div *ngIf="!loading && !error" class="overflow-x-auto bg-white rounded-lg shadow">
+    <table class="w-full text-right">
+      <thead class="bg-gray-50 border-b">
+        <tr>
+          <th class="p-4">الاسم</th>
+          <th class="p-4">البريد الإلكتروني</th>
+          <th class="p-4">الدور (الصلاحية)</th>
+          <th class="p-4">تاريخ التسجيل</th>
+          <th class="p-4">آخر دخول</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users" class="border-b hover:bg-gray-50">
+          <td class="p-4 font-medium">{{ user.full_name }}</td>
+          <td class="p-4 text-gray-600">{{ user.email }}</td>
+          <td class="p-4">
+            <select
+              [ngModel]="user.role"
+              (ngModelChange)="onRoleChange(user, $event)"
+              class="border rounded px-2 py-1 bg-white focus:ring-2 focus:ring-primary">
+              <option *ngFor="let role of availableRoles" [value]="role.value">
+                {{ role.label }}
+              </option>
+            </select>
+          </td>
+          <td class="p-4 text-sm text-gray-500">{{ user.created_at | date:'shortDate' }}</td>
+          <td class="p-4 text-sm text-gray-500">
+            {{ user.last_sign_in_at ? (user.last_sign_in_at | date:'short') : 'لم يدخل بعد' }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
