@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BooksService } from '../../books.service';
 import { LucideAngularModule } from 'lucide-angular';
-import { Country } from '../../../../core/models/base.model';
+import { Country, Book } from '../../../../core/models/base.model';
 
 @Component({
   selector: 'app-book-form',
@@ -24,11 +24,22 @@ export class BookFormComponent implements OnInit {
   bookId: number | null = null;
   isLoading = false;
   isSubmitting = false;
-  countries: Country[] = []; // يفترض جلبها من خدمة عامة
+
+  // قائمة الدول (يفترض أن تأتي من خدمة، سأضع بيانات وهمية للتجربة)
+  countries: Country[] = [
+    { id: 1, name: 'سوريا', code: 'SY' },
+    { id: 2, name: 'الإمارات', code: 'AE' },
+    { id: 3, name: 'قطر', code: 'QA' },
+    { id: 4, name: 'لبنان', code: 'LB' }
+  ];
 
   ngOnInit() {
     this.initForm();
-    // this.loadCountries(); // قم بتفعيل هذا السطر إذا كان لديك خدمة للبلدان
+    this.setupCurrencyLogic(); // تفعيل منطق العملات
+
+    // هنا يمكنك استدعاء خدمة الدول الحقيقية
+    // this.loadCountries();
+    this.setDefaultCountry(); // تعيين سوريا افتراضياً
 
     this.route.params.subscribe(params => {
       if (params['id']) {
@@ -41,30 +52,75 @@ export class BookFormComponent implements OnInit {
 
   initForm() {
     this.bookForm = this.fb.group({
-      title: ['', [Validators.required, Validators.minLength(2)]],
-      author: ['', Validators.required],
+      // المعلومات الأساسية
+      title: ['', [Validators.required]],
+      author: [''],
+      publisher: ['دار الزيبق'], // القيمة الافتراضية
       isbn: [''],
-      publisher: [''],
       category: [''],
-      publication_year: [new Date().getFullYear(), [Validators.min(1900), Validators.max(new Date().getFullYear() + 1)]],
-      price_usd: [0, [Validators.required, Validators.min(0)]],
-      price_syp: [0],
-      cost_usd: [0],
-      quantity: [0, [Validators.required, Validators.min(0)]],
-      description: [''],
+      year: [new Date().getFullYear()],
+      publication_year: [new Date().getFullYear()],
       country_id: [null],
-      cover_image: [''] // يمكن ربطه بمكون رفع ملفات
+
+      // المخزون
+      quantity: [0, [Validators.min(0)]],
+
+      // الأسعار (بيع)
+      price_usd: [0, [Validators.min(0)]],
+      price_aed: [0, [Validators.min(0)]],
+      price_qr: [0, [Validators.min(0)]],
+      price_syp: [0, [Validators.min(0)]],
+
+      // الأسعار (تكلفة)
+      cost_usd: [0, [Validators.min(0)]],
+      cost_syp: [0, [Validators.min(0)]],
+
+      // المواصفات الفنية
+      height_cm: [null],
+      width_cm: [null],
+      cover_type: [''], // غلاف فني، عادي، إلخ
+      pages: [null],
+
+      // الملفات والصور
+      cover_image_url: [''],
+      cover_image_extention: ['.jpg'],
+      file_url: [''],
+
+      // أخرى
+      description: ['']
     });
+  }
+
+  // منطق لربط السعر الإماراتي بالقطري
+  setupCurrencyLogic() {
+    this.bookForm.get('price_aed')?.valueChanges.subscribe(val => {
+      // إذا تم تعديل الإماراتي، انسخ القيمة للقطري
+      if (val !== null) {
+        this.bookForm.patchValue({ price_qr: val }, { emitEvent: false });
+      }
+    });
+  }
+
+  // تعيين سوريا افتراضياً
+  setDefaultCountry() {
+    if (!this.isEditMode) {
+      const syria = this.countries.find(c => c.name.includes('سوريا') || c.code === 'SY');
+      if (syria) {
+        this.bookForm.patchValue({ country_id: syria.id });
+      }
+    }
   }
 
   loadBookData(id: number) {
     this.isLoading = true;
-    this.booksService.getBookDetail(id).subscribe({
+    this.booksService.getBookDetail(id).subscribe({ // Assuming getBookDetail takes string
       next: (book) => {
         if (book) {
           this.bookForm.patchValue(book);
-          // في حال التعديل، قد نود تعطيل حقل الكمية ليتم تعديله عبر حركات المخزون حصراً
-          // this.bookForm.get('quantity')?.disable();
+          // في حال التعديل، تأكد من تحديث الكمية إذا كانت مخزنة باسم stock_quantity
+          // if (book.stock_quantity !== undefined) {
+          //   this.bookForm.patchValue({ quantity: book.stock_quantity });
+          // }
         }
         this.isLoading = false;
       },
@@ -84,23 +140,23 @@ export class BookFormComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    const formData = this.bookForm.getRawValue(); // استخدام getRawValue لضمان أخذ الحقول المعطلة إن وجدت
+    const formData = this.bookForm.getRawValue();
 
+    // التعامل مع الإضافة أو التعديل
     const request$ = this.isEditMode && this.bookId
-      ? this.booksService.updateBook(this.bookId, formData)
+      ? this.booksService.update(this.bookId.toString(), formData) // Assuming update takes string ID
       : this.booksService.create(formData);
 
     request$.subscribe({
       next: () => {
         this.isSubmitting = false;
-        // يفضل استخدام Toastr هنا
-        alert(this.isEditMode ? 'تم تحديث بيانات الكتاب بنجاح' : 'تم إضافة الكتاب بنجاح');
+        alert(this.isEditMode ? 'تم تحديث الكتاب' : 'تم إضافة الكتاب');
         this.router.navigate(['/books']);
       },
       error: (err) => {
         this.isSubmitting = false;
         console.error(err);
-        alert('حدث خطأ أثناء الحفظ. يرجى المحاولة مرة أخرى.');
+        alert('حدث خطأ أثناء الحفظ');
       }
     });
   }

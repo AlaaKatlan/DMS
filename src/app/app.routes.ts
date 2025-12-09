@@ -101,6 +101,10 @@ export const routes: Routes = [
           {
             path: ':id',
             loadComponent: () => import('./features/books/components/book-detail/book-detail.component').then(m => m.BookDetailComponent)
+          },
+          {
+            path: ':id/edit',
+            loadComponent: () => import('./features/books/components/book-form/book-form.component').then(m => m.BookFormComponent)
           }
         ]
       },

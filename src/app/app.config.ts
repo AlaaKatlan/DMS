@@ -9,14 +9,14 @@ import localeAr from '@angular/common/locales/ar';
 import {
   LucideAngularModule,FolderOpen,
   DollarSign, TrendingUp, ArrowDown, Activity, Users,
-  Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,PlusCircle,
+  Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,PlusCircle,Book,
   // NEW ICONS BELOW:
   Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical, Mail,
   Lock, Grid, Plus, FileQuestion,Edit3,CircleCheck,PenLine,
   Eye, Trash2, Edit, Filter, X, Check, Map, Hash,CreditCard,ArrowRight,
   EyeOff, List, Building, Trash,ChartBar,ChartColumn,Briefcase,Workflow,
-  LogIn, MapPin, ChevronLeft, ArrowLeft,CircleAlert,Columns,Columns2,
-  UserPlus, Phone,Tag,CheckCircle,Flag,Handshake,
+  LogIn, MapPin, ChevronLeft, ArrowLeft,CircleAlert,Columns,Columns2,Ruler,
+  UserPlus, Phone,Tag,CheckCircle,Flag,Handshake,TrendingDown,Image,
   // ADD THESE IF MISSING:
   User,
   LogOut,
@@ -43,8 +43,8 @@ export const appConfig: ApplicationConfig = {
       Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,
       Mail, MapPin, FileQuestion,PlusCircle,CheckCircle,
       Lock, List, Check, Map, Building, Trash,Hash,CreditCard,ArrowRight,Edit3,CircleCheck,
-      Eye, Phone, Plus,ArrowLeft,CircleAlert,
-      EyeOff, UserPlus,ChartBar,ChartColumn,
+      Eye, Phone, Plus,ArrowLeft,CircleAlert,Book,Ruler,Image,
+      EyeOff, UserPlus,ChartBar,ChartColumn,TrendingDown,
       LogIn, Trash2, Edit, Filter,Columns2,Tag,
       // ADD THESE IF MISSING:
       User, X,

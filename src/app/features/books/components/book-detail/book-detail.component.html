@@ -1,135 +1,104 @@
-<div *ngIf="isLoading" class="flex justify-center items-center min-h-[400px]">
-  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-</div>
-
-<div *ngIf="!isLoading && book" class="max-w-6xl mx-auto p-6 space-y-6">
-
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col md:flex-row justify-between gap-6">
-    <div class="flex gap-6">
-      <div class="w-32 h-44 bg-gray-100 rounded-lg overflow-hidden shadow-md shrink-0 relative">
-        <img alt="" *ngIf="book.cover_image_url" [src]="book.cover_image_url" [alt]="book.title" class="w-full h-full object-cover">
-        <div *ngIf="!book.cover_image_url" class="w-full h-full flex items-center justify-center text-gray-400 bg-gray-50">
-          <lucide-angular name="image" size="32"></lucide-angular>
-        </div>
-      </div>
-
-      <div>
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ book.title }}</h1>
-        <div class="text-lg text-gray-600 mb-4 flex items-center gap-2">
-          <lucide-angular name="pen-tool" size="18"></lucide-angular>
-          <span>{{ book.author }}</span>
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-          <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium border border-blue-100">
-            {{ book.category || 'غير مصنف' }}
-          </span>
-          <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-mono border border-gray-200" *ngIf="book.isbn">
-            ISBN: {{ book.isbn }}
-          </span>
-        </div>
-      </div>
+<div class="book-detail-page" dir="rtl" *ngIf="book; else loadingTpl">
+  <div class="page-header">
+    <div class="header-content">
+      <button routerLink="/books" class="btn-back">
+        <lucide-angular name="arrow-right" [size]="20"></lucide-angular>
+        العودة للمكتبة
+      </button>
+      <h1 class="page-title">{{ book.title }}</h1>
+      <span class="stock-badge" [ngClass]="getStockClass(book.stock_quantity || 0)">
+        {{ getStockStatus(book.stock_quantity || 0) }}
+      </span>
     </div>
 
-    <div class="flex flex-col items-end gap-4 min-w-[200px]">
-      <div class="text-center w-full bg-gray-50 p-4 rounded-xl border border-gray-100">
-        <div class="text-sm text-gray-500 mb-1">سعر البيع</div>
-        <div class="text-2xl font-bold text-green-600">{{ book.price_usd | currency:'USD' }}</div>
-      </div>
-
-      <a [routerLink]="['/books', book.book_id, 'edit']" class="w-full text-center px-4 py-2 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border border-yellow-200 rounded-lg transition-colors flex items-center justify-center gap-2 font-medium">
-        <lucide-angular name="edit" size="18"></lucide-angular>
-        تعديل البيانات
-      </a>
+    <div class="header-actions">
+      <button [routerLink]="['/books', book.book_id, 'edit']" class="btn btn-outline">
+        <lucide-angular name="edit-3" [size]="18"></lucide-angular>
+        تعديل
+      </button>
+      <button (click)="deleteBook()" class="btn btn-danger-outline">
+        <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+        حذف
+      </button>
     </div>
   </div>
 
-  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-    <div class="border-b border-gray-100 flex">
-      <button (click)="activeTab = 'info'"
-              [class]="activeTab === 'info' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
-              class="px-6 py-4 font-medium transition-all focus:outline-none">
-        المعلومات التفصيلية
-      </button>
-      <button (click)="activeTab = 'inventory'"
-              [class]="activeTab === 'inventory' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'"
-              class="px-6 py-4 font-medium transition-all focus:outline-none">
-        سجل حركات المخزون
-      </button>
+  <div class="content-grid">
+    <div class="card cover-card">
+      <div class="cover-wrapper">
+        <img alt=""
+          [src]="book.cover_image_url || 'assets/images/book-placeholder.png'"
+          [alt]="book.title"
+          class="book-cover"
+        >
+      </div>
     </div>
 
-    <div class="p-6 min-h-[300px]">
-
-      <div *ngIf="activeTab === 'info'" class="grid grid-cols-1 md:grid-cols-2 gap-8 animate-fade-in">
-        <div>
-          <h3 class="font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">بيانات النشر</h3>
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <span class="text-gray-500">الناشر</span>
-              <span class="font-medium text-gray-900">{{ book.publisher || '-' }}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-500">سنة النشر</span>
-              <span class="font-medium text-gray-900">{{ book.publication_year || '-' }}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-500">تاريخ الإضافة</span>
-              <span class="font-medium text-gray-900">{{ book.created_at | date:'mediumDate' }}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-500">البلد</span>
-              <span class="font-medium text-gray-900">{{ book.country?.name || '-' }}</span>
-            </div>
-          </div>
+    <div class="card info-card">
+      <div class="card-header">
+        <h3>معلومات الكتاب</h3>
+      </div>
+      <div class="info-list">
+        <div class="info-item">
+          <span class="label">المؤلف</span>
+          <span class="value">{{ book.author || '-' }}</span>
         </div>
-
-        <div>
-          <h3 class="font-bold text-gray-900 mb-4 border-b border-gray-100 pb-2">الوصف</h3>
-          <p class="text-gray-600 leading-relaxed whitespace-pre-line">
-            {{ book.description || 'لا يوجد وصف مضاف لهذا الكتاب.' }}
-          </p>
+        <div class="info-item">
+          <span class="label">ISBN</span>
+          <span class="value font-mono">{{ book.isbn || '-' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">الناشر</span>
+          <span class="value">{{ book.publisher || '-' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">سنة النشر</span>
+          <span class="value">{{ book.year || '-' }}</span>
         </div>
       </div>
 
-      <div *ngIf="activeTab === 'inventory'" class="animate-fade-in">
-        <div class="flex justify-between items-center mb-6">
-          <div class="text-lg font-medium">
-            الكمية المتوفرة حالياً: <span class="font-bold text-blue-600 text-2xl mx-1">{{ book.quantity }}</span> نسخة
+      <div class="separator"></div>
+
+      <div class="description-section">
+        <h4>نبذة عن الكتاب</h4>
+        <p>{{ book.description || 'لا يوجد وصف متاح.' }}</p>
+      </div>
+    </div>
+
+    <div class="card stats-card">
+      <div class="card-header">
+        <h3>البيانات المالية والمخزون</h3>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <lucide-angular name="dollar-sign" [size]="20" class="text-blue-500"></lucide-angular>
+          <div class="stat-info">
+            <span class="label">سعر البيع (USD)</span>
+            <span class="val">{{ book.price_usd | currency:'USD' }}</span>
           </div>
         </div>
-
-        <div class="overflow-x-auto border border-gray-200 rounded-lg">
-          <table class="w-full text-right text-sm">
-            <thead class="bg-gray-50 text-gray-700 font-semibold">
-              <tr>
-                <th class="p-3 border-b">التاريخ</th>
-                <th class="p-3 border-b">نوع الحركة</th>
-                <th class="p-3 border-b">الكمية</th>
-                <th class="p-3 border-b">ملاحظات</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr *ngFor="let log of inventoryLogs" class="hover:bg-gray-50">
-                <td class="p-3 text-gray-600 font-mono">{{ log.created_at | date:'medium' }}</td>
-                <td class="p-3">
-                  <span [class]="log.type === 'in' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'"
-                        class="px-2.5 py-0.5 rounded-full text-xs font-medium">
-                    {{ log.type === 'in' ? 'إدخال' : 'إخراج' }}
-                  </span>
-                </td>
-                <td class="p-3 font-bold text-gray-900">{{ log.quantity }}</td>
-                <td class="p-3 text-gray-500">{{ log.notes || '-' }}</td>
-              </tr>
-              <tr *ngIf="inventoryLogs.length === 0">
-                <td colspan="4" class="p-8 text-center text-gray-400 bg-gray-50/30">
-                  لا توجد حركات مسجلة في سجل المخزون لهذا الكتاب.
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="stat-box">
+          <lucide-angular name="trending-down" [size]="20" class="text-orange-500"></lucide-angular>
+          <div class="stat-info">
+            <span class="label">التكلفة (USD)</span>
+            <span class="val">{{ book.cost_usd | currency:'USD' }}</span>
+          </div>
+        </div>
+        <div class="stat-box">
+          <lucide-angular name="package" [size]="20" class="text-green-500"></lucide-angular>
+          <div class="stat-info">
+            <span class="label">الكمية الحالية</span>
+            <span class="val">{{ book.stock_quantity || 0 }}</span>
+          </div>
         </div>
       </div>
-
     </div>
   </div>
 </div>
+
+<ng-template #loadingTpl>
+  <div class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل بيانات الكتاب...</p>
+  </div>
+</ng-template>

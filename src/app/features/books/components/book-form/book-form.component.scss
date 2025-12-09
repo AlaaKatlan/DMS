@@ -1,43 +1,210 @@
+@use 'sass:color';
+
+// Variables (Matching project style)
+$primary: #4F46E5;
+$secondary: #64748B;
+$success: #10B981;
+$warning: #F59E0B;
+$danger: #EF4444;
+$info: #3B82F6;
+$bg-page: #F8FAFC;
+$white: #FFFFFF;
+$border: #E2E8F0;
+$text-main: #1E293B;
+$text-light: #64748B;
+
 :host {
   display: block;
+  min-height: 100vh;
+  background-color: $bg-page;
+  padding: 2rem;
+  @media (max-width: 768px) { padding: 1rem; }
 }
 
-// تحسين مظهر الحقول المعطلة (مثل الكمية في وضع التعديل)
-input[readonly],
-input[disabled],
-textarea[readonly] {
-  @apply bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200;
+.book-form-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-  &:focus {
-    @apply ring-0 border-gray-200;
+// Header Section
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .btn-back {
+      background: $white;
+      border: 1px solid $border;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: $text-light;
+      cursor: pointer;
+      transition: all 0.2s;
+      &:hover { background: #f1f5f9; color: $primary; border-color: $primary; }
+    }
+
+    .title-group {
+      h2 { font-size: 1.5rem; font-weight: 800; color: $text-main; margin: 0; }
+      .subtitle { color: $text-light; font-size: 0.9rem; margin: 0.25rem 0 0 0; }
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      transition: 0.2s;
+
+      &-secondary {
+        background: $white;
+        border: 1px solid $border;
+        color: $text-main;
+        &:hover { background: #f8fafc; }
+      }
+
+      &-primary {
+        background: $primary;
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba($primary, 0.3);
+        &:hover { background: color.mix(black, $primary, 10%); }
+        &:disabled { opacity: 0.7; cursor: not-allowed; }
+      }
+    }
   }
 }
 
-// تنسيق خاص لمنطقة رفع الصورة (في حال إضافتها مستقبلاً)
-.image-upload-area {
-  @apply border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer transition-all;
+// Grid Layout
+.form-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
 
-  &:hover {
-    @apply border-blue-400 bg-blue-50;
-  }
-
-  &.has-image {
-    @apply border-solid border-gray-200 p-2;
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
   }
 }
 
-// رسائل الخطأ مع حركة بسيطة
-.error-msg {
-  animation: slideDown 0.2s ease-out;
+// Cards
+.card {
+  background: $white;
+  border-radius: 1rem;
+  border: 1px solid $border;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+
+  .card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid $border;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #f8fafc; // Light header background
+
+    lucide-angular { color: $primary; }
+    & h3 { margin: 0; font-size: 1rem; font-weight: 700; color: $text-main; }
+
+    // Text colors for icons
+    .text-success { color: $success; }
+    .text-warning { color: $warning; }
+    .text-info { color: $info; }
+    .text-primary { color: $primary; }
+  }
+
+  .card-body {
+    padding: 1.5rem;
+  }
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
+// Form Controls
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+
+  label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: $text-main;
+    .required { color: $danger; margin-right: 2px; }
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  input, select, textarea {
+    padding: 0.75rem 1rem;
+    border: 1px solid $border;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    color: $text-main;
+    width: 100%;
+    box-sizing: border-box; // Important
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    }
+
+    &::placeholder { color: color.mix($white, $text-light, 40%); }
+  }
+
+  .hint { font-size: 0.75rem; color: $text-light; }
+
+  .font-mono { font-family: monospace; }
+  .font-bold { font-weight: 700; }
+  .text-success { color: $success; }
+  .bg-readonly { background-color: #f1f5f9; cursor: not-allowed; }
+}
+
+// Grids helpers
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.col-span-2 { grid-column: span 2; }
+
+@media (max-width: 600px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .col-span-2 { grid-column: span 1; }
+}
+
+// Image Preview
+.image-preview {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border: 1px dashed $border;
+  border-radius: 0.5rem;
+  display: flex;
+  justify-content: center;
+
+  img {
+    max-height: 150px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 }
+
+// Spinner Animation
+.animate-spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

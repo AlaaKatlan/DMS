@@ -122,7 +122,7 @@ export interface Book {
   category?: string;
   year?: number;
   country_id?: number;
-
+stock_quantity?: number;
   price_qr?: number;
   price_aed?: number;
   price_usd?: number;
@@ -130,8 +130,7 @@ export interface Book {
 
   cost_usd?: number;
   cost_syp?: number;
-  quantity: number; // الكمية الحالية (محسوبة أو مخزنة)
-  height_cm?: number;
+   height_cm?: number;
   width_cm?: number;
   cover_type?: string;
 publication_year?: number;
