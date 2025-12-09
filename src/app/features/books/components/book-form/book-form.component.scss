@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+// تحسين مظهر الحقول المعطلة (مثل الكمية في وضع التعديل)
+input[readonly],
+input[disabled],
+textarea[readonly] {
+  @apply bg-gray-50 text-gray-500 cursor-not-allowed border-gray-200;
+
+  &:focus {
+    @apply ring-0 border-gray-200;
+  }
+}
+
+// تنسيق خاص لمنطقة رفع الصورة (في حال إضافتها مستقبلاً)
+.image-upload-area {
+  @apply border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer transition-all;
+
+  &:hover {
+    @apply border-blue-400 bg-blue-50;
+  }
+
+  &.has-image {
+    @apply border-solid border-gray-200 p-2;
+  }
+}
+
+// رسائل الخطأ مع حركة بسيطة
+.error-msg {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

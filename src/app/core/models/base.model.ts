@@ -130,11 +130,11 @@ export interface Book {
 
   cost_usd?: number;
   cost_syp?: number;
-
+  quantity: number; // الكمية الحالية (محسوبة أو مخزنة)
   height_cm?: number;
   width_cm?: number;
   cover_type?: string;
-
+publication_year?: number;
   cover_image_url?: string;
   cover_image_extention?: string;
   file_url?: string;
@@ -164,7 +164,11 @@ export interface InventoryLog extends BaseEntity {
 
   book?: Book;
 }
-
+export interface BookFilters {
+  search?: string;
+  category?: string;
+  country_id?: number;
+}
 // ==================== PROJECTS ====================
 
 export interface Project extends BaseEntity {

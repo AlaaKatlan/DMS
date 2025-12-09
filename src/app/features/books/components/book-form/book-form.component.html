@@ -1,1 +1,90 @@
 <p>book-form works!</p>
+<div class="max-w-4xl mx-auto p-6">
+  <div class="flex items-center gap-4 mb-8">
+    <a routerLink="/books" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500">
+      <i-lucide name="arrow-right" size="24"></i-lucide>
+    </a>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">{{ isEditMode ? 'تعديل كتاب' : 'إضافة كتاب جديد' }}</h1>
+      <p class="text-gray-500 text-sm mt-1">{{ isEditMode ? 'تعديل بيانات الكتاب والمخزون' : 'إدخال بيانات كتاب جديد للمكتبة' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="bookForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <i-lucide name="book" size="20" class="text-blue-600"></i-lucide>
+        المعلومات الأساسية
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="col-span-2">
+          <label class="block text-sm font-medium text-gray-700 mb-1">عنوان الكتاب <span class="text-red-500">*</span></label>
+          <input formControlName="title" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" [class.border-red-300]="bookForm.get('title')?.invalid && bookForm.get('title')?.touched">
+          <span *ngIf="bookForm.get('title')?.invalid && bookForm.get('title')?.touched" class="text-red-500 text-xs mt-1 block">عنوان الكتاب مطلوب</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">المؤلف <span class="text-red-500">*</span></label>
+          <input formControlName="author" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">الناشر</label>
+          <input formControlName="publisher" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">التصنيف</label>
+          <input formControlName="category" type="text" placeholder="مثال: رواية، تاريخ، علوم" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">رقم ISBN</label>
+          <input formControlName="isbn" type="text" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono">
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+      <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <i-lucide name="dollar-sign" size="20" class="text-green-600"></i-lucide>
+        البيانات المالية والمخزون
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">سعر البيع (USD) <span class="text-red-500">*</span></label>
+          <input formControlName="price_usd" type="number" min="0" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">سعر التكلفة (USD)</label>
+          <input formControlName="cost_usd" type="number" min="0" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">الكمية الحالية <span class="text-red-500">*</span></label>
+          <input formControlName="quantity" type="number" min="0" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+          <p *ngIf="isEditMode" class="text-xs text-yellow-600 mt-1">⚠️ تغيير الكمية هنا سيعدل الرقم مباشرة. يفضل استخدام سجل المخزون.</p>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1">وصف الكتاب</label>
+        <textarea formControlName="description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-end gap-4 mt-8">
+      <button type="button" routerLink="/books" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+        إلغاء
+      </button>
+      <button type="submit" [disabled]="bookForm.invalid || isSubmitting" class="px-8 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+        <i-lucide *ngIf="isSubmitting" name="loader-2" class="animate-spin" size="18"></i-lucide>
+        {{ isSubmitting ? 'جاري الحفظ...' : (isEditMode ? 'تحديث البيانات' : 'حفظ الكتاب') }}
+      </button>
+    </div>
+  </form>
+</div>

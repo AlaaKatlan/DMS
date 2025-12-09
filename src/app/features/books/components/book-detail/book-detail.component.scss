@@ -1,0 +1,60 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+// تحسين التبويبات النشطة
+button.active-tab {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: currentColor; // يأخذ لون النص (الأزرق)
+    border-radius: 2px 2px 0 0;
+  }
+}
+
+// تنسيق الجدول الخاص بالمخزون
+.inventory-table {
+  th {
+    @apply font-semibold text-gray-600 bg-gray-50/80;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+// تأثير للصورة في الهيدر
+.book-cover {
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+// تحسينات للموبايل
+@media (max-width: 640px) {
+  .book-header {
+    flex-direction: column;
+    text-align: center;
+
+    .book-cover-container {
+      margin: 0 auto;
+    }
+
+    .actions {
+      width: 100%;
+
+      a {
+        width: 100%;
+      }
+    }
+  }
+}
