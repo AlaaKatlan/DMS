@@ -1,0 +1,152 @@
+@use 'sass:color';
+
+$primary: #4F46E5;
+$bg-page: #F8FAFC;
+$white: #FFFFFF;
+$border: #E2E8F0;
+$text-main: #1E293B;
+$text-light: #64748B;
+
+// Status Colors
+$color-active: #3B82F6;
+$color-completed: #10B981;
+$color-on-hold: #F59E0B;
+$color-cancelled: #EF4444;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: $bg-page;
+}
+
+.kanban-page {
+  padding: 2rem;
+  max-width: 100%;
+  overflow-x: auto;
+
+  @media (max-width: 768px) { padding: 1rem; }
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+
+  .page-title { font-size: 1.8rem; font-weight: 800; color: $text-main; margin: 0; }
+  .page-subtitle { color: $text-light; margin-top: 0.5rem; }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem;
+      border-radius: 0.5rem; font-weight: 600; cursor: pointer; border: 1px solid transparent;
+
+      &-primary { background: $primary; color: white; &:hover { background: color.adjust($primary, $lightness: -10%); } }
+      &-outline { background: white; border-color: $border; color: $text-light; &:hover { color: $primary; border-color: $primary; } }
+    }
+  }
+}
+
+.kanban-board {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  min-height: 600px;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+
+  .kanban-column {
+    flex: 0 0 320px; // عرض ثابت للعمود
+    background: #F1F5F9;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100vh - 200px);
+
+    .column-header {
+      padding: 1rem;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 1rem 1rem 0 0;
+      color: white;
+
+      .header-title { display: flex; align-items: center; gap: 0.5rem; h3 { margin: 0; font-size: 1rem; font-weight: 700; } }
+      .count-badge { background: rgba(255,255,255,0.2); padding: 0.1rem 0.5rem; border-radius: 12px; font-size: 0.8rem; }
+
+      &.on-hold { background: $color-on-hold; }
+      &.active { background: $color-active; }
+      &.completed { background: $color-completed; }
+      &.cancelled { background: $color-cancelled; }
+    }
+
+    .column-content {
+      padding: 1rem;
+      flex: 1;
+      overflow-y: auto;
+      min-height: 150px;
+
+      .empty-placeholder {
+        text-align: center; color: $text-light; opacity: 0.6; padding: 2rem 0; border: 2px dashed $border; border-radius: 0.5rem;
+      }
+    }
+  }
+}
+
+.kanban-card {
+  background: $white;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+
+  &:hover { transform: translateY(-3px); box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-color: $primary; }
+
+  .card-badges {
+    display: flex; justify-content: space-between; margin-bottom: 0.5rem;
+    .type-badge { font-size: 0.7rem; background: #EEF2FF; color: $primary; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+    .date-badge { font-size: 0.7rem; background: #FEF2F2; color: $color-cancelled; padding: 2px 6px; border-radius: 4px; }
+  }
+
+  .card-title { margin: 0 0 0.5rem; font-size: 1rem; color: $text-main; }
+
+  .card-meta {
+    display: flex; gap: 0.5rem; color: $text-light; font-size: 0.85rem; margin-bottom: 0.75rem;
+    .meta-item { display: flex; align-items: center; gap: 0.3rem; }
+  }
+
+  .card-footer {
+    display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f3f4f6; padding-top: 0.75rem;
+    .price { font-weight: 700; font-size: 0.9rem; color: $text-main; }
+    .progress-mini {
+      width: 60px; height: 4px; background: #e2e8f0; border-radius: 2px;
+      .bar { height: 100%; background: $color-completed; border-radius: 2px; }
+    }
+  }
+
+  // Styles specific to completed cards
+  &.completed-card {
+    opacity: 0.8;
+    .card-header-mini { display: flex; justify-content: space-between; align-items: flex-start; }
+    .check-icon { color: $color-completed; }
+    &:hover { opacity: 1; }
+  }
+}
+
+// CDK Drag Styles
+.cdk-drag-preview { box-sizing: border-box; border-radius: 0.75rem; box-shadow: 0 5px 15px rgba(0,0,0,0.15); }
+.cdk-drag-placeholder { opacity: 0; }
+.cdk-drag-animating { transition: transform 250ms cubic-bezier(0, 0, 0.2, 1); }
+.column-content.cdk-drop-list-dragging .kanban-card:not(.cdk-drag-placeholder) { transition: transform 250ms cubic-bezier(0, 0, 0.2, 1); }
+
+// Loading
+.loading-container { text-align: center; padding: 4rem; display: flex; flex-direction: column; align-items: center; }
+.spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: $primary; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }

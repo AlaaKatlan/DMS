@@ -88,10 +88,11 @@
       <lucide-angular name="check-square" [size]="18"></lucide-angular>
       المهام ({{ project.tasks?.length || 0 }})
     </button>
-    <button class="tab-btn" [class.active]="activeTab === 'milestones'" (click)="setActiveTab('milestones')">
-      <lucide-angular name="flag" [size]="18"></lucide-angular>
-      المحطات
-    </button>
+    <div *ngIf="activeTab === 'milestones'" class="milestones-tab">
+
+      <app-milestones [projectId]="project.id"></app-milestones>
+
+    </div>
     <button class="tab-btn" [class.active]="activeTab === 'invoices'" (click)="setActiveTab('invoices')">
       <lucide-angular name="file-text" [size]="18"></lucide-angular>
       المالية
@@ -236,7 +237,8 @@
             <tr *ngFor="let exp of project.expenses">
               <td>{{ exp.title }}</td>
               <td>{{ formatCurrency(exp.amount) }}</td>
-<td>{{ formatDate(exp.expense_date.toString() || '') }}</td>            </tr>
+              <td>{{ formatDate(exp.expense_date.toString() || '') }}</td>
+            </tr>
           </tbody>
         </table>
         <ng-template #noExpenses>

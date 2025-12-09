@@ -118,6 +118,14 @@ export const routes: Routes = [
             loadComponent: () => import('./features/projects/components/project-list/project-list.component').then(m => m.ProjectListComponent)
           },
           {
+            path: 'board',
+            loadComponent: () => import('./features/projects/components/project-kanban/project-kanban.component').then(m => m.ProjectKanbanComponent)
+          },
+          {
+            path: 'timeline',
+            loadComponent: () => import('./features/projects/components/project-timeline/project-timeline.component').then(m => m.ProjectTimelineComponent)
+          },
+          {
             path: 'new',
             loadComponent: () => import('./features/projects/components/project-form/project-form.component').then(m => m.ProjectFormComponent)
           },

@@ -1,1 +1,54 @@
-<p>project-timeline works!</p>
+<div class="timeline-page" dir="rtl">
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">الجدول الزمني</h1>
+      <p class="page-subtitle">سجل المشاريع مرتباً زمنياً</p>
+    </div>
+    <div class="header-actions">
+      <button routerLink="/projects" class="btn btn-outline">
+        <lucide-angular name="list" [size]="20"></lucide-angular>
+        قائمة
+      </button>
+    </div>
+  </div>
+
+  <div class="loading-container" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>جاري تحميل الخط الزمني...</p>
+  </div>
+
+  <div class="timeline-container" *ngIf="!loading">
+    <div class="timeline-group" *ngFor="let group of groupedProjects">
+      <div class="timeline-month-badge">{{ group.date }}</div>
+
+      <div class="timeline-item" *ngFor="let project of group.projects">
+        <div class="timeline-marker" [ngClass]="getStatusClass(project.status)"></div>
+
+        <div class="timeline-content" [routerLink]="['/projects', project.id]">
+          <div class="content-header">
+            <span class="date">{{ project.start_date | date:'dd MMM' }}</span>
+            <span class="status-pill" [ngClass]="getStatusClass(project.status)">{{ project.status }}</span>
+          </div>
+
+          <h3 class="project-title">{{ project.title }}</h3>
+
+          <div class="project-meta">
+            <div class="meta-row" *ngIf="project.customer">
+              <lucide-angular name="user" [size]="14"></lucide-angular>
+              {{ project.customer.name }}
+            </div>
+            <div class="meta-row">
+              <lucide-angular name="tag" [size]="14"></lucide-angular>
+              {{ project.project_type || 'مشروع' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="groupedProjects.length === 0">
+      <lucide-angular name="calendar-x" [size]="48"></lucide-angular>
+      <p>لا توجد مشاريع لعرضها في الجدول الزمني</p>
+    </div>
+  </div>
+</div>

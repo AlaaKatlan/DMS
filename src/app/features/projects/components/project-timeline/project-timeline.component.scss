@@ -1,0 +1,134 @@
+@use 'sass:color';
+
+$primary: #4F46E5;
+$bg-page: #F8FAFC;
+$white: #FFFFFF;
+$border: #E2E8F0;
+$text-main: #1E293B;
+$text-light: #64748B;
+
+$color-active: #3B82F6;
+$color-completed: #10B981;
+$color-cancelled: #EF4444;
+$color-default: #94A3B8;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: $bg-page;
+}
+
+.timeline-page {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  @media (max-width: 768px) { padding: 1rem; }
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+
+  .page-title { font-size: 1.8rem; font-weight: 800; color: $text-main; margin: 0; }
+  .page-subtitle { color: $text-light; margin-top: 0.5rem; }
+
+  .btn-outline {
+    display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem;
+    border-radius: 0.5rem; background: white; border: 1px solid $border; color: $text-light; cursor: pointer;
+    &:hover { color: $primary; border-color: $primary; }
+  }
+}
+
+.timeline-container {
+  position: relative;
+  padding-right: 2rem;
+  border-right: 2px solid $border; // الخط العمودي الأساسي
+
+  .timeline-group {
+    margin-bottom: 3rem;
+    position: relative;
+
+    .timeline-month-badge {
+      position: absolute;
+      right: -2rem; // محاذاة مع الخط العمودي
+      transform: translateX(50%);
+      top: -1.5rem;
+      background: $white;
+      border: 2px solid $primary;
+      color: $primary;
+      padding: 0.4rem 1rem;
+      border-radius: 99px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      z-index: 2;
+    }
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding-right: 2rem;
+
+    .timeline-marker {
+      position: absolute;
+      right: -2.6rem; // محاذاة دقيقة مع الخط
+      top: 1.5rem;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 3px solid $white;
+      box-shadow: 0 0 0 1px $border;
+      z-index: 1;
+
+      &.active { background: $color-active; }
+      &.completed { background: $color-completed; }
+      &.cancelled { background: $color-cancelled; }
+      &.default { background: $color-default; }
+    }
+
+    .timeline-content {
+      background: $white;
+      padding: 1.25rem;
+      border-radius: 1rem;
+      border: 1px solid $border;
+      transition: all 0.2s;
+      cursor: pointer;
+      position: relative;
+
+      &::before {
+        // سهم صغير يشير للخط الزمني
+        content: ''; position: absolute; right: -6px; top: 1.8rem; width: 10px; height: 10px;
+        background: $white; transform: rotate(45deg); border-right: 1px solid $border; border-top: 1px solid $border;
+      }
+
+      &:hover { transform: translateX(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: $primary; }
+
+      .content-header {
+        display: flex; justify-content: space-between; margin-bottom: 0.5rem;
+        .date { font-weight: 700; color: $text-light; font-size: 0.9rem; }
+        .status-pill {
+          font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; font-weight: 600;
+          &.active { background: rgba($color-active, 0.1); color: $color-active; }
+          &.completed { background: rgba($color-completed, 0.1); color: $color-completed; }
+          &.cancelled { background: rgba($color-cancelled, 0.1); color: $color-cancelled; }
+        }
+      }
+
+      .project-title { margin: 0 0 0.5rem; font-size: 1.1rem; color: $text-main; }
+
+      .project-meta {
+        display: flex; gap: 1rem; font-size: 0.85rem; color: $text-light;
+        .meta-row { display: flex; align-items: center; gap: 0.4rem; }
+      }
+    }
+  }
+}
+
+.empty-state { text-align: center; padding: 3rem; color: $text-light; lucide-angular { opacity: 0.5; margin-bottom: 1rem; } }
+
+// Loading
+.loading-container { text-align: center; padding: 4rem; display: flex; flex-direction: column; align-items: center; }
+.spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: $primary; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }

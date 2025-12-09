@@ -43,7 +43,7 @@ export const appConfig: ApplicationConfig = {
       Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,
       Mail, MapPin, FileQuestion,PlusCircle,CheckCircle,
       Lock, List, Check, Map, Building, Trash,Hash,CreditCard,ArrowRight,Edit3,CircleCheck,
-      Eye, Phone, Plus,ArrowLeft,CircleAlert,Book,Ruler,Image,
+      Eye, Phone, Plus,ArrowLeft,CircleAlert,Book,Ruler,Image,PenLine,
       EyeOff, UserPlus,ChartBar,ChartColumn,TrendingDown,
       LogIn, Trash2, Edit, Filter,Columns2,Tag,
       // ADD THESE IF MISSING:
