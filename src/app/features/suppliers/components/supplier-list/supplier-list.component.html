@@ -1,1 +1,155 @@
-<p>supplier-list works!</p>
+<!-- src/app/features/suppliers/components/supplier-list/supplier-list.component.html -->
+<div class="suppliers-page" dir="rtl">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">إدارة الموردين</h1>
+      <p class="page-subtitle">إدارة الموردين وطلبات الطباعة</p>
+    </div>
+    <button routerLink="/suppliers/new" class="btn btn-primary">
+      <lucide-angular name="plus" [size]="20"></lucide-angular>
+      <span>مورد جديد</span>
+    </button>
+  </div>
+
+  <!-- Filters & Search -->
+  <div class="filters-section">
+    <div class="search-box">
+      <lucide-angular name="search" [size]="20"></lucide-angular>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+        placeholder="ابحث عن مورد..."
+      />
+    </div>
+
+    <div class="filters">
+      <select class="filter-select" [(ngModel)]="selectedType" (ngModelChange)="applyFilters()">
+        <option value="">جميع الأنواع</option>
+        <option *ngFor="let type of getUniqueTypes()" [value]="type">{{ type }}</option>
+      </select>
+
+      <button class="btn-icon" (click)="toggleViewMode()" [title]="viewMode === 'grid' ? 'عرض قائمة' : 'عرض شبكة'">
+        <lucide-angular [name]="viewMode === 'grid' ? 'list' : 'grid'" [size]="20"></lucide-angular>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل الموردين...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredSuppliers.length === 0" class="empty-state">
+    <lucide-angular name="truck" [size]="64"></lucide-angular>
+    <h3>لا يوجد موردين</h3>
+    <p>{{ searchQuery ? 'لا توجد نتائج تطابق بحثك' : 'ابدأ بإضافة مورد جديد' }}</p>
+    <button *ngIf="!searchQuery" routerLink="/suppliers/new" class="btn btn-primary">
+      <lucide-angular name="plus" [size]="18"></lucide-angular>
+      <span>إضافة مورد</span>
+    </button>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="!loading && filteredSuppliers.length > 0 && viewMode === 'grid'" class="suppliers-grid">
+    <div *ngFor="let supplier of filteredSuppliers" class="supplier-card">
+      <div class="card-header">
+        <div class="supplier-avatar">
+          {{ supplier.name.charAt(0).toUpperCase() }}
+        </div>
+        <div class="supplier-info">
+          <h3 class="supplier-name">{{ supplier.name }}</h3>
+          <span class="supplier-type" *ngIf="supplier.type">
+            {{ supplier.type }}
+          </span>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="info-row" *ngIf="supplier.phone">
+          <lucide-angular name="phone" [size]="16"></lucide-angular>
+          <span dir="ltr">{{ supplier.phone }}</span>
+        </div>
+        <div class="info-row" *ngIf="supplier.country">
+          <lucide-angular name="map-pin" [size]="16"></lucide-angular>
+          <span>{{ supplier.country.name }}</span>
+        </div>
+
+        <div class="financial-info">
+          <div class="fin-item">
+            <span class="label">إجمالي المستحق</span>
+            <span class="value due">{{ formatCurrency(supplier.total_due || 0) }}</span>
+          </div>
+          <div class="fin-item">
+            <span class="label">المدفوع</span>
+            <span class="value paid">{{ formatCurrency(supplier.total_paid || 0) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button (click)="viewSupplier(supplier.id)" title="عرض">
+          <lucide-angular name="eye" [size]="18"></lucide-angular>
+        </button>
+        <button (click)="editSupplier(supplier.id)" title="تعديل">
+          <lucide-angular name="edit" [size]="18"></lucide-angular>
+        </button>
+        <button class="delete" (click)="deleteSupplier(supplier)" title="حذف">
+          <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- List View -->
+  <div *ngIf="!loading && filteredSuppliers.length > 0 && viewMode === 'list'" class="suppliers-table">
+    <table>
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>النوع</th>
+          <th>الهاتف</th>
+          <th>البلد</th>
+          <th>إجمالي المستحق</th>
+          <th>المدفوع</th>
+          <th>المتبقي</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let supplier of filteredSuppliers">
+          <td>
+            <div class="table-supplier">
+              <div class="supplier-avatar-small">
+                {{ supplier.name.charAt(0).toUpperCase() }}
+              </div>
+              <span class="supplier-name-text">{{ supplier.name }}</span>
+            </div>
+          </td>
+          <td>{{ supplier.type || '-' }}</td>
+          <td dir="ltr">{{ supplier.phone || '-' }}</td>
+          <td>{{ supplier.country?.name || '-' }}</td>
+          <td class="financial">{{ formatCurrency(supplier.total_due || 0) }}</td>
+          <td class="financial">{{ formatCurrency(supplier.total_paid || 0) }}</td>
+          <td class="financial balance">{{ formatCurrency(getBalance(supplier)) }}</td>
+          <td>
+            <div class="table-actions">
+              <button (click)="viewSupplier(supplier.id)" title="عرض">
+                <lucide-angular name="eye" [size]="16"></lucide-angular>
+              </button>
+              <button (click)="editSupplier(supplier.id)" title="تعديل">
+                <lucide-angular name="edit" [size]="16"></lucide-angular>
+              </button>
+              <button class="delete" (click)="deleteSupplier(supplier)" title="حذف">
+                <lucide-angular name="trash-2" [size]="16"></lucide-angular>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
