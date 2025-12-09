@@ -44,8 +44,8 @@ export class MainLayoutComponent implements OnInit {
       route: '/customers'
     },
     {
-      label: 'الموردين',
-      icon: 'truck',
+      label: 'خدمات خارجية',
+      icon: 'briefcase',
       route: '/suppliers'
     },
     {

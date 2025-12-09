@@ -1,5 +1,5 @@
 // src/app/features/customers/components/customer-form/customer-form.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core'; // 1. إضافة ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -19,6 +19,7 @@ export class CustomerFormComponent implements OnInit {
   private customersService = inject(CustomersService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private cd = inject(ChangeDetectorRef); // 2. حقن الخدمة
 
   customerForm!: FormGroup;
   loading = false;
@@ -52,6 +53,7 @@ export class CustomerFormComponent implements OnInit {
     this.customersService.getCountries().subscribe({
       next: (data) => {
         this.countries = data;
+        this.cd.detectChanges(); // تحديث احتياطي
       },
       error: (error) => {
         console.error('Error loading countries:', error);
@@ -63,6 +65,7 @@ export class CustomerFormComponent implements OnInit {
     this.customersService.getCustomerTypes().subscribe({
       next: (data) => {
         this.customerTypes = data;
+        this.cd.detectChanges(); // تحديث احتياطي
       },
       error: (error) => {
         console.error('Error loading customer types:', error);
@@ -94,12 +97,14 @@ export class CustomerFormComponent implements OnInit {
           });
         }
         this.loading = false;
+        this.cd.detectChanges(); // 3. التحديث اليدوي هنا هو الحل للمشكلة
       },
       error: (error) => {
         console.error('Error loading customer:', error);
         alert('حدث خطأ أثناء تحميل بيانات العميل');
         this.router.navigate(['/customers']);
         this.loading = false;
+        this.cd.detectChanges(); // 3. التحديث اليدوي هنا أيضاً
       }
     });
   }
@@ -123,6 +128,7 @@ export class CustomerFormComponent implements OnInit {
     }
 
     this.saving = true;
+    this.cd.detectChanges(); // لإظهار لودينغ الزر فوراً
 
     const formData = this.customerForm.value;
 
@@ -136,6 +142,7 @@ export class CustomerFormComponent implements OnInit {
           console.error('Error updating customer:', error);
           alert('حدث خطأ أثناء تحديث البيانات');
           this.saving = false;
+          this.cd.detectChanges(); // لإيقاف لودينغ الزر
         }
       });
     } else {
@@ -148,6 +155,7 @@ export class CustomerFormComponent implements OnInit {
           console.error('Error creating customer:', error);
           alert('حدث خطأ أثناء إضافة العميل');
           this.saving = false;
+          this.cd.detectChanges(); // لإيقاف لودينغ الزر
         }
       });
     }
@@ -168,7 +176,7 @@ export class CustomerFormComponent implements OnInit {
     });
   }
 
-  // Getters للتحقق من الأخطاء
+  // Getters
   get nameError(): string {
     const name = this.customerForm.get('name');
     if (name?.hasError('required') && name.touched) {

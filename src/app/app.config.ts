@@ -14,9 +14,9 @@ import {
   Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical, Mail,
   Lock, Grid, Plus, FileQuestion,Edit3,CircleCheck,PenLine,
   Eye, Trash2, Edit, Filter, X, Check, Map, Hash,CreditCard,ArrowRight,
-  EyeOff, List, Building, Trash,ChartBar,ChartColumn,
+  EyeOff, List, Building, Trash,ChartBar,ChartColumn,Briefcase,Workflow,
   LogIn, MapPin, ChevronLeft, ArrowLeft,CircleAlert,Columns,Columns2,
-  UserPlus, Phone,Tag,CheckCircle,
+  UserPlus, Phone,Tag,CheckCircle,Flag,Handshake,
   // ADD THESE IF MISSING:
   User,
   LogOut,
@@ -38,7 +38,7 @@ export const appConfig: ApplicationConfig = {
     // 2. Register icons globally here using importProvidersFrom
     importProvidersFrom(LucideAngularModule.pick({
       DollarSign, TrendingUp, ArrowDown, Activity, Users, ChevronLeft, Grid,FolderOpen,
-      Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,
+      Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,Flag,Handshake,Briefcase,Workflow,
       // REGISTER NEW ICONS HERE:
       Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,
       Mail, MapPin, FileQuestion,PlusCircle,CheckCircle,

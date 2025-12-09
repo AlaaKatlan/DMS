@@ -1,96 +1,82 @@
 // src/app/features/suppliers/components/supplier-detail/supplier-detail.component.ts
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { SupplierService } from '../../services/supplier.service';
-import { Supplier } from '../../models/supplier.model';
-
-interface Tab {
-  id: string;
-  label: string;
-  icon: string;
-}
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
+import { SuppliersService } from '../../suppliers.service';
+import { Supplier } from '../../../../core/models/base.model';
 
 @Component({
   selector: 'app-supplier-detail',
+  standalone: true,
+  imports: [CommonModule, RouterModule, LucideAngularModule],
   templateUrl: './supplier-detail.component.html',
   styleUrls: ['./supplier-detail.component.scss']
 })
 export class SupplierDetailComponent implements OnInit {
-  supplier?: Supplier;
-  loading = false;
-  activeTab = 'details';
+  private suppliersService = inject(SuppliersService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private cd = inject(ChangeDetectorRef);
 
-  tabs: Tab[] = [
-    { id: 'details', label: 'التفاصيل', icon: 'info' },
-    { id: 'orders', label: 'الطلبات', icon: 'package' },
-    { id: 'payments', label: 'الدفعات', icon: 'credit-card' },
-    { id: 'activity', label: 'السجل', icon: 'activity' }
-  ];
-
-  constructor(
-    private supplierService: SupplierService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {}
+  supplier: Supplier | null = null;
+  loading = true;
+  activeTab: 'overview' | 'print_orders' | 'payments' = 'overview';
+  supplierId: string | null = null;
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadSupplier(+id);
+    this.supplierId = this.route.snapshot.paramMap.get('id');
+    if (this.supplierId) {
+      this.loadSupplier(this.supplierId);
+    } else {
+      this.router.navigate(['/suppliers']);
     }
   }
 
-  loadSupplier(id: number): void {
+  loadSupplier(id: string): void {
     this.loading = true;
-    this.supplierService.getSupplier(id).subscribe({
-      next: (data) => {
-        this.supplier = data;
+    this.suppliersService.getSupplierDetail(id).subscribe({
+      // 👇 الإصلاح هنا: قبول Supplier | null
+      next: (data: Supplier | null) => {
+        if (data) {
+          this.supplier = data;
+        } else {
+          // في حال لم يتم العثور على المورد
+          this.router.navigate(['/suppliers']);
+        }
         this.loading = false;
+        this.cd.detectChanges();
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error loading supplier:', error);
         this.loading = false;
-        alert('حدث خطأ أثناء تحميل بيانات المورد');
         this.router.navigate(['/suppliers']);
       }
     });
   }
 
-  formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('ar-MA', {
-      style: 'currency',
-      currency: 'MAD'
-    }).format(amount);
-  }
-
-  getBalance(): number {
-    if (!this.supplier) return 0;
-    return (this.supplier.total_due || 0) - (this.supplier.total_paid || 0);
-  }
-
-  formatDate(date: string | Date): string {
-    return new Intl.DateTimeFormat('ar-MA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(new Date(date));
+  setActiveTab(tab: typeof this.activeTab): void {
+    this.activeTab = tab;
   }
 
   deleteSupplier(): void {
     if (!this.supplier) return;
 
-    if (confirm(`هل أنت متأكد من حذف المورد "${this.supplier.name}"؟\nسيتم حذف جميع البيانات المرتبطة به.`)) {
-      this.supplierService.deleteSupplier(this.supplier.id).subscribe({
+    if (confirm(`هل أنت متأكد من حذف المورد ${this.supplier.name}؟`)) {
+      this.suppliersService.delete(this.supplier.id).subscribe({
         next: () => {
+          alert('تم الحذف بنجاح');
           this.router.navigate(['/suppliers']);
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error deleting supplier:', error);
-          alert('حدث خطأ أثناء حذف المورد');
+          alert('حدث خطأ أثناء الحذف');
         }
       });
     }
+  }
+
+  goBack(): void {
+    this.router.navigate(['/suppliers']);
   }
 }

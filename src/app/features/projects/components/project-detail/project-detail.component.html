@@ -236,8 +236,7 @@
             <tr *ngFor="let exp of project.expenses">
               <td>{{ exp.title }}</td>
               <td>{{ formatCurrency(exp.amount) }}</td>
-              <td>{{ formatDate(exp.expense_date?.toString() || '') }}</td>
-            </tr>
+<td>{{ formatDate(exp.expense_date.toString() || '') }}</td>            </tr>
           </tbody>
         </table>
         <ng-template #noExpenses>
