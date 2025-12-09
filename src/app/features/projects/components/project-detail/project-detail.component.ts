@@ -1,5 +1,5 @@
 // src/app/features/projects/components/project-detail/project-detail.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
@@ -17,6 +17,7 @@ export class ProjectDetailComponent implements OnInit {
   private projectsService = inject(ProjectsService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private cd = inject(ChangeDetectorRef); // 1. حقن خدمة ChangeDetectorRef
 
   project: Project | null = null;
   projectStats: any = null;
@@ -39,21 +40,30 @@ export class ProjectDetailComponent implements OnInit {
     this.loading = true;
     this.projectsService.getProjectDetail(id).subscribe({
       next: (data) => {
-        this.project = data;
-        this.loading = false;
+        // 2. استخدام setTimeout لحل مشكلة NG0100 (تأخير التحديث للدورة القادمة)
+        setTimeout(() => {
+          this.project = data;
+          this.loading = false;
+          this.cd.detectChanges(); // 3. إجبار تحديث الواجهة لإخفاء السبينر
+        }, 0);
       },
-    // في ملف project-detail.component.ts
-error: (error) => {
-  console.error('Error loading project:', error);
-  this.router.navigate(['/projects']); // 👈 هذا السطر هو الذي يعيدك للصفحة السابقة
-}
+      error: (error) => {
+        console.error('Error loading project:', error);
+        alert('حدث خطأ أثناء تحميل بيانات المشروع');
+        this.router.navigate(['/projects']);
+        this.loading = false;
+        this.cd.detectChanges();
+      }
     });
   }
 
   loadStats(id: string): void {
     this.projectsService.getProjectStats(id).subscribe({
       next: (data) => {
-        this.projectStats = data;
+        setTimeout(() => {
+          this.projectStats = data;
+          this.cd.detectChanges(); // تحديث الأرقام فور وصولها
+        }, 0);
       },
       error: (error) => {
         console.error('Error loading stats:', error);
