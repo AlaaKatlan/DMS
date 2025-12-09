@@ -67,10 +67,10 @@
         <!-- User Menu -->
         <div class="header-item user-menu" (click)="toggleUserMenu()">
           <div class="user-avatar">
-            <span>{{ currentUser ? getInitials(currentUser.full_name) : 'NA' }}</span>
+            <span>{{ currentUser ? getInitials(currentUser.full_name_p) : 'NA' }}</span>
           </div>
           <div class="user-info">
-            <span class="user-name">{{ currentUser?.full_name }}</span>
+            <span class="user-name">{{ currentUser?.full_name_p }}</span>
             <span class="user-role">{{ currentUser?.role }}</span>
           </div>
         </div>

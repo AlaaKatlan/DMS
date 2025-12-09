@@ -130,7 +130,7 @@ export const routes: Routes = [
         children: [
           {
             path: '',
-            loadComponent: () => import('./features/tasks/components/task-board/task-board.component').then(m => m.TaskBoardComponent)
+            loadComponent: () => import('./features/tasks/components/task-list/task-list.component').then(m => m.TaskListComponent)
           },
           {
             path: ':id',

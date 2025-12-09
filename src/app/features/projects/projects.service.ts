@@ -288,7 +288,8 @@ completeMilestone(milestoneId: string): Observable<ProjectMilestone> {
 
   // ==================== STATISTICS ====================
 
-  /**
+
+/**
    * Get project statistics
    */
   getProjectStats(projectId: string): Observable<{
@@ -300,7 +301,7 @@ completeMilestone(milestoneId: string): Observable<ProjectMilestone> {
     profit: number;
     progressPercentage: number;
   }> {
-    return this.supabase.rpc('get_project_stats', { project_id: projectId });
+     return this.supabase.rpc('get_project_stats', { p_id: projectId });
   }
 
   /**
@@ -430,4 +431,8 @@ completeMilestone(milestoneId: string): Observable<ProjectMilestone> {
   generateProjectReport(projectId: string): Observable<any> {
     return this.supabase.rpc('generate_project_report', { project_id: projectId });
   }
+
+
+
+
 }

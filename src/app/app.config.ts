@@ -7,16 +7,16 @@ import localeAr from '@angular/common/locales/ar';
 
 // 1. Import Lucide Module and ALL the icons you need across the app
 import {
-  LucideAngularModule,
+  LucideAngularModule,FolderOpen,
   DollarSign, TrendingUp, ArrowDown, Activity, Users,
-  Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,
+  Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,PlusCircle,
   // NEW ICONS BELOW:
   Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical, Mail,
-  Lock, Grid, Plus, FileQuestion,
-  Eye, Trash2, Edit, Filter, X, Check, Map, Hash,
-  EyeOff, List, Building, Trash,
-  LogIn, MapPin, ChevronLeft,
-  UserPlus, Phone,
+  Lock, Grid, Plus, FileQuestion,Edit3,CircleCheck,PenLine,
+  Eye, Trash2, Edit, Filter, X, Check, Map, Hash,CreditCard,ArrowRight,
+  EyeOff, List, Building, Trash,ChartBar,ChartColumn,
+  LogIn, MapPin, ChevronLeft, ArrowLeft,CircleAlert,Columns,Columns2,
+  UserPlus, Phone,Tag,CheckCircle,
   // ADD THESE IF MISSING:
   User,
   LogOut,
@@ -37,15 +37,15 @@ export const appConfig: ApplicationConfig = {
 
     // 2. Register icons globally here using importProvidersFrom
     importProvidersFrom(LucideAngularModule.pick({
-      DollarSign, TrendingUp, ArrowDown, Activity, Users, ChevronLeft, Grid,
+      DollarSign, TrendingUp, ArrowDown, Activity, Users, ChevronLeft, Grid,FolderOpen,
       Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,
       // REGISTER NEW ICONS HERE:
       Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,
-      Mail, MapPin, FileQuestion,
-      Lock, List, Check, Map, Building, Trash,Hash,
-      Eye, Phone, Plus,
-      EyeOff, UserPlus,
-      LogIn, Trash2, Edit, Filter,
+      Mail, MapPin, FileQuestion,PlusCircle,CheckCircle,
+      Lock, List, Check, Map, Building, Trash,Hash,CreditCard,ArrowRight,Edit3,CircleCheck,
+      Eye, Phone, Plus,ArrowLeft,CircleAlert,
+      EyeOff, UserPlus,ChartBar,ChartColumn,
+      LogIn, Trash2, Edit, Filter,Columns2,Tag,
       // ADD THESE IF MISSING:
       User, X,
       LogOut,

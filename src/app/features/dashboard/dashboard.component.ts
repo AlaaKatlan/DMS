@@ -1,11 +1,12 @@
 // src/app/features/dashboard/dashboard.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core'; // 1. استيراد ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
- import { DashboardService } from './dashboard.service';
+import { DashboardService } from './dashboard.service';
 import { AuthService, UserProfile } from '../../core/services/auth.service';
 import { DashboardStats } from '../../core/models/base.model';
-import { LucideAngularModule } from 'lucide-angular'; // <-- Only import the Module
+import { LucideAngularModule } from 'lucide-angular';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -13,7 +14,6 @@ import { LucideAngularModule } from 'lucide-angular'; // <-- Only import the Mod
     CommonModule,
     RouterModule,
     LucideAngularModule,
-
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -21,6 +21,7 @@ import { LucideAngularModule } from 'lucide-angular'; // <-- Only import the Mod
 export class DashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private authService = inject(AuthService);
+  private cd = inject(ChangeDetectorRef); // 2. حقن الخدمة
 
   stats: DashboardStats | null = null;
   loading = true;
@@ -41,10 +42,12 @@ export class DashboardComponent implements OnInit {
       next: (stats) => {
         this.stats = stats;
         this.loading = false;
+        this.cd.detectChanges(); // 3. تحديث الواجهة فوراً
       },
       error: (error) => {
         console.error('Error loading dashboard:', error);
         this.loading = false;
+        this.cd.detectChanges(); // وتحديث الواجهة في حالة الخطأ أيضاً
       }
     });
 
@@ -57,6 +60,7 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.getMonthlyRevenue().subscribe({
       next: (data) => {
         this.revenueChartData = data;
+        this.cd.detectChanges(); // تحديث عند وصول بيانات المخطط
       }
     });
   }
@@ -65,6 +69,7 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.getTopBooks(5).subscribe({
       next: (books) => {
         this.topBooks = books;
+        this.cd.detectChanges(); // تحديث عند وصول الكتب
       }
     });
   }
@@ -73,6 +78,7 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.getRecentActivities(10).subscribe({
       next: (activities) => {
         this.recentActivities = activities;
+        this.cd.detectChanges(); // تحديث عند وصول النشاطات
       }
     });
   }

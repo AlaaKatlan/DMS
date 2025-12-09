@@ -42,12 +42,11 @@ export class ProjectDetailComponent implements OnInit {
         this.project = data;
         this.loading = false;
       },
-      error: (error) => {
-        console.error('Error loading project:', error);
-        alert('حدث خطأ أثناء تحميل بيانات المشروع');
-        this.router.navigate(['/projects']);
-        this.loading = false;
-      }
+    // في ملف project-detail.component.ts
+error: (error) => {
+  console.error('Error loading project:', error);
+  this.router.navigate(['/projects']); // 👈 هذا السطر هو الذي يعيدك للصفحة السابقة
+}
     });
   }
 

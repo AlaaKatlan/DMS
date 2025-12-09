@@ -35,8 +35,9 @@ export interface PaginatedResponse<T> {
 // ==================== USER & AUTH ====================
 
 export interface UserProfile extends BaseEntity {
-  full_name: string;
   role: UserRole;
+  full_name: string;
+  full_name_p: string;
   phone?: string;
   avatar_url?: string;
   email?: string;
@@ -169,8 +170,10 @@ export interface InventoryLog extends BaseEntity {
 export interface Project extends BaseEntity {
   title: string;
   customer_id: string;
+  description?: string;
   project_type?: string;
   total_price?: number;
+
   currency: Currency;
   status: ProjectStatus;
   start_date?: string;

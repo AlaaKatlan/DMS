@@ -1,0 +1,172 @@
+<div class="tasks-page" dir="rtl">
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">إدارة المهام</h1>
+      <p class="page-subtitle">متابعة سير العمل وإنجاز المشاريع</p>
+    </div>
+    <div class="header-actions">
+      <button routerLink="/tasks/new" class="btn btn-primary">
+        <lucide-angular name="plus-circle" [size]="20"></lucide-angular>
+        <span>مهمة جديدة</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="search-box">
+      <lucide-angular name="search" [size]="20"></lucide-angular>
+      <input
+        type="text"
+        placeholder="ابحث باسم المهمة، المشروع، أو الوصف..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+      >
+    </div>
+
+    <div class="filters-group">
+      <div class="status-tabs">
+        <button
+          *ngFor="let status of ['all', 'todo', 'in_progress', 'completed']"
+          (click)="statusFilter = status; applyFilters()"
+          class="tab-btn"
+          [class.active]="statusFilter === status"
+        >
+          {{ status === 'all' ? 'الكل' : getStatusLabel(status) }}
+        </button>
+      </div>
+
+      <div class="view-toggles">
+        <button class="btn-icon" [class.active]="viewMode === 'list'" (click)="viewMode = 'list'" title="قائمة">
+          <lucide-angular name="list" [size]="20"></lucide-angular>
+        </button>
+        <button class="btn-icon" [class.active]="viewMode === 'grid'" (click)="viewMode = 'grid'" title="بطاقات">
+          <lucide-angular name="grid" [size]="20"></lucide-angular>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل المهام...</p>
+  </div>
+
+  <div *ngIf="!loading && filteredTasks.length === 0" class="empty-state">
+    <div class="empty-icon-wrapper">
+      <lucide-angular name="check-square" [size]="48"></lucide-angular>
+    </div>
+    <h3>لا توجد مهام مطابقة</h3>
+    <p>حاول تغيير شروط البحث أو الفلاتر للعثور على النتائج.</p>
+    <button class="btn btn-outline" (click)="searchQuery = ''; statusFilter = 'all'; applyFilters()">
+      إعادة تعيين الفلاتر
+    </button>
+  </div>
+
+  <div *ngIf="!loading && filteredTasks.length > 0 && viewMode === 'list'" class="tasks-table-wrapper">
+    <table class="tasks-table">
+      <thead>
+        <tr>
+          <th>المهمة</th>
+          <th>المشروع</th>
+          <th>المسؤول</th>
+          <th>تاريخ الاستحقاق</th>
+          <th>الأولوية</th>
+          <th>الحالة</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let task of filteredTasks">
+          <td>
+            <div class="task-info">
+              <span class="task-title-text" [title]="task.title">{{ task.title }}</span>
+            </div>
+          </td>
+          <td class="text-secondary font-medium">{{ task.project?.title || '-' }}</td>
+          <td>
+            <div class="assignee-wrapper" *ngIf="task.assignee">
+              <img alt=""
+                *ngIf="task.assignee.avatar_url"
+                [src]="task.assignee.avatar_url"
+                class="assignee-avatar-img"
+              >
+              <div *ngIf="!task.assignee.avatar_url" class="assignee-avatar-initial">
+                {{ task.assignee.full_name.charAt(0) || 'U' }}
+              </div>
+              <span class="assignee-name">{{ task.assignee.full_name }}</span>
+            </div>
+            <span *ngIf="!task.assignee" class="text-secondary text-sm">غير معين</span>
+          </td>
+          <td class="font-mono text-sm text-secondary">
+            {{ task.due_date ? (task.due_date | date:'yyyy/MM/dd') : '-' }}
+          </td>
+          <td>
+            <div class="priority-badge" [style.background-color]="getPriorityColor(task.priority)">
+              {{ getPriorityLabel(task.priority) }}
+            </div>
+          </td>
+          <td>
+            <span class="status-pill" [ngClass]="getStatusClass(task.status)">
+              {{ getStatusLabel(task.status) }}
+            </span>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button [routerLink]="['/tasks', task.id]" class="btn-mini view" title="عرض التفاصيل">
+                <lucide-angular name="eye" [size]="16"></lucide-angular>
+              </button>
+              <button [routerLink]="['/tasks', task.id, 'edit']" class="btn-mini edit" title="تعديل">
+                <lucide-angular name="pen-line" [size]="16"></lucide-angular>
+              </button>
+              <button (click)="deleteTask(task)" class="btn-mini delete" title="حذف">
+                <lucide-angular name="trash-2" [size]="16"></lucide-angular>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="!loading && filteredTasks.length > 0 && viewMode === 'grid'" class="tasks-grid">
+    <div *ngFor="let task of filteredTasks" class="task-card">
+      <div class="card-header">
+        <div class="priority-dot" [style.background-color]="getPriorityColor(task.priority)" [title]="'أولوية: ' + getPriorityLabel(task.priority)"></div>
+        <span class="status-pill-small" [ngClass]="getStatusClass(task.status)">
+          {{ getStatusLabel(task.status) }}
+        </span>
+      </div>
+
+      <div class="card-content">
+        <h3 class="task-title" [routerLink]="['/tasks', task.id]" [title]="task.title">
+          {{ task.title }}
+        </h3>
+        <div class="task-project" *ngIf="task.project">
+          <lucide-angular name="folder" [size]="14"></lucide-angular>
+          <span>{{ task.project.title }}</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <div class="assignee-info">
+          <div class="avatar-small" *ngIf="task.assignee" [title]="task.assignee.full_name">
+            {{ task.assignee.full_name.charAt(0) }}
+          </div>
+          <span class="date-text" *ngIf="task.due_date">
+            <lucide-angular name="calendar" [size]="12"></lucide-angular>
+            {{ task.due_date | date:'dd MMM' }}
+          </span>
+        </div>
+
+        <div class="card-actions">
+          <button [routerLink]="['/tasks', task.id, 'edit']" class="icon-btn edit">
+            <lucide-angular name="edit-2" [size]="16"></lucide-angular>
+          </button>
+          <button (click)="deleteTask(task)" class="icon-btn delete">
+            <lucide-angular name="trash" [size]="16"></lucide-angular>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

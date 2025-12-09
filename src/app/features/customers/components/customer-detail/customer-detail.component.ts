@@ -1,5 +1,5 @@
 // src/app/features/customers/components/customer-detail/customer-detail.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core'; // 1. استيراد ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
@@ -17,6 +17,7 @@ export class CustomerDetailComponent implements OnInit {
   private customersService = inject(CustomersService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private cd = inject(ChangeDetectorRef); // 2. حقن الخدمة
 
   customer: Customer | null = null;
   stats: CustomerStats | null = null;
@@ -41,12 +42,14 @@ export class CustomerDetailComponent implements OnInit {
       next: (data) => {
         this.customer = data;
         this.loading = false;
+        this.cd.detectChanges(); // 3. تحديث الواجهة يدوياً هنا
       },
       error: (error) => {
         console.error('Error loading customer:', error);
         alert('حدث خطأ أثناء تحميل بيانات العميل');
         this.router.navigate(['/customers']);
         this.loading = false;
+        this.cd.detectChanges(); // وتحديث الواجهة هنا أيضاً
       }
     });
   }
@@ -55,6 +58,7 @@ export class CustomerDetailComponent implements OnInit {
     this.customersService.getCustomerStats(id).subscribe({
       next: (data) => {
         this.stats = data;
+        this.cd.detectChanges(); // تحديث الأرقام عند وصولها
       },
       error: (error) => {
         console.error('Error loading stats:', error);
@@ -64,6 +68,7 @@ export class CustomerDetailComponent implements OnInit {
 
   setActiveTab(tab: typeof this.activeTab): void {
     this.activeTab = tab;
+    // لا نحتاج detectChanges هنا لأن النقر حدث داخل Angular Zone
   }
 
   editCustomer(): void {
@@ -93,15 +98,20 @@ export class CustomerDetailComponent implements OnInit {
     this.router.navigate(['/customers']);
   }
 
-  formatCurrency(amount: number, currency: string = 'USD'): string {
-    const symbols: Record<string, string> = {
-      USD: '$',
-      AED: 'د.إ',
-      QR: 'ر.ق',
-      SYP: 'ل.س'
-    };
-    return `${symbols[currency] || ''} ${amount.toLocaleString('ar-SA')}`;
-  }
+
+formatCurrency(amount: number | null | undefined, currency: string = 'USD'): string {
+  // حماية ضد القيم الفارغة: إذا لم يوجد رقم نعتبره 0
+  const safeAmount = amount ?? 0;
+
+  const symbols: Record<string, string> = {
+    USD: '$',
+    AED: 'د.إ',
+    QR: 'ر.ق',
+    SYP: 'ل.س'
+  };
+
+  return `${symbols[currency] || ''} ${safeAmount.toLocaleString('ar-SA')}`;
+}
 
   formatDate(dateString: string): string {
     return new Date(dateString).toLocaleDateString('ar-SA');

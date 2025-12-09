@@ -8,6 +8,7 @@ import { SupabaseService } from './supabase.service';
 export interface UserProfile {
   id: string;
   full_name: string;
+  full_name_p: string;
   role: 'admin' | 'manager' | 'accountant' | 'data_entry' | 'employee' | 'freelancer' | 'client';
   phone?: string;
   avatar_url?: string;

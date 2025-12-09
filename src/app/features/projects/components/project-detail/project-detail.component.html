@@ -1,1 +1,257 @@
-<p>project-detail works!</p>
+<div class="project-detail-page" dir="rtl" *ngIf="project; else loadingTpl">
+  <div class="page-header">
+    <div class="header-top">
+      <button class="btn-back" (click)="goBack()">
+        <lucide-angular name="arrow-right" [size]="20"></lucide-angular>
+        <span>العودة للمشاريع</span>
+      </button>
+      <div class="actions">
+        <button class="btn-action edit" (click)="editProject()">
+          <lucide-angular name="edit-3" [size]="18"></lucide-angular>
+          <span>تعديل</span>
+        </button>
+        <button class="btn-action delete" (click)="deleteProject()">
+          <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+          <span>حذف</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="project-title-section">
+      <div class="title-row">
+        <h1 class="project-title">{{ project.title }}</h1>
+        <span class="status-badge" [ngClass]="getStatusColor(project.status)">
+          {{ getStatusLabel(project.status) }}
+        </span>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item" *ngIf="project.customer">
+          <lucide-angular name="user" [size]="16"></lucide-angular>
+          <span>{{ project.customer.name }}</span>
+        </div>
+        <div class="meta-item">
+          <lucide-angular name="calendar" [size]="16"></lucide-angular>
+          <span>{{ formatDate(project.start_date || '') }} - {{ formatDate(project.due_date || '') }}</span>
+        </div>
+        <div class="meta-item overdue" *ngIf="isOverdue()">
+          <lucide-angular name="alert-circle" [size]="16"></lucide-angular>
+          <span>متأخر</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid" *ngIf="projectStats">
+    <div class="stat-card">
+      <div class="stat-icon progress">
+        <lucide-angular name="activity" [size]="24"></lucide-angular>
+      </div>
+      <div class="stat-info">
+        <span class="label">نسبة الإنجاز</span>
+        <span class="value">{{ projectStats.progressPercentage || calculateProgress() }}%</span>
+      </div>
+      <div class="progress-bar-mini">
+        <div class="fill" [style.width.%]="projectStats.progressPercentage || calculateProgress()"></div>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon tasks">
+        <lucide-angular name="check-square" [size]="24"></lucide-angular>
+      </div>
+      <div class="stat-info">
+        <span class="label">المهام المكتملة</span>
+        <span class="value">{{ projectStats.completedTasks }} / {{ projectStats.totalTasks }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon finance">
+        <lucide-angular name="dollar-sign" [size]="24"></lucide-angular>
+      </div>
+      <div class="stat-info">
+        <span class="label">صافي الربح</span>
+        <span class="value" [class.negative]="projectStats.profit < 0">
+          {{ formatCurrency(projectStats.profit || 0, project.currency) }}
+        </span>
+        <span class="sub-text">إيراد: {{ formatCurrency(projectStats.totalRevenue || 0) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs-nav">
+    <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
+      <lucide-angular name="layout-dashboard" [size]="18"></lucide-angular>
+      نظرة عامة
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'tasks'" (click)="setActiveTab('tasks')">
+      <lucide-angular name="check-square" [size]="18"></lucide-angular>
+      المهام ({{ project.tasks?.length || 0 }})
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'milestones'" (click)="setActiveTab('milestones')">
+      <lucide-angular name="flag" [size]="18"></lucide-angular>
+      المحطات
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'invoices'" (click)="setActiveTab('invoices')">
+      <lucide-angular name="file-text" [size]="18"></lucide-angular>
+      المالية
+    </button>
+  </div>
+
+  <div class="tab-content">
+
+    <div *ngIf="activeTab === 'overview'" class="overview-tab">
+      <div class="content-card description-card">
+        <h3>تفاصيل المشروع</h3>
+        <p class="description-text">{{ project.description || 'لا يوجد وصف متاح لهذا المشروع.' }}</p>
+
+        <div class="info-grid">
+          <div class="info-box">
+            <span class="label">نوع المشروع</span>
+            <span class="val">{{ project.project_type || 'غير محدد' }}</span>
+          </div>
+          <div class="info-box">
+            <span class="label">الميزانية الكلية</span>
+            <span class="val">{{ formatCurrency(project.total_price || 0, project.currency) }}</span>
+          </div>
+          <div class="info-box">
+            <span class="label">تاريخ الإنشاء</span>
+            <span class="val">{{ formatDate(project.created_at) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-card customer-card" *ngIf="project.customer">
+        <h3>بيانات العميل</h3>
+        <div class="customer-details">
+          <div class="detail-row">
+            <lucide-angular name="user" [size]="16"></lucide-angular>
+            <span>{{ project.customer.name }}</span>
+          </div>
+          <div class="detail-row" *ngIf="project.customer.phone">
+            <lucide-angular name="phone" [size]="16"></lucide-angular>
+            <span dir="ltr">{{ project.customer.phone }}</span>
+          </div>
+          <div class="detail-row" *ngIf="project.customer.email">
+            <lucide-angular name="mail" [size]="16"></lucide-angular>
+            <span>{{ project.customer.email }}</span>
+          </div>
+          <div class="detail-row" *ngIf="project.customer.country?.name">
+            <lucide-angular name="map-pin" [size]="16"></lucide-angular>
+            <span>{{ project.customer.country?.name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'tasks'" class="tasks-tab">
+      <div class="empty-tab" *ngIf="!project.tasks?.length">
+        <lucide-angular name="clipboard-list" [size]="48"></lucide-angular>
+        <p>لا توجد مهام مسجلة لهذا المشروع بعد.</p>
+      </div>
+
+      <div class="tasks-list" *ngIf="project.tasks?.length">
+        <div class="task-item" *ngFor="let task of project.tasks">
+          <div class="task-main">
+            <span class="status-dot" [ngClass]="getStatusColor(task.status)"></span>
+            <div class="task-text">
+              <h4>{{ task.title }}</h4>
+              <span class="assignee" *ngIf="task.assignee">
+                <lucide-angular name="user" [size]="12"></lucide-angular>
+                {{ task.assignee.full_name }}
+              </span>
+            </div>
+          </div>
+          <div class="task-meta">
+            <span class="priority-badge" [ngClass]="getPriorityColor(task.priority || 'medium')">
+              {{ getPriorityLabel(task.priority || 'medium') }}
+            </span>
+            <span class="date">{{ formatDate(task.due_date || '') }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'milestones'" class="milestones-tab">
+      <div class="empty-tab" *ngIf="!project.milestones?.length">
+        <lucide-angular name="flag" [size]="48"></lucide-angular>
+        <p>لم يتم تحديد محطات رئيسية للمشروع.</p>
+      </div>
+
+      <div class="milestones-timeline" *ngIf="project.milestones?.length">
+        <div class="milestone-item" *ngFor="let ms of project.milestones" [class.completed]="ms.status === 'completed'">
+          <div class="ms-marker">
+            <lucide-angular name="check" [size]="14" *ngIf="ms.status === 'completed'"></lucide-angular>
+          </div>
+          <div class="ms-content">
+            <div class="ms-header">
+              <h4>{{ ms.title }}</h4>
+              <span class="ms-date">{{ formatDate(ms.due_date || '') }}</span>
+            </div>
+            <div class="ms-amount" *ngIf="ms.amount">
+              {{ formatCurrency(ms.amount) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab === 'invoices'" class="financials-tab">
+      <div class="section-block">
+        <h3>الفواتير</h3>
+        <table class="data-table" *ngIf="project.invoices?.length; else noInvoices">
+          <thead>
+            <tr>
+              <th>رقم الفاتورة</th>
+              <th>المبلغ</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let inv of project.invoices">
+              <td>{{ inv.invoice_number }}</td>
+              <td>{{ formatCurrency(inv.amount_due) }}</td>
+              <td>
+                <span class="badge" [ngClass]="getStatusColor(inv.status)">{{ getStatusLabel(inv.status) }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #noInvoices>
+          <p class="text-muted">لا توجد فواتير.</p>
+        </ng-template>
+      </div>
+
+      <div class="section-block">
+        <h3>المصاريف</h3>
+        <table class="data-table" *ngIf="project.expenses?.length; else noExpenses">
+          <thead>
+            <tr>
+              <th>البند</th>
+              <th>المبلغ</th>
+              <th>التاريخ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let exp of project.expenses">
+              <td>{{ exp.title }}</td>
+              <td>{{ formatCurrency(exp.amount) }}</td>
+              <td>{{ formatDate(exp.expense_date?.toString() || '') }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <ng-template #noExpenses>
+          <p class="text-muted">لا توجد مصاريف.</p>
+        </ng-template>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل تفاصيل المشروع...</p>
+  </div>
+</ng-template>
