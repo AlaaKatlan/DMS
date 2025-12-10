@@ -2,51 +2,63 @@
 
   <div class="header-actions">
     <h3>جدول المحطات والدفعات</h3>
-    <button class="btn-add" (click)="isAdding = !isAdding" *ngIf="!isAdding">
-      <lucide-angular name="plus" [size]="16"></lucide-angular>
-      إضافة محطة
-    </button>
+    @if (!isAdding) {
+      <button class="btn-add" (click)="isAdding = !isAdding">
+        <lucide-angular name="plus" [size]="16"></lucide-angular>
+        إضافة محطة
+      </button>
+    }
   </div>
 
-  <div class="add-form" *ngIf="isAdding">
-    <div class="form-row">
-      <input type="text" [(ngModel)]="newMilestoneTitle" placeholder="عنوان المحطة (مثال: الدفعة الأولى)" class="input-text">
-      <input type="date" [(ngModel)]="newMilestoneDate" class="input-date">
-      <input type="number" [(ngModel)]="newMilestoneAmount" placeholder="المبلغ" class="input-number">
+  @if (isAdding) {
+    <div class="add-form">
+      <div class="form-row">
+        <input type="text" [(ngModel)]="newMilestoneTitle" placeholder="عنوان المحطة (مثال: الدفعة الأولى)" class="input-text">
+        <input type="date" [(ngModel)]="newMilestoneDate" class="input-date">
+        <input type="number" [(ngModel)]="newMilestoneAmount" placeholder="المبلغ" class="input-number">
+      </div>
+      <div class="form-actions">
+        <button (click)="saveNewMilestone()" class="btn-save" [disabled]="!newMilestoneTitle">حفظ</button>
+        <button (click)="isAdding = false" class="btn-cancel">إلغاء</button>
+      </div>
     </div>
-    <div class="form-actions">
-      <button (click)="saveNewMilestone()" class="btn-save" [disabled]="!newMilestoneTitle">حفظ</button>
-      <button (click)="isAdding = false" class="btn-cancel">إلغاء</button>
-    </div>
-  </div>
+  }
 
   <div class="timeline-list">
-    <div class="timeline-item"
-         *ngFor="let ms of milestones"
-         [class.completed]="ms.status === 'completed'">
+    @for (ms of milestones; track ms.id) {
+      <div class="timeline-item" [class.completed]="ms.status === 'completed'">
 
-      <div class="status-indicator" (click)="toggleStatus(ms)">
-        <lucide-angular *ngIf="ms.status === 'completed'" name="check" [size]="14"></lucide-angular>
-      </div>
-
-      <div class="content">
-        <div class="info">
-          <span class="title">{{ ms.title }}</span>
-          <span class="date" *ngIf="ms.due_date">{{ ms.due_date | date:'mediumDate' }}</span>
+        <div class="status-indicator" (click)="toggleStatus(ms)">
+          @if (ms.status === 'completed') {
+            <lucide-angular name="check" [size]="14"></lucide-angular>
+          }
         </div>
 
-        <div class="finance" *ngIf="ms.amount">
-          <span class="amount">{{ formatCurrency(ms.amount || 0) }}</span>
+        <div class="content">
+          <div class="info">
+            <span class="title">{{ ms.title }}</span>
+            @if (ms.due_date) {
+              <span class="date">{{ ms.due_date | date:'mediumDate' }}</span>
+            }
+          </div>
+
+          @if (ms.amount) {
+            <div class="finance">
+              <span class="amount">{{ formatCurrency(ms.amount || 0) }}</span>
+            </div>
+          }
+
+          <button class="btn-delete" (click)="deleteMilestone(ms.id)">
+            <lucide-angular name="trash-2" [size]="16"></lucide-angular>
+          </button>
         </div>
-
-        <button class="btn-delete" (click)="deleteMilestone(ms.id)">
-          <lucide-angular name="trash-2" [size]="16"></lucide-angular>
-        </button>
       </div>
-    </div>
+    }
 
-    <div class="empty-state" *ngIf="milestones.length === 0 && !isAdding">
-      <p>لا توجد محطات مضافة لهذا المشروع.</p>
-    </div>
+    @if (milestones.length === 0 && !isAdding) {
+      <div class="empty-state">
+        <p>لا توجد محطات مضافة لهذا المشروع.</p>
+      </div>
+    }
   </div>
 </div>

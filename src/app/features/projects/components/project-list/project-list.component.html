@@ -4,10 +4,15 @@
       <h1 class="page-title">إدارة المشاريع</h1>
       <p class="page-subtitle">قائمة بجميع المشاريع وحالات الإنجاز</p>
     </div>
+   <div class="header-actions" style="display: flex; gap: 10px;"> <button class="btn btn-outline" routerLink="/projects/board" style="display: flex; align-items: center; gap: 5px; padding: 0.75rem 1rem; border: 1px solid #E2E8F0; background: white; border-radius: 0.75rem; cursor: pointer;">
+      <lucide-angular name="kanban" [size]="20"></lucide-angular>
+      <span>لوحة المهام</span>
+    </button>
     <button class="btn btn-primary" routerLink="/projects/new">
       <lucide-angular name="plus-circle" [size]="20"></lucide-angular>
       <span>مشروع جديد</span>
     </button>
+  </div>
   </div>
 
   <div class="filters-section">

@@ -16,135 +16,161 @@
     </div>
   </div>
 
-  <div class="loading-container" *ngIf="loading">
-    <div class="spinner"></div>
-    <p>جاري تحميل اللوحة...</p>
-  </div>
-
-  <div class="kanban-board" *ngIf="!loading" cdkDropListGroup>
-
-    <div class="kanban-column">
-      <div class="column-header on-hold">
-        <div class="header-title">
-          <lucide-angular name="clock" [size]="18"></lucide-angular>
-          <h3>معلق / مخطط</h3>
-        </div>
-        <span class="count-badge">{{ todoProjects.length }}</span>
-      </div>
-      <div class="column-content"
-           cdkDropList
-           [cdkDropListData]="todoProjects"
-           (cdkDropListDropped)="drop($event, 'on_hold')">
-
-        <div class="kanban-card" *ngFor="let project of todoProjects" cdkDrag [routerLink]="['/projects', project.id]">
-          <div class="card-badges">
-            <span class="type-badge">{{ project.project_type || 'عام' }}</span>
-          </div>
-          <h4 class="card-title">{{ project.title }}</h4>
-          <div class="card-meta">
-            <div class="meta-item" *ngIf="project.customer">
-              <lucide-angular name="user" [size]="14"></lucide-angular>
-              <span>{{ project.customer.name }}</span>
-            </div>
-          </div>
-          <div class="card-footer">
-            <span class="price">{{ formatCurrency(project.total_price, project.currency) }}</span>
-            <div class="progress-mini" title="الإنجاز">
-              <div class="bar" [style.width.%]="getProgress(project)"></div>
-            </div>
-          </div>
-        </div>
-        <div class="empty-placeholder" *ngIf="todoProjects.length === 0">لا يوجد مشاريع</div>
-      </div>
+  @if (loading) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>جاري تحميل اللوحة...</p>
     </div>
+  }
 
-    <div class="kanban-column">
-      <div class="column-header active">
-        <div class="header-title">
-          <lucide-angular name="activity" [size]="18"></lucide-angular>
-          <h3>نشط (قيد التنفيذ)</h3>
-        </div>
-        <span class="count-badge">{{ activeProjects.length }}</span>
-      </div>
-      <div class="column-content"
-           cdkDropList
-           [cdkDropListData]="activeProjects"
-           (cdkDropListDropped)="drop($event, 'active')">
+  @if (!loading) {
+    <div class="kanban-board" cdkDropListGroup>
 
-        <div class="kanban-card" *ngFor="let project of activeProjects" cdkDrag [routerLink]="['/projects', project.id]">
-          <div class="card-badges">
-            <span class="type-badge">{{ project.project_type || 'عام' }}</span>
-            <span class="date-badge" *ngIf="project.due_date">
-              {{ project.due_date | date:'dd MMM' }}
-            </span>
+      <div class="kanban-column">
+        <div class="column-header on-hold">
+          <div class="header-title">
+            <lucide-angular name="clock" [size]="18"></lucide-angular>
+            <h3>معلق / مخطط</h3>
           </div>
-          <h4 class="card-title">{{ project.title }}</h4>
-          <div class="card-meta">
-            <div class="meta-item" *ngIf="project.customer">
-              <lucide-angular name="user" [size]="14"></lucide-angular>
-              <span>{{ project.customer.name }}</span>
+          <span class="count-badge">{{ todoProjects.length }}</span>
+        </div>
+        <div class="column-content"
+             cdkDropList
+             [cdkDropListData]="todoProjects"
+             (cdkDropListDropped)="drop($event, 'on_hold')">
+
+          @for (project of todoProjects; track project.id) {
+            <div class="kanban-card" cdkDrag [routerLink]="['/projects', project.id]">
+              <div class="card-badges">
+                <span class="type-badge">{{ project.project_type || 'عام' }}</span>
+              </div>
+              <h4 class="card-title">{{ project.title }}</h4>
+              <div class="card-meta">
+                @if (project.customer) {
+                  <div class="meta-item">
+                    <lucide-angular name="user" [size]="14"></lucide-angular>
+                    <span>{{ project.customer.name }}</span>
+                  </div>
+                }
+              </div>
+              <div class="card-footer">
+                <span class="price">{{ formatCurrency(project.total_price, project.currency) }}</span>
+                <div class="progress-mini" title="الإنجاز">
+                  <div class="bar" [style.width.%]="getProgress(project)"></div>
+                </div>
+              </div>
             </div>
+          }
+          @if (todoProjects.length === 0) {
+            <div class="empty-placeholder">لا يوجد مشاريع</div>
+          }
+        </div>
+      </div>
+
+      <div class="kanban-column">
+        <div class="column-header active">
+          <div class="header-title">
+            <lucide-angular name="activity" [size]="18"></lucide-angular>
+            <h3>نشط (قيد التنفيذ)</h3>
           </div>
-          <div class="card-footer">
-            <span class="price">{{ formatCurrency(project.total_price, project.currency) }}</span>
-            <div class="progress-mini">
-              <div class="bar" [style.width.%]="getProgress(project)"></div>
+          <span class="count-badge">{{ activeProjects.length }}</span>
+        </div>
+        <div class="column-content"
+             cdkDropList
+             [cdkDropListData]="activeProjects"
+             (cdkDropListDropped)="drop($event, 'active')">
+
+          @for (project of activeProjects; track project.id) {
+            <div class="kanban-card" cdkDrag [routerLink]="['/projects', project.id]">
+              <div class="card-badges">
+                <span class="type-badge">{{ project.project_type || 'عام' }}</span>
+                @if (project.due_date) {
+                  <span class="date-badge">
+                    {{ project.due_date | date:'dd MMM' }}
+                  </span>
+                }
+              </div>
+              <h4 class="card-title">{{ project.title }}</h4>
+              <div class="card-meta">
+                @if (project.customer) {
+                  <div class="meta-item">
+                    <lucide-angular name="user" [size]="14"></lucide-angular>
+                    <span>{{ project.customer.name }}</span>
+                  </div>
+                }
+              </div>
+              <div class="card-footer">
+                <span class="price">{{ formatCurrency(project.total_price, project.currency) }}</span>
+                <div class="progress-mini">
+                  <div class="bar" [style.width.%]="getProgress(project)"></div>
+                </div>
+              </div>
             </div>
-          </div>
+          }
+          @if (activeProjects.length === 0) {
+            <div class="empty-placeholder">اسحب المشاريع هنا للبدء</div>
+          }
         </div>
-        <div class="empty-placeholder" *ngIf="activeProjects.length === 0">اسحب المشاريع هنا للبدء</div>
       </div>
+
+      <div class="kanban-column">
+        <div class="column-header completed">
+          <div class="header-title">
+            <lucide-angular name="check-circle" [size]="18"></lucide-angular>
+            <h3>مكتمل</h3>
+          </div>
+          <span class="count-badge">{{ completedProjects.length }}</span>
+        </div>
+        <div class="column-content"
+             cdkDropList
+             [cdkDropListData]="completedProjects"
+             (cdkDropListDropped)="drop($event, 'completed')">
+
+          @for (project of completedProjects; track project.id) {
+            <div class="kanban-card completed-card" cdkDrag [routerLink]="['/projects', project.id]">
+              <div class="card-header-mini">
+                <h4 class="card-title">{{ project.title }}</h4>
+                <lucide-angular name="check" [size]="16" class="check-icon"></lucide-angular>
+              </div>
+              <div class="card-meta">
+                <span>{{ project.customer?.name }}</span>
+                <span class="finish-date">{{ project.completed_at | date:'shortDate' }}</span>
+              </div>
+            </div>
+          }
+          @if (completedProjects.length === 0) {
+            <div class="empty-placeholder">لا مشاريع مكتملة</div>
+          }
+        </div>
+      </div>
+
+      <div class="kanban-column">
+        <div class="column-header cancelled">
+          <div class="header-title">
+            <lucide-angular name="x-circle" [size]="18"></lucide-angular>
+            <h3>ملغي</h3>
+          </div>
+          <span class="count-badge">{{ cancelledProjects.length }}</span>
+        </div>
+        <div class="column-content"
+             cdkDropList
+             [cdkDropListData]="cancelledProjects"
+             (cdkDropListDropped)="drop($event, 'cancelled')">
+
+          @for (project of cancelledProjects; track project.id) {
+            <div class="kanban-card cancelled-card" cdkDrag [routerLink]="['/projects', project.id]">
+              <h4 class="card-title">{{ project.title }}</h4>
+              <div class="card-meta">
+                <span>{{ project.customer?.name }}</span>
+              </div>
+            </div>
+          }
+          @if (cancelledProjects.length === 0) {
+            <div class="empty-placeholder">فارغ</div>
+          }
+        </div>
+      </div>
+
     </div>
-
-    <div class="kanban-column">
-      <div class="column-header completed">
-        <div class="header-title">
-          <lucide-angular name="check-circle" [size]="18"></lucide-angular>
-          <h3>مكتمل</h3>
-        </div>
-        <span class="count-badge">{{ completedProjects.length }}</span>
-      </div>
-      <div class="column-content"
-           cdkDropList
-           [cdkDropListData]="completedProjects"
-           (cdkDropListDropped)="drop($event, 'completed')">
-
-        <div class="kanban-card completed-card" *ngFor="let project of completedProjects" cdkDrag [routerLink]="['/projects', project.id]">
-          <div class="card-header-mini">
-            <h4 class="card-title">{{ project.title }}</h4>
-            <lucide-angular name="check" [size]="16" class="check-icon"></lucide-angular>
-          </div>
-          <div class="card-meta">
-            <span>{{ project.customer?.name }}</span>
-            <span class="finish-date">{{ project.completed_at | date:'shortDate' }}</span>
-          </div>
-        </div>
-        <div class="empty-placeholder" *ngIf="completedProjects.length === 0">لا مشاريع مكتملة</div>
-      </div>
-    </div>
-
-    <div class="kanban-column">
-      <div class="column-header cancelled">
-        <div class="header-title">
-          <lucide-angular name="x-circle" [size]="18"></lucide-angular>
-          <h3>ملغي</h3>
-        </div>
-        <span class="count-badge">{{ cancelledProjects.length }}</span>
-      </div>
-      <div class="column-content"
-           cdkDropList
-           [cdkDropListData]="cancelledProjects"
-           (cdkDropListDropped)="drop($event, 'cancelled')">
-
-        <div class="kanban-card cancelled-card" *ngFor="let project of cancelledProjects" cdkDrag [routerLink]="['/projects', project.id]">
-          <h4 class="card-title">{{ project.title }}</h4>
-          <div class="card-meta">
-            <span>{{ project.customer?.name }}</span>
-          </div>
-        </div>
-        <div class="empty-placeholder" *ngIf="cancelledProjects.length === 0">فارغ</div>
-      </div>
-    </div>
-
-  </div>
+  }
 </div>

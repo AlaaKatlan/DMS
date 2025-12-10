@@ -1,4 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+// src/app/features/projects/components/project-kanban/project-kanban.component.ts
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DragDropModule, CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
@@ -15,9 +16,9 @@ import { Project, ProjectStatus } from '../../../../core/models/base.model';
 })
 export class ProjectKanbanComponent implements OnInit {
   private projectsService = inject(ProjectsService);
+  private cd = inject(ChangeDetectorRef); // 1. حقن خدمة التحديث
 
-  // تعريف الأعمدة
-  todoProjects: Project[] = [];      // On Hold / Todo logic based on your business
+  todoProjects: Project[] = [];
   activeProjects: Project[] = [];
   completedProjects: Project[] = [];
   cancelledProjects: Project[] = [];
@@ -32,22 +33,26 @@ export class ProjectKanbanComponent implements OnInit {
     this.loading = true;
     this.projectsService.getProjectsWithRelations().subscribe({
       next: (projects) => {
-        this.distributeProjects(projects);
-        this.loading = false;
+        // 2. تأخير بسيط وتحديث يدوي
+        setTimeout(() => {
+          this.distributeProjects(projects);
+          this.loading = false;
+          this.cd.detectChanges();
+        }, 0);
       },
       error: (err) => {
         console.error('Error loading projects', err);
         this.loading = false;
+        this.cd.detectChanges();
       }
     });
   }
 
   distributeProjects(projects: Project[]): void {
-    // تصفير القوائم
     this.activeProjects = [];
     this.completedProjects = [];
     this.cancelledProjects = [];
-    this.todoProjects = []; // سنستخدم on_hold لهذا العمود
+    this.todoProjects = [];
 
     projects.forEach(project => {
       switch (project.status) {
@@ -60,11 +65,10 @@ export class ProjectKanbanComponent implements OnInit {
     });
   }
 
-  drop(event: CdkDragDrop<Project[]>, newStatus: ProjectStatus): void {
+  drop(event: CdkDragDrop<Project[]>, newStatus: string): void { // استخدام string مؤقتاً لتسهيل التحويل
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
-      // نقل العنصر في الواجهة فوراً
       transferArrayItem(
         event.previousContainer.data,
         event.container.data,
@@ -72,9 +76,10 @@ export class ProjectKanbanComponent implements OnInit {
         event.currentIndex,
       );
 
-      // تحديث الحالة في قاعدة البيانات
       const project = event.container.data[event.currentIndex];
-      this.updateStatus(project.id, newStatus);
+      // تحويل النص إلى ProjectStatus بأمان
+      const status = newStatus as ProjectStatus;
+      this.updateStatus(project.id, status);
     }
   }
 
@@ -82,7 +87,7 @@ export class ProjectKanbanComponent implements OnInit {
     this.projectsService.updateProjectStatus(projectId, status).subscribe({
       error: (err) => {
         alert('فشل تحديث حالة المشروع');
-        this.loadProjects(); // إعادة تحميل لإلغاء التغيير في حال الفشل
+        this.loadProjects();
       }
     });
   }

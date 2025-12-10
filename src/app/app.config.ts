@@ -15,9 +15,9 @@ import {
   Lock, Grid, Plus, FileQuestion,Edit3,CircleCheck,PenLine,
   Eye, Trash2, Edit, Filter, X, Check, Map, Hash,CreditCard,ArrowRight,
   EyeOff, List, Building, Trash,ChartBar,ChartColumn,Briefcase,Workflow,
-  LogIn, MapPin, ChevronLeft, ArrowLeft,CircleAlert,Columns,Columns2,Ruler,
-  UserPlus, Phone,Tag,CheckCircle,Flag,Handshake,TrendingDown,Image,
-  // ADD THESE IF MISSING:
+  LogIn, MapPin, ChevronLeft, ArrowLeft,CircleAlert,Columns,Columns2,Ruler,Kanban,Clock,
+  UserPlus, Phone,Tag,CheckCircle,Flag,Handshake,TrendingDown,Image,XCircle,CircleX,
+  // ADD THESE IF MISSING:Kanban,
   User,
   LogOut,
   Info
@@ -43,8 +43,8 @@ export const appConfig: ApplicationConfig = {
       Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,
       Mail, MapPin, FileQuestion,PlusCircle,CheckCircle,
       Lock, List, Check, Map, Building, Trash,Hash,CreditCard,ArrowRight,Edit3,CircleCheck,
-      Eye, Phone, Plus,ArrowLeft,CircleAlert,Book,Ruler,Image,PenLine,
-      EyeOff, UserPlus,ChartBar,ChartColumn,TrendingDown,
+      Eye, Phone, Plus,ArrowLeft,CircleAlert,Book,Ruler,Image,PenLine,Kanban,CircleX,
+      EyeOff, UserPlus,ChartBar,ChartColumn,TrendingDown,Clock,XCircle,
       LogIn, Trash2, Edit, Filter,Columns2,Tag,
       // ADD THESE IF MISSING:
       User, X,

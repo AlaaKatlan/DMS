@@ -1,4 +1,5 @@
-<div class="project-detail-page" dir="rtl" *ngIf="project; else loadingTpl">
+@if (project) {
+<div class="project-detail-page" dir="rtl">
   <div class="page-header">
     <div class="header-top">
       <button class="btn-back" (click)="goBack()">
@@ -25,23 +26,28 @@
         </span>
       </div>
       <div class="meta-row">
-        <div class="meta-item" *ngIf="project.customer">
+        @if (project.customer) {
+        <div class="meta-item">
           <lucide-angular name="user" [size]="16"></lucide-angular>
           <span>{{ project.customer.name }}</span>
         </div>
+        }
         <div class="meta-item">
           <lucide-angular name="calendar" [size]="16"></lucide-angular>
           <span>{{ formatDate(project.start_date || '') }} - {{ formatDate(project.due_date || '') }}</span>
         </div>
-        <div class="meta-item overdue" *ngIf="isOverdue()">
+        @if (isOverdue()) {
+        <div class="meta-item overdue">
           <lucide-angular name="alert-circle" [size]="16"></lucide-angular>
           <span>متأخر</span>
         </div>
+        }
       </div>
     </div>
   </div>
 
-  <div class="stats-grid" *ngIf="projectStats">
+  @if (projectStats) {
+  <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon progress">
         <lucide-angular name="activity" [size]="24"></lucide-angular>
@@ -78,6 +84,7 @@
       </div>
     </div>
   </div>
+  }
 
   <div class="tabs-nav">
     <button class="tab-btn" [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
@@ -88,11 +95,10 @@
       <lucide-angular name="check-square" [size]="18"></lucide-angular>
       المهام ({{ project.tasks?.length || 0 }})
     </button>
-    <div *ngIf="activeTab === 'milestones'" class="milestones-tab">
-
-      <app-milestones [projectId]="project.id"></app-milestones>
-
-    </div>
+    <button class="tab-btn" [class.active]="activeTab === 'milestones'" (click)="setActiveTab('milestones')">
+      <lucide-angular name="flag" [size]="18"></lucide-angular>
+      المحطات
+    </button>
     <button class="tab-btn" [class.active]="activeTab === 'invoices'" (click)="setActiveTab('invoices')">
       <lucide-angular name="file-text" [size]="18"></lucide-angular>
       المالية
@@ -101,7 +107,8 @@
 
   <div class="tab-content">
 
-    <div *ngIf="activeTab === 'overview'" class="overview-tab">
+    @if (activeTab === 'overview') {
+    <div class="overview-tab">
       <div class="content-card description-card">
         <h3>تفاصيل المشروع</h3>
         <p class="description-text">{{ project.description || 'لا يوجد وصف متاح لهذا المشروع.' }}</p>
@@ -122,45 +129,61 @@
         </div>
       </div>
 
-      <div class="content-card customer-card" *ngIf="project.customer">
+      @if (project.customer) {
+      <div class="content-card customer-card">
         <h3>بيانات العميل</h3>
         <div class="customer-details">
           <div class="detail-row">
             <lucide-angular name="user" [size]="16"></lucide-angular>
             <span>{{ project.customer.name }}</span>
           </div>
-          <div class="detail-row" *ngIf="project.customer.phone">
+          @if (project.customer.phone) {
+          <div class="detail-row">
             <lucide-angular name="phone" [size]="16"></lucide-angular>
             <span dir="ltr">{{ project.customer.phone }}</span>
           </div>
-          <div class="detail-row" *ngIf="project.customer.email">
+          }
+          @if (project.customer.email) {
+          <div class="detail-row">
             <lucide-angular name="mail" [size]="16"></lucide-angular>
             <span>{{ project.customer.email }}</span>
           </div>
-          <div class="detail-row" *ngIf="project.customer.country?.name">
+          }
+          @if (project.customer.country?.name) {
+          <div class="detail-row">
             <lucide-angular name="map-pin" [size]="16"></lucide-angular>
             <span>{{ project.customer.country?.name }}</span>
           </div>
+          }
         </div>
       </div>
+      }
     </div>
+    }
 
-    <div *ngIf="activeTab === 'tasks'" class="tasks-tab">
-      <div class="empty-tab" *ngIf="!project.tasks?.length">
+    @if (activeTab === 'tasks') {
+    <div class="tasks-tab">
+      @if (!project.tasks?.length) {
+      <div class="empty-tab">
         <lucide-angular name="clipboard-list" [size]="48"></lucide-angular>
         <p>لا توجد مهام مسجلة لهذا المشروع بعد.</p>
       </div>
+      }
 
-      <div class="tasks-list" *ngIf="project.tasks?.length">
-        <div class="task-item" *ngFor="let task of project.tasks">
+      @if (project.tasks?.length) {
+      <div class="tasks-list">
+        @for (task of project.tasks; track task.id) {
+        <div class="task-item">
           <div class="task-main">
             <span class="status-dot" [ngClass]="getStatusColor(task.status)"></span>
             <div class="task-text">
               <h4>{{ task.title }}</h4>
-              <span class="assignee" *ngIf="task.assignee">
+              @if (task.assignee) {
+              <span class="assignee">
                 <lucide-angular name="user" [size]="12"></lucide-angular>
                 {{ task.assignee.full_name }}
               </span>
+              }
             </div>
           </div>
           <div class="task-meta">
@@ -170,37 +193,24 @@
             <span class="date">{{ formatDate(task.due_date || '') }}</span>
           </div>
         </div>
+        }
       </div>
+      }
     </div>
+    }
 
-    <div *ngIf="activeTab === 'milestones'" class="milestones-tab">
-      <div class="empty-tab" *ngIf="!project.milestones?.length">
-        <lucide-angular name="flag" [size]="48"></lucide-angular>
-        <p>لم يتم تحديد محطات رئيسية للمشروع.</p>
-      </div>
-
-      <div class="milestones-timeline" *ngIf="project.milestones?.length">
-        <div class="milestone-item" *ngFor="let ms of project.milestones" [class.completed]="ms.status === 'completed'">
-          <div class="ms-marker">
-            <lucide-angular name="check" [size]="14" *ngIf="ms.status === 'completed'"></lucide-angular>
-          </div>
-          <div class="ms-content">
-            <div class="ms-header">
-              <h4>{{ ms.title }}</h4>
-              <span class="ms-date">{{ formatDate(ms.due_date || '') }}</span>
-            </div>
-            <div class="ms-amount" *ngIf="ms.amount">
-              {{ formatCurrency(ms.amount) }}
-            </div>
-          </div>
-        </div>
-      </div>
+    @if (activeTab === 'milestones') {
+    <div class="milestones-tab">
+      <app-milestones [projectId]="project.id"></app-milestones>
     </div>
+    }
 
-    <div *ngIf="activeTab === 'invoices'" class="financials-tab">
+    @if (activeTab === 'invoices') {
+    <div class="financials-tab">
       <div class="section-block">
         <h3>الفواتير</h3>
-        <table class="data-table" *ngIf="project.invoices?.length; else noInvoices">
+        @if (project.invoices?.length) {
+        <table class="data-table">
           <thead>
             <tr>
               <th>رقم الفاتورة</th>
@@ -209,23 +219,26 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let inv of project.invoices">
+            @for (inv of project.invoices; track inv.id) {
+            <tr>
               <td>{{ inv.invoice_number }}</td>
               <td>{{ formatCurrency(inv.amount_due) }}</td>
               <td>
                 <span class="badge" [ngClass]="getStatusColor(inv.status)">{{ getStatusLabel(inv.status) }}</span>
               </td>
             </tr>
+            }
           </tbody>
         </table>
-        <ng-template #noInvoices>
-          <p class="text-muted">لا توجد فواتير.</p>
-        </ng-template>
+        } @else {
+        <p class="text-muted">لا توجد فواتير.</p>
+        }
       </div>
 
       <div class="section-block">
         <h3>المصاريف</h3>
-        <table class="data-table" *ngIf="project.expenses?.length; else noExpenses">
+        @if (project.expenses?.length) {
+        <table class="data-table">
           <thead>
             <tr>
               <th>البند</th>
@@ -234,25 +247,27 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let exp of project.expenses">
+            @for (exp of project.expenses; track exp.id) {
+            <tr>
               <td>{{ exp.title }}</td>
               <td>{{ formatCurrency(exp.amount) }}</td>
               <td>{{ formatDate(exp.expense_date.toString() || '') }}</td>
             </tr>
+            }
           </tbody>
         </table>
-        <ng-template #noExpenses>
-          <p class="text-muted">لا توجد مصاريف.</p>
-        </ng-template>
+        } @else {
+        <p class="text-muted">لا توجد مصاريف.</p>
+        }
       </div>
     </div>
+    }
 
   </div>
 </div>
-
-<ng-template #loadingTpl>
-  <div class="loading-container">
-    <div class="spinner"></div>
-    <p>جاري تحميل تفاصيل المشروع...</p>
-  </div>
-</ng-template>
+} @else {
+<div class="loading-container">
+  <div class="spinner"></div>
+  <p>جاري تحميل تفاصيل المشروع...</p>
+</div>
+}
