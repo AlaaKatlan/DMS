@@ -52,8 +52,7 @@ export class TasksService extends BaseService<ProjectTask> {
         });
     });
   }
-
-  /**
+/**
    * Get task detail with dependencies
    */
   getTaskDetail(taskId: string): Observable<ProjectTask | null> {
@@ -62,10 +61,11 @@ export class TasksService extends BaseService<ProjectTask> {
     return new Observable(observer => {
       this.supabase.client
         .from(this.tableName)
+        // 👇 الكود المصحح: إزالة التعليقات والأسطر الزائدة داخل الـ select
         .select(`
           *,
           project:projects(id, title, status),
-          assignee:profiles(id, full_name, avatar_url, role, email)
+          assignee:profiles(id, full_name, avatar_url, role)
         `)
         .eq('id', taskId)
         .single()

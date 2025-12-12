@@ -1,13 +1,14 @@
 // src/app/features/settings/settings.service.ts
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
+
 import { SupabaseService } from '../../core/services/supabase.service';
 import { UserProfile } from '../../core/services/auth.service';
 import { map } from 'rxjs/operators'; // تأكد من استيراد map
 export interface UserManagementItem {
   id: string;
   full_name: string;
-  email: string;
+  email?: string;
   role: string;
   created_at: string;
   last_sign_in_at?: string;
@@ -25,18 +26,26 @@ export class SettingsService {
   /**
    * جلب قائمة المستخدمين (لإسناد المهام)
    */
-getUsersList(): Observable<UserManagementItem[]> {
-    // نستخدم جدول profiles مباشرة أو دالة RPC إذا كانت الصلاحيات معقدة
-    return this.supabase.client
-      .from('profiles')
-      .select('*')
-      .then(({ data, error }) => {
-        if (error) throw error;
-        return data as UserManagementItem[];
-      }) as any; // تحويل الوعد إلى Observable (يفضل استخدام from إذا كنت تستخدم rxjs)
-
-      // ملاحظة: الأفضل استخدام from() من rxjs لتحويل الـ Promise
-      // لكن للتبسيط سنستخدم الطريقة الموجودة في base.service لديك
+/**
+   * جلب قائمة المستخدمين (كـ Observable)
+   */
+  getUsersList(): Observable<UserManagementItem[]> {
+    // استخدام from لتحويل الـ Promise إلى Observable ليقبل الـ subscribe
+    return from(
+      this.supabase.client
+        .from('profiles')
+        .select('*')
+        .then(({ data, error }) => {
+          if (error) throw error;
+          return data as UserManagementItem[];
+        })
+    );
+  }
+  // دالة للحذف (اختياري)
+  deleteUser(id: string): Observable<any> {
+      return from(
+          this.supabase.client.from('profiles').delete().eq('id', id)
+      );
   }
   /**
    * تحديث صلاحية مستخدم

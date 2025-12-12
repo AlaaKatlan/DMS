@@ -138,6 +138,7 @@ export const routes: Routes = [
 
 
      // Tasks
+      // Tasks
       {
         path: 'tasks',
         children: [
@@ -145,21 +146,23 @@ export const routes: Routes = [
             path: '',
             loadComponent: () => import('./features/tasks/components/task-list/task-list.component').then(m => m.TaskListComponent)
           },
+          // ✅ الترتيب الصحيح: الروابط الثابتة أولاً
           {
             path: 'board',
             loadComponent: () => import('./features/tasks/components/task-board/task-board.component').then(m => m.TaskBoardComponent)
           },
           {
-            path: 'new', // 👈 يجب أن يكون قبل :id
+            path: 'new',
+            loadComponent: () => import('./features/tasks/components/task-form/task-form.component').then(m => m.TaskFormComponent)
+          },
+          // ✅ ثم الروابط المتغيرة (التي تحتوي على :id)
+          {
+            path: ':id/edit', // التعديل (الأكثر تحديداً) قبل التفاصيل
             loadComponent: () => import('./features/tasks/components/task-form/task-form.component').then(m => m.TaskFormComponent)
           },
           {
-            path: ':id', // 👈 هذا يلتقط أي شيء، لذا نضعه في الأسفل
+            path: ':id', // التفاصيل (الأكثر عمومية) في النهاية
             loadComponent: () => import('./features/tasks/components/task-detail/task-detail.component').then(m => m.TaskDetailComponent)
-          },
-          {
-            path: ':id/edit', // 👈 مسار التعديل
-            loadComponent: () => import('./features/tasks/components/task-form/task-form.component').then(m => m.TaskFormComponent)
           }
         ]
       },
