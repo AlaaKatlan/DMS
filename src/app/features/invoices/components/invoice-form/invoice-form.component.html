@@ -1,1 +1,169 @@
-<p>invoice-form works!</p>
+<div class="invoice-form-page" dir="rtl">
+  <form [formGroup]="invoiceForm" (ngSubmit)="onSubmit()">
+
+    <div class="page-header">
+      <div class="header-content">
+        <button type="button" routerLink="/invoices" class="btn-back">
+          <lucide-angular name="arrow-right" [size]="24"></lucide-angular>
+        </button>
+        <div class="title-group">
+          <h2>{{ isEditMode ? 'تعديل الفاتورة' : 'فاتورة جديدة' }}</h2>
+          <p class="subtitle">{{ isEditMode ? (invoiceForm.get('invoice_number')?.value || 'Loading...') : 'إنشاء سجل مالي جديد' }}</p>
+        </div>
+      </div>
+
+     <div class="header-actions">
+        <button type="button" routerLink="/invoices" class="btn btn-secondary">إلغاء</button>
+
+        <button type="submit" class="btn btn-primary" [class.opacity-50]="submitting">
+          @if (submitting) {
+            <lucide-angular name="loader-circle" class="animate-spin" [size]="18"></lucide-angular>
+          }
+          <span>{{ submitting ? 'جاري الحفظ...' : 'حفظ الفاتورة' }}</span>
+        </button>
+      </div>
+    </div>
+
+    @if (loading) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>جاري تحميل البيانات...</p>
+      </div>
+    }
+
+    @if (!loading) {
+      <div class="form-content">
+
+        <div class="card info-card">
+          <div class="card-header">
+            <h3>بيانات الفاتورة الأساسية</h3>
+          </div>
+          <div class="card-body grid-3">
+
+            <div class="form-group">
+              <label>العميل <span class="required">*</span></label>
+              <select formControlName="customer_id">
+                <option [ngValue]="null">اختر العميل</option>
+                @for (c of customers; track c.id) {
+                  <option [value]="c.id">{{ c.name }}</option>
+                }
+              </select>
+              @if (invoiceForm.get('customer_id')?.touched && invoiceForm.get('customer_id')?.invalid) {
+                <span class="error-msg">العميل مطلوب</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>المشروع</label>
+              <select formControlName="project_id">
+                <option [ngValue]="null">بدون مشروع</option>
+                @for (p of filteredProjects; track p.id) {
+                  <option [value]="p.id">{{ p.title }}</option>
+                }
+              </select>
+              @if (!invoiceForm.get('customer_id')?.value) {
+                <span class="hint">اختر عميلاً أولاً لعرض مشاريعه</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label>العملة</label>
+              <select formControlName="currency">
+                <option value="USD">دولار (USD)</option>
+                <option value="AED">درهم (AED)</option>
+                <option value="QR">ريال (QR)</option>
+                <option value="SYP">ليرة (SYP)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>تاريخ الإصدار <span class="required">*</span></label>
+              <input type="date" formControlName="issue_date">
+            </div>
+
+            <div class="form-group">
+              <label>تاريخ الاستحقاق <span class="required">*</span></label>
+              <input type="date" formControlName="due_date">
+            </div>
+
+            <div class="form-group">
+              <label>الحالة</label>
+              <select formControlName="status">
+                <option value="unpaid">غير مدفوعة</option>
+                <option value="partially_paid">مدفوعة جزئياً</option>
+                <option value="paid">مدفوعة بالكامل</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card items-card">
+          <div class="card-header items-header">
+            <h3>بنود الفاتورة</h3>
+            <button type="button" (click)="addItem()" class="btn-add-item">
+              <lucide-angular name="plus" [size]="16"></lucide-angular>
+              إضافة بند
+            </button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="items-table" formArrayName="items">
+              <thead>
+                <tr>
+                  <th width="40%">الوصف</th>
+                  <th width="15%">الكمية</th>
+                  <th width="20%">السعر الإفرادي</th>
+                  <th width="20%">الإجمالي</th>
+                  <th width="5%"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of items.controls; track item; let i = $index) {
+                  <tr [formGroupName]="i">
+                    <td>
+                      <input type="text" formControlName="description" placeholder="وصف الخدمة أو المنتج" class="input-clean">
+                      @if (item.get('description')?.touched && item.get('description')?.invalid) {
+                        <span class="row-error">مطلوب</span>
+                      }
+                    </td>
+                    <td>
+                      <input type="number" formControlName="quantity" min="1" class="input-clean text-center">
+                    </td>
+                    <td>
+                      <input type="number" formControlName="unit_price" min="0" class="input-clean text-center">
+                    </td>
+                    <td class="total-cell">
+                      {{ item.get('total')?.value | number:'1.2-2' }}
+                    </td>
+                    <td>
+                      <button type="button" (click)="removeItem(i)" class="btn-remove" title="حذف السطر">
+                        <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="invoice-footer">
+            <div class="total-section">
+              <span class="label">المجموع الكلي:</span>
+              <span class="amount">{{ grandTotal | number:'1.2-2' }} {{ invoiceForm.get('currency')?.value }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <div class="form-group">
+              <label>ملاحظات إضافية</label>
+              <textarea formControlName="notes" rows="3" placeholder="شروط الدفع، تفاصيل التحويل البنكي، أو ملاحظات للعميل..."></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    }
+  </form>
+</div>

@@ -1,42 +1,53 @@
-<!-- src/app/features/invoices/components/invoice-list/invoice-list.component.html -->
 <div class="invoices-page" dir="rtl">
-  <!-- Header -->
   <div class="page-header">
     <div class="header-content">
       <h1 class="page-title">إدارة الفواتير</h1>
-      <p class="page-subtitle">إدارة ومتابعة الفواتير المالية</p>
+      <p class="page-subtitle">إدارة ومتابعة الفواتير المالية والمدفوعات</p>
     </div>
-    <button routerLink="/invoices/new" class="btn btn-primary">
-      <lucide-angular name="plus" [size]="20"></lucide-angular>
-      <span>فاتورة جديدة</span>
-    </button>
+    <div class="header-actions">
+      <button routerLink="/invoices/new" class="btn btn-primary">
+        <lucide-angular name="plus" [size]="20"></lucide-angular>
+        <span>فاتورة جديدة</span>
+      </button>
+    </div>
   </div>
 
-  <!-- Status Tabs -->
-  <div class="status-tabs">
-    <button
-      *ngFor="let status of ['all', 'paid', 'unpaid', 'partially_paid', 'overdue']"
-      (click)="statusFilter = status; applyFilter()"
-      [class.active]="statusFilter === status"
-    >
-      {{ getStatusLabel(status) }}
-    </button>
+  <div class="filters-section">
+    <div class="search-box">
+      <lucide-angular name="search" [size]="20"></lucide-angular>
+      <input
+        type="text"
+        placeholder="ابحث برقم الفاتورة أو اسم العميل..."
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+      >
+    </div>
+
+    <div class="status-tabs">
+      <button
+        *ngFor="let status of ['all', 'paid', 'unpaid', 'partially_paid', 'overdue']"
+        (click)="statusFilter = status; applyFilters()"
+        [class.active]="statusFilter === status"
+      >
+        {{ getStatusLabel(status) }}
+      </button>
+    </div>
   </div>
 
-  <!-- Loading -->
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
     <p>جاري تحميل الفواتير...</p>
   </div>
 
-  <!-- Empty State -->
   <div *ngIf="!loading && filteredInvoices.length === 0" class="empty-state">
     <lucide-angular name="file-question" [size]="64"></lucide-angular>
     <h3>لا توجد فواتير</h3>
-    <p>{{ statusFilter !== 'all' ? 'لا توجد فواتير بهذه الحالة' : 'ابدأ بإضافة فاتورة جديدة' }}</p>
+    <p>{{ statusFilter !== 'all' ? 'لا توجد فواتير تطابق الفلاتر المحددة' : 'ابدأ بإضافة فاتورة جديدة للنظام' }}</p>
+    <button *ngIf="statusFilter !== 'all'" class="btn btn-outline" (click)="statusFilter = 'all'; applyFilters()">
+      إعادة تعيين الفلاتر
+    </button>
   </div>
 
-  <!-- Invoices Table -->
   <div *ngIf="!loading && filteredInvoices.length > 0" class="invoices-table">
     <table>
       <thead>
@@ -60,15 +71,20 @@
           <td>{{ inv.due_date | date:'dd/MM/yyyy' }}</td>
           <td>{{ inv.amount_due | number:'1.2-2' }} {{ inv.currency }}</td>
           <td>
-            <span class="status-badge" [ngClass]="inv.status">
+            <span class="status-badge" [ngClass]="getStatusClass(inv.status)">
               {{ getStatusLabel(inv.status) }}
             </span>
           </td>
           <td>
             <div class="table-actions">
-              <button [routerLink]="['/invoices', inv.id]">
-                <lucide-angular name="eye" [size]="16"></lucide-angular>
-                <span>عرض</span>
+              <button [routerLink]="['/invoices', inv.id]" title="عرض التفاصيل">
+                <lucide-angular name="eye" [size]="18"></lucide-angular>
+              </button>
+              <button [routerLink]="['/invoices', inv.id, 'edit']" title="تعديل">
+                <lucide-angular name="edit" [size]="18"></lucide-angular>
+              </button>
+              <button (click)="deleteInvoice(inv.id)" title="حذف" class="delete-btn">
+                <lucide-angular name="trash-2" [size]="18"></lucide-angular>
               </button>
             </div>
           </td>

@@ -242,4 +242,23 @@ export class CustomersService extends BaseService<Customer> {
       )
     );
   }
+  /**
+   * جلب قائمة خفيفة للعملاء (للقوائم المنسدلة)
+   * faster select query
+   */
+  getCustomersLite(): Observable<{id: string, name: string}[]> {
+    return new Observable(observer => {
+      this.supabase.client
+        .from(this.tableName)
+        .select('id, name') // 👇 نطلب فقط المعرف والاسم
+        .order('name')
+        .then(({ data, error }: any) => {
+          if (error) observer.error(error);
+          else {
+            observer.next(data);
+            observer.complete();
+          }
+        });
+    });
+  }
 }

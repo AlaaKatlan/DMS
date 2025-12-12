@@ -179,6 +179,12 @@ export const routes: Routes = [
             path: 'new',
             loadComponent: () => import('./features/invoices/components/invoice-form/invoice-form.component').then(m => m.InvoiceFormComponent)
           },
+          // 👇 أضف هذا المسار (تعديل) ويجب أن يكون قبل المسار العام (:id)
+          {
+            path: ':id/edit',
+            loadComponent: () => import('./features/invoices/components/invoice-form/invoice-form.component').then(m => m.InvoiceFormComponent)
+          },
+          // 👆
           {
             path: ':id',
             loadComponent: () => import('./features/invoices/components/invoice-detail/invoice-detail.component').then(m => m.InvoiceDetailComponent)

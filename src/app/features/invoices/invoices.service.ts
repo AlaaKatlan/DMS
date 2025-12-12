@@ -15,12 +15,11 @@ import {
   providedIn: 'root'
 })
 export class InvoicesService extends BaseService<Invoice> {
-  protected override tableName = 'invoices';
+protected override tableName = 'invoices';
 
   protected override getSearchColumns(): string[] {
-    return ['invoice_number', 'notes'];
+    return ['invoice_number', 'customer.name']; // البحث برقم الفاتورة أو اسم العميل
   }
-
   // ==================== INVOICES ====================
 
   /**
@@ -503,5 +502,39 @@ export class InvoicesService extends BaseService<Invoice> {
   generateInvoicePDF(invoiceId: string): Observable<Blob> {
     // سيتم استخدام Supabase Edge Function
     return this.supabase.rpc('generate_invoice_pdf', { invoice_id: invoiceId });
+  }
+  /**
+   * إنشاء فاتورة جديدة مع عناصرها (Transaction)
+   */
+  async createInvoiceWithItems(invoiceData: Partial<Invoice>, items: Partial<InvoiceItem>[]): Promise<Invoice> {
+    // 1. توليد رقم الفاتورة تلقائياً إذا لم يكن موجوداً
+    if (!invoiceData.invoice_number) {
+      invoiceData.invoice_number = await this.generateInvoiceNumber();
+    }
+
+    // 2. إنشاء الفاتورة
+    // 👇 التعديل: إضافة (as any) لتجاوز خطأ "type never"
+    const { data: invoice, error: invError } = await (this.supabase.client
+      .from(this.tableName) as any)
+      .insert(invoiceData)
+      .select()
+      .single();
+
+    if (invError) throw invError;
+
+    // 3. إضافة العناصر (Items)
+    if (items.length > 0 && invoice) {
+      // بما أننا استخدمنا as any، فإن invoice الآن يعتبر any ولن يعطي خطأ عند طلب .id
+      const itemsWithId = items.map(item => ({ ...item, invoice_id: invoice.id }));
+
+      // 👇 التعديل: إضافة (as any) هنا أيضاً لجدول العناصر
+      const { error: itemsError } = await (this.supabase.client
+        .from('invoice_items') as any)
+        .insert(itemsWithId);
+
+      if (itemsError) throw itemsError;
+    }
+
+    return invoice as Invoice;
   }
 }

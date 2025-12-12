@@ -1,0 +1,156 @@
+@use 'sass:color';
+
+$primary: #4F46E5;
+$bg-page: #F8FAFC;
+$white: #FFFFFF;
+$border: #E2E8F0;
+$text-main: #1E293B;
+$text-light: #64748B;
+$danger: #EF4444;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: $bg-page;
+  padding: 2rem;
+  @media (max-width: 768px) { padding: 1rem; }
+}
+
+// Media Query for Printing
+@media print {
+  :host { padding: 0; background: white; }
+  .no-print { display: none !important; }
+  .invoice-paper { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: 100% !important; }
+  .invoice-detail-page { padding: 0; }
+}
+
+.invoice-detail-page { max-width: 900px; margin: 0 auto; }
+
+// Header Actions
+.page-header {
+  margin-bottom: 2rem;
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center;
+    .btn-back {
+      display: flex; align-items: center; gap: 0.5rem; background: none; border: none; color: $text-light; cursor: pointer; font-weight: 600;
+      &:hover { color: $primary; }
+    }
+    .actions {
+      display: flex; gap: 0.75rem;
+      .btn-action {
+        display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; border: 1px solid $border; background: $white;
+        &:hover { background: #f1f5f9; }
+        &.print { color: $primary; border-color: $primary; background: #EEF2FF; }
+        &.delete:hover { background: #fee2e2; color: $danger; border-color: #fecaca; }
+      }
+    }
+  }
+}
+
+// Invoice Paper Style
+.invoice-paper {
+  background: $white;
+  padding: 3rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  border: 1px solid $border;
+  color: $text-main;
+
+  @media (max-width: 600px) { padding: 1.5rem; }
+}
+
+// Invoice Header
+.invoice-header {
+  display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;
+
+  .company-info {
+    h1 { font-size: 1.8rem; font-weight: 800; color: $primary; margin: 0 0 0.5rem; }
+    .company-name { font-weight: 700; font-size: 1.1rem; }
+    p { margin: 0.2rem 0; color: $text-light; font-size: 0.9rem; }
+  }
+
+  .invoice-meta {
+    text-align: left;
+    .meta-row {
+      display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem;
+      .label { color: $text-light; font-weight: 500; }
+      .value { font-weight: 600; }
+      .font-mono { font-family: monospace; font-size: 1rem; }
+      &.status { margin-top: 1rem; justify-content: flex-end; }
+    }
+  }
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.85rem; font-weight: 700; border: 1px solid;
+}
+
+.divider { border: 0; border-top: 1px solid $border; margin: 2rem 0; }
+
+// Info Sections
+.info-sections {
+  display: flex; justify-content: space-between; margin-bottom: 3rem; gap: 2rem;
+  .info-block {
+    flex: 1;
+    h3 { font-size: 0.9rem; text-transform: uppercase; color: $text-light; margin-bottom: 0.8rem; letter-spacing: 0.5px; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; display: inline-block; }
+    .name { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.4rem; color: $text-main; }
+    p { margin: 0.2rem 0; font-size: 0.95rem; color: #475569; }
+    .text-muted { color: $text-light; font-style: italic; }
+  }
+}
+
+// Items Table
+.items-section {
+  margin-bottom: 2rem;
+  .items-table {
+    width: 100%; border-collapse: collapse;
+    th { text-align: right; padding: 0.75rem; background: #F8FAFC; color: $text-light; font-size: 0.85rem; font-weight: 700; border-bottom: 1px solid $border; }
+    td { padding: 0.75rem; border-bottom: 1px solid $border; font-size: 0.95rem; }
+    .text-center { text-align: center; }
+    .text-end { text-align: left; }
+    .font-bold { font-weight: 700; }
+  }
+}
+
+// Totals
+.totals-section {
+  display: flex; flex-direction: column; align-items: flex-end; margin-bottom: 3rem;
+  .total-row {
+    display: flex; gap: 2rem; font-size: 1.2rem; margin-bottom: 1rem;
+    &.main { font-size: 1.5rem; font-weight: 800; color: $primary; }
+  }
+
+  .payment-summary {
+    background: #F8FAFC; padding: 1rem; border-radius: 0.5rem; min-width: 250px;
+    .summary-row {
+      display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem;
+      &:last-child { margin-bottom: 0; padding-top: 0.5rem; border-top: 1px dashed $border; font-weight: 700; }
+      &.paid { color: #166534; }
+      &.remaining { color: #B91C1C; }
+    }
+  }
+}
+
+// Notes
+.notes-section {
+  background: #fff; border: 1px solid $border; padding: 1rem; border-radius: 0.5rem; font-size: 0.9rem; color: $text-light;
+  h3 { margin: 0 0 0.5rem; font-size: 0.9rem; color: $text-main; }
+}
+
+// History
+.payments-history {
+  margin-top: 2rem; border-top: 1px solid $border; padding-top: 1rem;
+  h3 { font-size: 1rem; margin-bottom: 1rem; }
+  .history-list {
+    display: flex; flex-direction: column; gap: 0.5rem;
+    .payment-item {
+      display: flex; justify-content: space-between; padding: 0.5rem; background: #F8FAFC; border-radius: 0.3rem; font-size: 0.9rem;
+      .pay-info { display: flex; align-items: center; gap: 0.5rem; }
+      .pay-amount { font-weight: 700; }
+    }
+  }
+}
+
+// Loading
+.loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: $primary; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; } }
+@keyframes spin { to { transform: rotate(360deg); } }

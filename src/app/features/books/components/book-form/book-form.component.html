@@ -16,7 +16,7 @@
       <div class="header-actions">
         <button type="button" routerLink="/books" class="btn btn-secondary">إلغاء</button>
         <button (click)="onSubmit()" [disabled]="bookForm.invalid || isSubmitting" class="btn btn-primary">
-          <lucide-angular *ngIf="isSubmitting" name="loader-2" class="animate-spin" [size]="18"></lucide-angular>
+          <lucide-angular *ngIf="isSubmitting" name="loader-circle" class="animate-spin" [size]="18"></lucide-angular>
           <span>{{ isSubmitting ? 'جاري الحفظ...' : 'حفظ البيانات' }}</span>
         </button>
       </div>
