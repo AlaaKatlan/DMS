@@ -1,90 +1,94 @@
-<div class="invoices-page" dir="rtl">
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">إدارة الفواتير</h1>
-      <p class="page-subtitle">إدارة ومتابعة الفواتير المالية</p>
-    </div>
-    <div class="header-actions">
-      <button routerLink="/invoices/new" class="btn btn-primary">
-        <lucide-angular name="plus" [size]="20"></lucide-angular>
-        <span>فاتورة جديدة</span>
+@if (!loading && invoice) {
+  <div class="invoice-viewer-page" dir="rtl">
+
+    <div class="toolbar no-print">
+      <button class="btn-back" routerLink="/invoices">
+        <lucide-angular name="arrow-right" [size]="18"></lucide-angular> رجوع
       </button>
-    </div>
-  </div>
-
-  <div class="filters-section">
-    <div class="search-box">
-      <lucide-angular name="search" [size]="20"></lucide-angular>
-      <input
-        type="text"
-        placeholder="ابحث برقم الفاتورة أو اسم العميل..."
-        [(ngModel)]="searchQuery"
-        (ngModelChange)="applyFilters()"
-      >
+      <div class="actions">
+        <button class="btn-action" [routerLink]="['/invoices', invoice.id, 'edit']">تعديل</button>
+        <button class="btn-print" (click)="printInvoice()">
+          <lucide-angular name="printer" [size]="18"></lucide-angular> طباعة
+        </button>
+      </div>
     </div>
 
-    <div class="status-tabs">
-      <button
-        *ngFor="let status of ['all', 'paid', 'unpaid', 'partially_paid', 'overdue']"
-        (click)="statusFilter = status; applyFilters()"
-        [class.active]="statusFilter === status"
-      >
-        {{ getStatusLabel(status) }}
-      </button>
+    <div class="invoice-paper" id="print-section">
+
+      <header class="header">
+        <div class="brand">
+          <img src="assets/images/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+          <div class="brand-info">
+            <h1>دار الزيبق</h1>
+            <p>للنشر والتوزيع والخدمات الطباعية</p>
+            <p class="contact">دمشق - هاتف: 0112233445</p>
+          </div>
+        </div>
+        <div class="invoice-badge">
+          <h2>فاتورة مبيعات</h2>
+          <span class="number">#{{ invoice.invoice_number }}</span>
+          <span class="status" [class]="invoice.status">{{ getStatusLabel(invoice.status) }}</span>
+        </div>
+      </header>
+
+      <div class="info-grid">
+        <div class="box to">
+          <label>السيد / السادة:</label>
+          <h3>{{ invoice.customer?.name || 'عميل نقدي' }}</h3>
+          <p *ngIf="invoice.customer?.phone">{{ invoice.customer?.phone }}</p>
+          <p *ngIf="invoice.customer?.address">{{ invoice.customer?.address }}</p>
+        </div>
+        <div class="box meta">
+          <div class="row"><span>تاريخ الإصدار:</span> <strong>{{ invoice.issue_date | date:'dd/MM/yyyy' }}</strong></div>
+          <div class="row"><span>تاريخ الاستحقاق:</span> <strong>{{ invoice.due_date | date:'dd/MM/yyyy' }}</strong></div>
+          <div class="row" *ngIf="invoice.project"><span>المشروع:</span> <strong>{{ invoice.project.title }}</strong></div>
+        </div>
+      </div>
+
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th width="5%">#</th> <th width="50%">البيان</th> <th width="10%">الكمية</th> <th width="15%">السعر</th> <th width="20%">الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of invoice.items || []; track item.id; let i = $index) {
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>{{ item.description }}</td>
+              <td class="center">{{ item.quantity }}</td>
+              <td class="center">{{ item.unit_price | number }}</td>
+              <td class="end">{{ item.total | number }}</td>
+            </tr>
+          }
+          @if ((invoice.items?.length || 0) < 5) { <tr class="spacer"><td colspan="5"></td></tr> }
+        </tbody>
+      </table>
+
+      <div class="footer-grid">
+        <div class="payment-methods">
+          <h4>طرق الدفع المتاحة:</h4>
+          <ul>
+            @for (method of paymentMethods; track method.id) {
+              <li><strong>{{ method.name }}:</strong> {{ method.details }}</li>
+            }
+          </ul>
+        </div>
+
+        <div class="totals">
+          <div class="row"><span>المجموع:</span> <span>{{ invoice.amount_due | number }} {{ invoice.currency }}</span></div>
+          <div class="row paid"><span>المدفوع:</span> <span>{{ totalPaid | number }} {{ invoice.currency }}</span></div>
+          <div class="row final"><span>المتبقي:</span> <span>{{ remaining | number }} {{ invoice.currency }}</span></div>
+        </div>
+      </div>
+
+      <div class="signatures">
+        <div class="sign"><span>المحاسب</span></div>
+        <div class="sign"><span>المدير العام</span></div>
+        <div class="sign"><span>المستلم</span></div>
+      </div>
+
+      <div class="footer-note">شكراً لتعاملكم مع دار الزيبق</div>
     </div>
   </div>
-
-  <div *ngIf="loading" class="loading-container">
-    <div class="spinner"></div>
-    <p>جاري تحميل الفواتير...</p>
-  </div>
-
-  <div *ngIf="!loading && filteredInvoices.length === 0" class="empty-state">
-    <lucide-angular name="file-question" [size]="64"></lucide-angular>
-    <h3>لا توجد فواتير</h3>
-    <p>لا توجد فواتير تطابق الفلاتر الحالية.</p>
-  </div>
-
-  <div *ngIf="!loading && filteredInvoices.length > 0" class="invoices-table">
-    <table>
-      <thead>
-        <tr>
-          <th>رقم الفاتورة</th>
-          <th>العميل</th>
-          <th>تاريخ الإصدار</th>
-          <th>المبلغ</th>
-          <th>الحالة</th>
-          <th>الإجراءات</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let inv of filteredInvoices">
-          <td>
-            <a [routerLink]="['/invoices', inv.id]" class="invoice-link">{{ inv.invoice_number }}</a>
-          </td>
-          <td>{{ inv.customer?.name || '-' }}</td>
-          <td>{{ inv.issue_date | date:'dd/MM/yyyy' }}</td>
-          <td class="amount">{{ inv.amount_due | number:'1.2-2' }} {{ inv.currency }}</td>
-          <td>
-            <span class="status-badge" [ngClass]="getStatusClass(inv.status)">
-              {{ getStatusLabel(inv.status) }}
-            </span>
-          </td>
-          <td>
-            <div class="table-actions">
-              <button [routerLink]="['/invoices', inv.id]" title="عرض">
-                <lucide-angular name="eye" [size]="18"></lucide-angular>
-              </button>
-              <button [routerLink]="['/invoices', inv.id, 'edit']" title="تعديل">
-                <lucide-angular name="edit" [size]="18"></lucide-angular>
-              </button>
-              <button (click)="deleteInvoice(inv.id)" title="حذف" class="delete-btn">
-                <lucide-angular name="trash-2" [size]="18"></lucide-angular>
-              </button>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
+}

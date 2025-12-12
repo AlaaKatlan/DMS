@@ -16,7 +16,6 @@ import { Project } from '../../../../core/models/base.model';
   styleUrls: ['./invoice-form.component.scss']
 })
 export class InvoiceFormComponent implements OnInit {
-  // ... (نفس الحقن السابق)
   private fb = inject(FormBuilder);
   private invoicesService = inject(InvoicesService);
   private customersService = inject(CustomersService);
@@ -31,14 +30,14 @@ export class InvoiceFormComponent implements OnInit {
   loading = false;
   submitting = false;
 
-  // تغيير نوع العملاء ليناسب الدالة الخفيفة
-  customers: {id: string, name: string}[] = [];
+  customers: any[] = [];
   projects: Project[] = [];
   filteredProjects: Project[] = [];
+  paymentMethods: any[] = []; // قائمة طرق الدفع
 
   ngOnInit(): void {
     this.initForm();
-    this.loadData(); // سيتم استخدام الدالة السريعة هنا
+    this.loadData();
 
     this.route.paramMap.subscribe(params => {
       const id = params.get('id');
@@ -47,20 +46,14 @@ export class InvoiceFormComponent implements OnInit {
         this.invoiceId = id;
         this.loadInvoice(id);
       } else {
-        this.addItem(); // إضافة سطر افتراضي
-
-        // تعيين العملة الافتراضية بوضوح
-        this.invoiceForm.patchValue({ currency: 'USD', status: 'unpaid' });
+        this.addItem();
       }
     });
 
-    // فلترة المشاريع عند تغيير العميل
-    this.invoiceForm.get('customer_id')?.valueChanges.subscribe(customerId => {
-      this.filterProjects(customerId);
-    });
+    // فلترة المشاريع
+    this.invoiceForm.get('customer_id')?.valueChanges.subscribe(cid => this.filterProjects(cid));
   }
 
-  // ... (initForm و addItem و removeItem و grandTotal كما هي)
   initForm(): void {
     this.invoiceForm = this.fb.group({
       invoice_number: [''],
@@ -71,79 +64,71 @@ export class InvoiceFormComponent implements OnInit {
       status: ['unpaid', Validators.required],
       currency: ['USD', Validators.required],
       notes: [''],
+      // حقول الدفع
+      initial_payment_amount: [0],
+      payment_method_id: [null],
       items: this.fb.array([])
+    });
+
+    // مراقبة الحالة لإظهار حقول الدفع
+    this.invoiceForm.get('status')?.valueChanges.subscribe(status => {
+      const payMethod = this.invoiceForm.get('payment_method_id');
+      const payAmount = this.invoiceForm.get('initial_payment_amount');
+
+      if (status === 'paid' || status === 'partially_paid') {
+        payMethod?.setValidators(Validators.required);
+        if (status === 'paid') payAmount?.setValue(this.grandTotal);
+      } else {
+        payMethod?.clearValidators();
+        payAmount?.setValue(0);
+      }
+      payMethod?.updateValueAndValidity();
     });
   }
 
   get items(): FormArray { return this.invoiceForm.get('items') as FormArray; }
 
   addItem(item?: any): void {
-    const itemGroup = this.fb.group({
+    const group = this.fb.group({
       description: [item?.description || '', Validators.required],
       quantity: [item?.quantity || 1, [Validators.required, Validators.min(1)]],
       unit_price: [item?.unit_price || 0, [Validators.required, Validators.min(0)]],
       total: [item?.total || 0]
     });
 
-    itemGroup.valueChanges.subscribe(val => {
-      const total = (val.quantity || 0) * (val.unit_price || 0);
-      if (val.total !== total) {
-        itemGroup.patchValue({ total: total }, { emitEvent: false });
-      }
+    group.valueChanges.subscribe(val => {
+      const t = (val.quantity || 0) * (val.unit_price || 0);
+      if (val.total !== t) group.patchValue({ total: t }, { emitEvent: false });
     });
-    this.items.push(itemGroup);
+    this.items.push(group);
   }
 
-  removeItem(index: number): void { this.items.removeAt(index); }
+  removeItem(i: number) { this.items.removeAt(i); }
 
   get grandTotal(): number {
     return this.items.controls.reduce((acc, c) => acc + (c.get('total')?.value || 0), 0);
   }
 
   loadData(): void {
-    // 1. استخدام الدالة السريعة (Lite)
-    this.customersService.getCustomersLite().subscribe({
-      next: (data: any[]) => {
-        this.customers = data;
-        this.cd.detectChanges();
-      },
-      error: (err) => console.error('Error loading customers', err)
-    });
-
-    // 2. تحميل المشاريع (يمكن تحسينها لاحقاً لجلب مشاريع العميل المختار فقط)
-    this.projectsService.getProjectsWithRelations().subscribe({
-      next: (data) => this.projects = data,
-      error: (err) => console.error('Error loading projects', err)
-    });
+    this.customersService.getCustomersLite().subscribe(d => this.customers = d);
+    this.projectsService.getProjectsWithRelations().subscribe(d => this.projects = d);
+    // جلب طرق الدفع
+    this.invoicesService.getPaymentMethods().subscribe(d => this.paymentMethods = d);
   }
 
-  filterProjects(customerId: string): void {
-    if (!customerId) {
-      this.filteredProjects = [];
-      this.invoiceForm.patchValue({ project_id: null });
-      return;
-    }
-    this.filteredProjects = this.projects.filter(p => p.customer_id === customerId);
+  filterProjects(cid: string): void {
+    if (!cid) { this.filteredProjects = []; return; }
+    this.filteredProjects = this.projects.filter(p => p.customer_id === cid);
   }
 
   loadInvoice(id: string): void {
-    // ... (نفس الكود السابق)
     this.loading = true;
     this.invoicesService.getInvoiceDetail(id).subscribe({
-      next: (invoice) => {
-        if (invoice) {
-          this.invoiceForm.patchValue({
-            invoice_number: invoice.invoice_number,
-            customer_id: invoice.customer_id,
-            project_id: invoice.project_id,
-            issue_date: invoice.issue_date,
-            due_date: invoice.due_date,
-            status: invoice.status,
-            currency: invoice.currency,
-            notes: invoice.notes
-          });
+      next: (inv) => {
+        if (inv) {
+          this.invoiceForm.patchValue(inv);
           this.items.clear();
-          if (invoice.items?.length) invoice.items.forEach(i => this.addItem(i));
+          if (inv.items?.length) inv.items.forEach(i => this.addItem(i));
           else this.addItem();
         }
         this.loading = false;
@@ -154,52 +139,37 @@ export class InvoiceFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    // 1. كشف الأخطاء: إذا كان النموذج غير صالح، نعلم جميع الحقول
     if (this.invoiceForm.invalid) {
-      this.invoiceForm.markAllAsTouched(); // سيُظهر الحقول الحمراء
-
-      // طباعة سبب الخطأ في الكونسول للمطور
-      console.log('Form errors:', this.invoiceForm.errors);
-      this.items.controls.forEach((c, i) => console.log(`Item ${i} errors:`, c.errors));
-
-      alert('يرجى تعبئة جميع الحقول المطلوبة (العميل، التاريخ، ووصف البنود)');
+      this.invoiceForm.markAllAsTouched();
       return;
     }
-
-    if (this.items.length === 0) {
-      alert('يجب إضافة بند واحد على الأقل');
-      return;
-    }
+    if (this.items.length === 0) { alert('أضف بنداً واحداً على الأقل'); return; }
 
     this.submitting = true;
+    const formVal = this.invoiceForm.getRawValue();
 
-    const formValue = this.invoiceForm.getRawValue();
-    const invoiceData = { ...formValue, amount_due: this.grandTotal };
-    const { items, ...mainData } = invoiceData;
+    // تجهيز الدفعة
+    let initialPayment = undefined;
+    if (formVal.initial_payment_amount > 0 && formVal.payment_method_id) {
+      initialPayment = {
+        amount: formVal.initial_payment_amount,
+        method_id: formVal.payment_method_id,
+        notes: 'دفعة أولية'
+      };
+    }
+
+    const { items, initial_payment_amount, payment_method_id, ...mainData } = formVal;
+    mainData.amount_due = this.grandTotal;
 
     if (this.isEditMode) {
       this.invoicesService.update(this.invoiceId!, mainData).subscribe({
-        next: () => {
-          alert('تم التحديث بنجاح');
-          this.router.navigate(['/invoices']);
-        },
-        error: (err) => {
-          console.error(err);
-          this.submitting = false;
-          alert('فشل التحديث');
-        }
+        next: () => { alert('تم التحديث'); this.router.navigate(['/invoices']); },
+        error: () => { this.submitting = false; alert('فشل التحديث'); }
       });
     } else {
-      this.invoicesService.createInvoiceWithItems(mainData, items)
-        .then(() => {
-          alert('تم إنشاء الفاتورة بنجاح');
-          this.router.navigate(['/invoices']);
-        })
-        .catch(err => {
-          console.error('Create Error:', err);
-          this.submitting = false;
-          alert('فشل إنشاء الفاتورة: ' + (err.message || 'خطأ غير معروف'));
-        });
+      this.invoicesService.createInvoiceWithItems(mainData, items, initialPayment)
+        .then(() => { alert('تم الحفظ'); this.router.navigate(['/invoices']); })
+        .catch(err => { this.submitting = false; alert('فشل الحفظ: ' + err.message); });
     }
   }
 }

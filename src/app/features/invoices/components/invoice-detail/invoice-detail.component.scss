@@ -1,156 +1,39 @@
 @use 'sass:color';
+$primary: #1E3A8A;
+$bg: #F1F5F9;
 
-$primary: #4F46E5;
-$bg-page: #F8FAFC;
-$white: #FFFFFF;
-$border: #E2E8F0;
-$text-main: #1E293B;
-$text-light: #64748B;
-$danger: #EF4444;
+:host { display: block; background: $bg; min-height: 100vh; padding: 2rem; }
+@media print { :host { padding: 0; background: white; } .no-print { display: none !important; } .invoice-paper { box-shadow: none !important; margin: 0 !important; width: 100% !important; } }
 
-:host {
-  display: block;
-  min-height: 100vh;
-  background-color: $bg-page;
-  padding: 2rem;
-  @media (max-width: 768px) { padding: 1rem; }
+.toolbar { max-width: 210mm; margin: 0 auto 1rem; display: flex; justify-content: space-between;
+  button { padding: 8px 16px; border-radius: 6px; cursor: pointer; border: 1px solid #ccc; background: white; display: flex; align-items: center; gap: 5px; font-weight: bold; }
+  .btn-print { background: $primary; color: white; border-color: $primary; }
 }
 
-// Media Query for Printing
-@media print {
-  :host { padding: 0; background: white; }
-  .no-print { display: none !important; }
-  .invoice-paper { box-shadow: none !important; border: none !important; margin: 0 !important; max-width: 100% !important; }
-  .invoice-detail-page { padding: 0; }
-}
+.invoice-paper { background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 15mm; color: #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; }
 
-.invoice-detail-page { max-width: 900px; margin: 0 auto; }
-
-// Header Actions
-.page-header {
-  margin-bottom: 2rem;
-  .header-top {
-    display: flex; justify-content: space-between; align-items: center;
-    .btn-back {
-      display: flex; align-items: center; gap: 0.5rem; background: none; border: none; color: $text-light; cursor: pointer; font-weight: 600;
-      &:hover { color: $primary; }
-    }
-    .actions {
-      display: flex; gap: 0.75rem;
-      .btn-action {
-        display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer; border: 1px solid $border; background: $white;
-        &:hover { background: #f1f5f9; }
-        &.print { color: $primary; border-color: $primary; background: #EEF2FF; }
-        &.delete:hover { background: #fee2e2; color: $danger; border-color: #fecaca; }
-      }
-    }
+.header { display: flex; justify-content: space-between; border-bottom: 3px solid $primary; padding-bottom: 1rem; margin-bottom: 2rem;
+  .brand { display: flex; gap: 1rem; align-items: center; .logo { height: 80px; } h1 { margin: 0; color: $primary; font-size: 1.8rem; } }
+  .invoice-badge { text-align: left; h2 { margin: 0; font-size: 2rem; color: #E2E8F0; } .number { font-weight: bold; font-size: 1.2rem; }
+    .status { display: inline-block; padding: 2px 8px; border: 1px solid; font-size: 0.7rem; border-radius: 4px; margin-top: 5px; &.paid { color: green; border-color: green; } }
   }
 }
 
-// Invoice Paper Style
-.invoice-paper {
-  background: $white;
-  padding: 3rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-  border: 1px solid $border;
-  color: $text-main;
-
-  @media (max-width: 600px) { padding: 1.5rem; }
-}
-
-// Invoice Header
-.invoice-header {
-  display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;
-
-  .company-info {
-    h1 { font-size: 1.8rem; font-weight: 800; color: $primary; margin: 0 0 0.5rem; }
-    .company-name { font-weight: 700; font-size: 1.1rem; }
-    p { margin: 0.2rem 0; color: $text-light; font-size: 0.9rem; }
-  }
-
-  .invoice-meta {
-    text-align: left;
-    .meta-row {
-      display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem;
-      .label { color: $text-light; font-weight: 500; }
-      .value { font-weight: 600; }
-      .font-mono { font-family: monospace; font-size: 1rem; }
-      &.status { margin-top: 1rem; justify-content: flex-end; }
-    }
+.info-grid { display: flex; gap: 2rem; margin-bottom: 2rem;
+  .box { flex: 1; background: #F8FAFC; padding: 1rem; border-radius: 6px; border-right: 4px solid $primary;
+    h3 { margin: 5px 0; color: $primary; } .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
   }
 }
 
-.status-badge {
-  padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.85rem; font-weight: 700; border: 1px solid;
+.items-table { width: 100%; border-collapse: collapse; margin-bottom: auto;
+  thead th { background: $primary; color: white; padding: 10px; }
+  tbody td { padding: 10px; border-bottom: 1px solid #E2E8F0; } .center { text-align: center; } .end { text-align: left; font-weight: bold; } .spacer td { height: 50px; }
 }
 
-.divider { border: 0; border-top: 1px solid $border; margin: 2rem 0; }
-
-// Info Sections
-.info-sections {
-  display: flex; justify-content: space-between; margin-bottom: 3rem; gap: 2rem;
-  .info-block {
-    flex: 1;
-    h3 { font-size: 0.9rem; text-transform: uppercase; color: $text-light; margin-bottom: 0.8rem; letter-spacing: 0.5px; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; display: inline-block; }
-    .name { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.4rem; color: $text-main; }
-    p { margin: 0.2rem 0; font-size: 0.95rem; color: #475569; }
-    .text-muted { color: $text-light; font-style: italic; }
-  }
+.footer-grid { display: flex; justify-content: space-between; margin-top: 2rem; margin-bottom: 3rem; border-top: 2px solid $primary; padding-top: 1rem;
+  .payment-methods { flex: 1; font-size: 0.85rem; ul { padding: 0; list-style: none; li { margin-bottom: 4px; } } }
+  .totals { width: 250px; .row { display: flex; justify-content: space-between; padding: 5px 0; &.final { background: $primary; color: white; padding: 10px; border-radius: 4px; font-weight: bold; } } }
 }
 
-// Items Table
-.items-section {
-  margin-bottom: 2rem;
-  .items-table {
-    width: 100%; border-collapse: collapse;
-    th { text-align: right; padding: 0.75rem; background: #F8FAFC; color: $text-light; font-size: 0.85rem; font-weight: 700; border-bottom: 1px solid $border; }
-    td { padding: 0.75rem; border-bottom: 1px solid $border; font-size: 0.95rem; }
-    .text-center { text-align: center; }
-    .text-end { text-align: left; }
-    .font-bold { font-weight: 700; }
-  }
-}
-
-// Totals
-.totals-section {
-  display: flex; flex-direction: column; align-items: flex-end; margin-bottom: 3rem;
-  .total-row {
-    display: flex; gap: 2rem; font-size: 1.2rem; margin-bottom: 1rem;
-    &.main { font-size: 1.5rem; font-weight: 800; color: $primary; }
-  }
-
-  .payment-summary {
-    background: #F8FAFC; padding: 1rem; border-radius: 0.5rem; min-width: 250px;
-    .summary-row {
-      display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.95rem;
-      &:last-child { margin-bottom: 0; padding-top: 0.5rem; border-top: 1px dashed $border; font-weight: 700; }
-      &.paid { color: #166534; }
-      &.remaining { color: #B91C1C; }
-    }
-  }
-}
-
-// Notes
-.notes-section {
-  background: #fff; border: 1px solid $border; padding: 1rem; border-radius: 0.5rem; font-size: 0.9rem; color: $text-light;
-  h3 { margin: 0 0 0.5rem; font-size: 0.9rem; color: $text-main; }
-}
-
-// History
-.payments-history {
-  margin-top: 2rem; border-top: 1px solid $border; padding-top: 1rem;
-  h3 { font-size: 1rem; margin-bottom: 1rem; }
-  .history-list {
-    display: flex; flex-direction: column; gap: 0.5rem;
-    .payment-item {
-      display: flex; justify-content: space-between; padding: 0.5rem; background: #F8FAFC; border-radius: 0.3rem; font-size: 0.9rem;
-      .pay-info { display: flex; align-items: center; gap: 0.5rem; }
-      .pay-amount { font-weight: 700; }
-    }
-  }
-}
-
-// Loading
-.loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: $primary; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; } }
-@keyframes spin { to { transform: rotate(360deg); } }
+.signatures { display: flex; justify-content: space-around; padding-top: 2rem; .sign { width: 150px; text-align: center; border-top: 1px solid #94A3B8; font-size: 0.8rem; } }
+.footer-note { text-align: center; font-size: 0.8rem; color: #94A3B8; margin-top: 2rem; }
