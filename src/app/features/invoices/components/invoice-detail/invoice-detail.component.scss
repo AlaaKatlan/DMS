@@ -1,39 +1,687 @@
+ // invoice-detail.component.scss
 @use 'sass:color';
-$primary: #1E3A8A;
-$bg: #F1F5F9;
 
-:host { display: block; background: $bg; min-height: 100vh; padding: 2rem; }
-@media print { :host { padding: 0; background: white; } .no-print { display: none !important; } .invoice-paper { box-shadow: none !important; margin: 0 !important; width: 100% !important; } }
+// Brand Colors from Logo
+$primary-green: #4CAF50;
+$dark-green: #2E7D32;
+$light-green: #81C784;
+$accent-green: #66BB6A;
 
-.toolbar { max-width: 210mm; margin: 0 auto 1rem; display: flex; justify-content: space-between;
-  button { padding: 8px 16px; border-radius: 6px; cursor: pointer; border: 1px solid #ccc; background: white; display: flex; align-items: center; gap: 5px; font-weight: bold; }
-  .btn-print { background: $primary; color: white; border-color: $primary; }
+// UI Colors
+$white: #FFFFFF;
+$bg-page: #F5F7FA;
+$text-main: #1A202C;
+$text-secondary: #4A5568;
+$text-light: #718096;
+$border: #E2E8F0;
+$shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+
+// Status Colors
+$status-paid: #10B981;
+$status-unpaid: #EF4444;
+$status-partial: #F59E0B;
+
+:host {
+  display: block;
+  background: $bg-page;
+  min-height: 100vh;
+  padding: 2rem;
 }
 
-.invoice-paper { background: white; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 15mm; color: #334155; box-shadow: 0 10px 30px rgba(0,0,0,0.1); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; }
-
-.header { display: flex; justify-content: space-between; border-bottom: 3px solid $primary; padding-bottom: 1rem; margin-bottom: 2rem;
-  .brand { display: flex; gap: 1rem; align-items: center; .logo { height: 80px; } h1 { margin: 0; color: $primary; font-size: 1.8rem; } }
-  .invoice-badge { text-align: left; h2 { margin: 0; font-size: 2rem; color: #E2E8F0; } .number { font-weight: bold; font-size: 1.2rem; }
-    .status { display: inline-block; padding: 2px 8px; border: 1px solid; font-size: 0.7rem; border-radius: 4px; margin-top: 5px; &.paid { color: green; border-color: green; } }
+@media print {
+  :host { padding: 0; background: white; }
+  .no-print { display: none !important; }
+  .invoice-paper {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
   }
 }
 
-.info-grid { display: flex; gap: 2rem; margin-bottom: 2rem;
-  .box { flex: 1; background: #F8FAFC; padding: 1rem; border-radius: 6px; border-right: 4px solid $primary;
-    h3 { margin: 5px 0; color: $primary; } .row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+// Toolbar
+.toolbar {
+  max-width: 900px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: $white;
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  box-shadow: $shadow;
+
+  .btn-back {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: $bg-page;
+    border: none;
+    border-radius: 12px;
+    color: $text-main;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover {
+      background: $primary-green;
+      color: $white;
+      transform: translateY(-2px);
+    }
+  }
+
+  .actions {
+    display: flex;
+    gap: 0.75rem;
+
+    .btn-action {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+
+      &.btn-edit {
+        background: #EEF2FF;
+        color: #4F46E5;
+        &:hover { background: #4F46E5; color: $white; }
+      }
+
+      &.btn-download {
+        background: #FEF3C7;
+        color: #D97706;
+        &:hover { background: #D97706; color: $white; }
+      }
+
+      &.btn-print {
+        background: linear-gradient(135deg, $primary-green 0%, $dark-green 100%);
+        color: $white;
+        box-shadow: 0 4px 12px rgba($primary-green, 0.3);
+        &:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba($primary-green, 0.4); }
+      }
+    }
   }
 }
 
-.items-table { width: 100%; border-collapse: collapse; margin-bottom: auto;
-  thead th { background: $primary; color: white; padding: 10px; }
-  tbody td { padding: 10px; border-bottom: 1px solid #E2E8F0; } .center { text-align: center; } .end { text-align: left; font-weight: bold; } .spacer td { height: 50px; }
+// Invoice Paper
+.invoice-paper {
+  background: $white;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: $shadow-lg;
+  font-family: 'Cairo', -apple-system, sans-serif;
+
+  @media (max-width: 768px) {
+    padding: 2rem 1.5rem;
+  }
 }
 
-.footer-grid { display: flex; justify-content: space-between; margin-top: 2rem; margin-bottom: 3rem; border-top: 2px solid $primary; padding-top: 1rem;
-  .payment-methods { flex: 1; font-size: 0.85rem; ul { padding: 0; list-style: none; li { margin-bottom: 4px; } } }
-  .totals { width: 250px; .row { display: flex; justify-content: space-between; padding: 5px 0; &.final { background: $primary; color: white; padding: 10px; border-radius: 4px; font-weight: bold; } } }
+// Header
+.invoice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 2.5rem;
+  margin-bottom: 2.5rem;
+  border-bottom: 3px solid;
+  border-image: linear-gradient(90deg, $primary-green, $accent-green, transparent) 1;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 2rem;
+  }
 }
 
-.signatures { display: flex; justify-content: space-around; padding-top: 2rem; .sign { width: 150px; text-align: center; border-top: 1px solid #94A3B8; font-size: 0.8rem; } }
-.footer-note { text-align: center; font-size: 0.8rem; color: #94A3B8; margin-top: 2rem; }
+.brand-section {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+
+  .logo-container {
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 12px rgba($primary-green, 0.3));
+  }
+
+  .brand-info {
+    .company-name {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, $primary-green, $dark-green);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 0 0 0.5rem 0;
+    }
+
+    .company-tagline {
+      color: $text-secondary;
+      font-size: 0.95rem;
+      margin: 0 0 1rem 0;
+      font-weight: 500;
+    }
+
+    .contact-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      span {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: $text-light;
+        font-size: 0.875rem;
+
+        lucide-angular {
+          color: $primary-green;
+        }
+      }
+    }
+  }
+}
+
+.invoice-badge {
+  text-align: left;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba($primary-green, 0.08), rgba($accent-green, 0.05));
+  border-radius: 16px;
+  border: 2px solid rgba($primary-green, 0.2);
+
+  .badge-label {
+    font-size: 0.875rem;
+    color: $text-secondary;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+
+  .badge-number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: $text-main;
+    font-family: 'Courier New', monospace;
+    margin-bottom: 1rem;
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    font-size: 0.875rem;
+    font-weight: 700;
+
+    &.paid {
+      background: rgba($status-paid, 0.1);
+      color: $status-paid;
+    }
+
+    &.unpaid {
+      background: rgba($status-unpaid, 0.1);
+      color: $status-unpaid;
+    }
+
+    &.partially_paid {
+      background: rgba($status-partial, 0.1);
+      color: $status-partial;
+    }
+  }
+}
+
+// Info Section
+.info-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-box {
+  background: $bg-page;
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid $border;
+
+  .box-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid $border;
+
+    lucide-angular {
+      color: $primary-green;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: $text-main;
+      margin: 0;
+    }
+  }
+
+  .box-content {
+    .customer-name {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: $text-main;
+      margin: 0 0 1rem 0;
+    }
+
+    .detail-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+      color: $text-secondary;
+      font-size: 0.9375rem;
+
+      lucide-angular {
+        color: $primary-green;
+        flex-shrink: 0;
+      }
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    .date-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid $border;
+
+      &:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+      }
+
+      .label {
+        color: $text-light;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      .value {
+        color: $text-main;
+        font-weight: 700;
+        font-size: 0.9375rem;
+
+        &.project-link {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: $primary-green;
+
+          lucide-angular {
+            color: $primary-green;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Items Section
+.items-section {
+  margin-bottom: 2.5rem;
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+
+    lucide-angular {
+      color: $primary-green;
+    }
+
+    h3 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: $text-main;
+      margin: 0;
+    }
+  }
+
+  .table-wrapper {
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid $border;
+  }
+
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      background: linear-gradient(135deg, $primary-green, $accent-green);
+
+      th {
+        padding: 1rem 1.25rem;
+        text-align: right;
+        color: $white;
+        font-weight: 700;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+
+        &:first-child { border-radius: 12px 0 0 0; }
+        &:last-child { border-radius: 0 12px 0 0; }
+      }
+    }
+
+    tbody {
+      tr {
+        border-bottom: 1px solid $border;
+        transition: background 0.2s;
+
+        &:hover {
+          background: rgba($primary-green, 0.03);
+        }
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        td {
+          padding: 1.25rem;
+          color: $text-main;
+          font-size: 0.9375rem;
+
+          &.index-cell {
+            font-weight: 700;
+            color: $text-light;
+            text-align: center;
+          }
+
+          &.desc-cell {
+            font-weight: 600;
+          }
+
+          &.qty-cell,
+          &.price-cell {
+            text-align: center;
+            color: $text-secondary;
+          }
+
+          &.total-cell {
+            text-align: left;
+            font-weight: 800;
+            color: $primary-green;
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Summary Section
+.summary-section {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.payment-methods {
+  background: $bg-page;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid $border;
+
+  .methods-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid $border;
+
+    lucide-angular {
+      color: $primary-green;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: $text-main;
+      margin: 0;
+    }
+  }
+
+  .methods-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    .method-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      lucide-angular {
+        color: $primary-green;
+        margin-top: 0.25rem;
+        flex-shrink: 0;
+      }
+
+      .method-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        strong {
+          color: $text-main;
+          font-size: 0.9375rem;
+        }
+
+        span {
+          color: $text-light;
+          font-size: 0.875rem;
+        }
+      }
+    }
+  }
+}
+
+.totals-box {
+  background: $white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 2px solid $border;
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 0;
+    font-size: 0.9375rem;
+
+    span:first-child {
+      color: $text-secondary;
+      font-weight: 600;
+    }
+
+    span:last-child {
+      font-weight: 800;
+      color: $text-main;
+    }
+
+    &.paid {
+      .paid-amount {
+        color: $status-paid;
+      }
+    }
+
+    &.final {
+      background: linear-gradient(135deg, $primary-green, $accent-green);
+      margin: 0 -1.5rem;
+      padding: 1.25rem 1.5rem;
+      border-radius: 12px;
+      margin-top: 1rem;
+
+      span {
+        color: $white;
+        font-size: 1.25rem;
+      }
+
+      .remaining-amount {
+        font-size: 1.5rem;
+      }
+    }
+  }
+
+  .divider {
+    height: 2px;
+    background: $border;
+    margin: 0.75rem 0;
+  }
+}
+
+// Signatures
+.signatures-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  margin-bottom: 3rem;
+  padding-top: 3rem;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+
+  .signature-box {
+    text-align: center;
+
+    .signature-line {
+      height: 60px;
+      border-bottom: 2px solid $border;
+      margin-bottom: 0.75rem;
+    }
+
+    .signature-label {
+      display: block;
+      color: $text-light;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+  }
+}
+
+// Footer
+.invoice-footer {
+  text-align: center;
+  padding-top: 2rem;
+  border-top: 3px solid;
+  border-image: linear-gradient(90deg, transparent, $primary-green, $accent-green, transparent) 1;
+  position: relative;
+
+  .footer-decoration {
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 6px;
+    background: linear-gradient(90deg, $primary-green, $accent-green);
+    border-radius: 99px;
+  }
+
+  .footer-text {
+    color: $text-secondary;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .footer-pattern {
+    margin-top: 1rem;
+    height: 4px;
+    background: repeating-linear-gradient(
+      90deg,
+      $primary-green,
+      $primary-green 10px,
+      transparent 10px,
+      transparent 20px
+    );
+    opacity: 0.3;
+  }
+}
+
+// Loading State
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+
+  .spinner-ring {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba($primary-green, 0.2);
+    border-top-color: $primary-green;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  p {
+    margin-top: 1.5rem;
+    color: $text-secondary;
+    font-weight: 600;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Print Styles
+@media print {
+  .invoice-paper {
+    padding: 1.5cm;
+  }
+
+  .invoice-header {
+    page-break-after: avoid;
+  }
+
+  .items-section {
+    page-break-inside: avoid;
+  }
+
+  .signatures-section {
+    page-break-before: avoid;
+  }
+}

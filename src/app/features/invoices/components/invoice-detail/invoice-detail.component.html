@@ -1,94 +1,215 @@
+ <!-- invoice-detail.component.html -->
 @if (!loading && invoice) {
   <div class="invoice-viewer-page" dir="rtl">
 
     <div class="toolbar no-print">
       <button class="btn-back" routerLink="/invoices">
-        <lucide-angular name="arrow-right" [size]="18"></lucide-angular> رجوع
+        <lucide-angular name="arrow-right" [size]="20"></lucide-angular>
+        رجوع للقائمة
       </button>
       <div class="actions">
-        <button class="btn-action" [routerLink]="['/invoices', invoice.id, 'edit']">تعديل</button>
-        <button class="btn-print" (click)="printInvoice()">
-          <lucide-angular name="printer" [size]="18"></lucide-angular> طباعة
+        <button class="btn-action btn-edit" [routerLink]="['/invoices', invoice.id, 'edit']">
+          <lucide-angular name="edit-3" [size]="18"></lucide-angular>
+          تعديل
+        </button>
+        <button class="btn-action btn-download" (click)="downloadInvoice()">
+          <lucide-angular name="download" [size]="18"></lucide-angular>
+          تحميل PDF
+        </button>
+        <button class="btn-action btn-print" (click)="printInvoice()">
+          <lucide-angular name="printer" [size]="18"></lucide-angular>
+          طباعة
         </button>
       </div>
     </div>
 
     <div class="invoice-paper" id="print-section">
 
-      <header class="header">
-        <div class="brand">
-          <img src="assets/images/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+      <!-- Header with Logo and Branding -->
+      <header class="invoice-header">
+        <div class="brand-section">
+          <div class="logo-container">
+            <svg width="60" height="60" viewBox="0 0 100 100" fill="none">
+              <rect width="100" height="100" rx="20" fill="url(#greenGradient)"/>
+              <path d="M30 50L45 65L70 35" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="greenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#2E7D32;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
           <div class="brand-info">
-            <h1>دار الزيبق</h1>
-            <p>للنشر والتوزيع والخدمات الطباعية</p>
-            <p class="contact">دمشق - هاتف: 0112233445</p>
+            <h1 class="company-name">دار الزيبق</h1>
+            <p class="company-tagline">للنشر والتوزيع والخدمات الطباعية</p>
+            <div class="contact-details">
+              <span><lucide-angular name="map-pin" [size]="14"></lucide-angular> دمشق - سوريا</span>
+              <span><lucide-angular name="phone" [size]="14"></lucide-angular> 0112233445</span>
+              <span><lucide-angular name="mail" [size]="14"></lucide-angular> info@alzaybaq.com</span>
+            </div>
           </div>
         </div>
+
         <div class="invoice-badge">
-          <h2>فاتورة مبيعات</h2>
-          <span class="number">#{{ invoice.invoice_number }}</span>
-          <span class="status" [class]="invoice.status">{{ getStatusLabel(invoice.status) }}</span>
+          <div class="badge-label">فاتورة مبيعات</div>
+          <div class="badge-number">#{{ invoice.invoice_number }}</div>
+          <span class="status-badge" [ngClass]="getStatusClass(invoice.status)">
+            <lucide-angular [name]="getStatusIcon(invoice.status)" [size]="14"></lucide-angular>
+            {{ getStatusLabel(invoice.status) }}
+          </span>
         </div>
       </header>
 
-      <div class="info-grid">
-        <div class="box to">
-          <label>السيد / السادة:</label>
-          <h3>{{ invoice.customer?.name || 'عميل نقدي' }}</h3>
-          <p *ngIf="invoice.customer?.phone">{{ invoice.customer?.phone }}</p>
-          <p *ngIf="invoice.customer?.address">{{ invoice.customer?.address }}</p>
+      <!-- Info Grid -->
+      <div class="info-section">
+        <div class="info-box customer-box">
+          <div class="box-header">
+            <lucide-angular name="user" [size]="18"></lucide-angular>
+            <h3>معلومات العميل</h3>
+          </div>
+          <div class="box-content">
+            <h4 class="customer-name">{{ invoice.customer?.name || 'عميل نقدي' }}</h4>
+            <div class="detail-row" *ngIf="invoice.customer?.phone">
+              <lucide-angular name="phone" [size]="14"></lucide-angular>
+              <span>{{ invoice.customer?.phone }}</span>
+            </div>
+            <div class="detail-row" *ngIf="invoice.customer?.email">
+              <lucide-angular name="mail" [size]="14"></lucide-angular>
+              <span>{{ invoice.customer?.email }}</span>
+            </div>
+            <div class="detail-row" *ngIf="invoice.customer?.address">
+              <lucide-angular name="map-pin" [size]="14"></lucide-angular>
+              <span>{{ invoice.customer?.address }}</span>
+            </div>
+          </div>
         </div>
-        <div class="box meta">
-          <div class="row"><span>تاريخ الإصدار:</span> <strong>{{ invoice.issue_date | date:'dd/MM/yyyy' }}</strong></div>
-          <div class="row"><span>تاريخ الاستحقاق:</span> <strong>{{ invoice.due_date | date:'dd/MM/yyyy' }}</strong></div>
-          <div class="row" *ngIf="invoice.project"><span>المشروع:</span> <strong>{{ invoice.project.title }}</strong></div>
+
+        <div class="info-box dates-box">
+          <div class="box-header">
+            <lucide-angular name="calendar" [size]="18"></lucide-angular>
+            <h3>التواريخ والمشروع</h3>
+          </div>
+          <div class="box-content">
+            <div class="date-item">
+              <span class="label">تاريخ الإصدار:</span>
+              <span class="value">{{ invoice.issue_date | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="date-item">
+              <span class="label">تاريخ الاستحقاق:</span>
+              <span class="value">{{ invoice.due_date | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="date-item" *ngIf="invoice.project">
+              <span class="label">المشروع:</span>
+              <span class="value project-link">
+                <lucide-angular name="folder" [size]="14"></lucide-angular>
+                {{ invoice.project.title }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <table class="items-table">
-        <thead>
-          <tr>
-            <th width="5%">#</th> <th width="50%">البيان</th> <th width="10%">الكمية</th> <th width="15%">السعر</th> <th width="20%">الإجمالي</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of invoice.items || []; track item.id; let i = $index) {
-            <tr>
-              <td>{{ i + 1 }}</td>
-              <td>{{ item.description }}</td>
-              <td class="center">{{ item.quantity }}</td>
-              <td class="center">{{ item.unit_price | number }}</td>
-              <td class="end">{{ item.total | number }}</td>
-            </tr>
-          }
-          @if ((invoice.items?.length || 0) < 5) { <tr class="spacer"><td colspan="5"></td></tr> }
-        </tbody>
-      </table>
+      <!-- Items Table -->
+      <div class="items-section">
+        <div class="section-header">
+          <lucide-angular name="shopping-cart" [size]="20"></lucide-angular>
+          <h3>بنود الفاتورة</h3>
+        </div>
 
-      <div class="footer-grid">
+        <div class="table-wrapper">
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th width="5%">#</th>
+                <th width="45%">البيان</th>
+                <th width="15%">الكمية</th>
+                <th width="15%">السعر</th>
+                <th width="20%">الإجمالي</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of invoice.items || []; track item.id; let i = $index) {
+                <tr>
+                  <td class="index-cell">{{ i + 1 }}</td>
+                  <td class="desc-cell">{{ item.description }}</td>
+                  <td class="qty-cell">{{ item.quantity }}</td>
+                  <td class="price-cell">{{ item.unit_price | number:'1.2-2' }}</td>
+                  <td class="total-cell">{{ item.total | number:'1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Summary Section -->
+      <div class="summary-section">
         <div class="payment-methods">
-          <h4>طرق الدفع المتاحة:</h4>
-          <ul>
+          <div class="methods-header">
+            <lucide-angular name="credit-card" [size]="18"></lucide-angular>
+            <h4>طرق الدفع المتاحة</h4>
+          </div>
+          <ul class="methods-list">
             @for (method of paymentMethods; track method.id) {
-              <li><strong>{{ method.name }}:</strong> {{ method.details }}</li>
+              <li class="method-item">
+                <lucide-angular name="check-circle" [size]="16"></lucide-angular>
+                <div class="method-details">
+                  <strong>{{ method.name }}</strong>
+                  <span>{{ method.details }}</span>
+                </div>
+              </li>
             }
           </ul>
         </div>
 
-        <div class="totals">
-          <div class="row"><span>المجموع:</span> <span>{{ invoice.amount_due | number }} {{ invoice.currency }}</span></div>
-          <div class="row paid"><span>المدفوع:</span> <span>{{ totalPaid | number }} {{ invoice.currency }}</span></div>
-          <div class="row final"><span>المتبقي:</span> <span>{{ remaining | number }} {{ invoice.currency }}</span></div>
+        <div class="totals-box">
+          <div class="total-row subtotal">
+            <span>المجموع الجزئي:</span>
+            <span>{{ invoice.amount_due | number:'1.2-2' }}</span>
+          </div>
+          <div class="total-row paid">
+            <span>المدفوع:</span>
+            <span class="paid-amount">{{ totalPaid | number:'1.2-2' }}</span>
+          </div>
+          <div class="divider"></div>
+          <div class="total-row final">
+            <span>المتبقي:</span>
+            <span class="remaining-amount">{{ remaining | number:'1.2-2' }} {{ invoice.currency }}</span>
+          </div>
         </div>
       </div>
 
-      <div class="signatures">
-        <div class="sign"><span>المحاسب</span></div>
-        <div class="sign"><span>المدير العام</span></div>
-        <div class="sign"><span>المستلم</span></div>
+      <!-- Signatures -->
+      <div class="signatures-section">
+        <div class="signature-box">
+          <div class="signature-line"></div>
+          <span class="signature-label">المحاسب</span>
+        </div>
+        <div class="signature-box">
+          <div class="signature-line"></div>
+          <span class="signature-label">المدير العام</span>
+        </div>
+        <div class="signature-box">
+          <div class="signature-line"></div>
+          <span class="signature-label">المستلم</span>
+        </div>
       </div>
 
-      <div class="footer-note">شكراً لتعاملكم مع دار الزيبق</div>
+      <!-- Footer -->
+      <footer class="invoice-footer">
+        <div class="footer-decoration"></div>
+        <p class="footer-text">شكراً لتعاملكم مع دار الزيبق • نسعد بخدمتكم دائماً</p>
+        <div class="footer-pattern"></div>
+      </footer>
+
     </div>
+  </div>
+}
+
+@if (loading) {
+  <div class="loading-state">
+    <div class="spinner-ring"></div>
+    <p>جاري تحميل تفاصيل الفاتورة...</p>
   </div>
 }

@@ -67,4 +67,23 @@ export class InvoiceDetailComponent implements OnInit {
     const map: any = { 'paid': 'مدفوعة', 'unpaid': 'غير مدفوعة', 'partially_paid': 'جزئية', 'overdue': 'متأخرة' };
     return map[status] || status;
   }
+
+  getStatusIcon(status: string): string {
+  const icons: any = {
+    'paid': 'check-circle',
+    'unpaid': 'x-circle',
+    'partially_paid': 'alert-circle',
+    'overdue': 'clock'
+  };
+  return icons[status] || 'file-text';
+}
+
+getStatusClass(status: string): string {
+  return status; // سيتم استخدامه مع ngClass في HTML
+}
+
+downloadInvoice(): void {
+  // يمكنك إضافة منطق تحميل PDF هنا
+  window.print();
+}
 }
