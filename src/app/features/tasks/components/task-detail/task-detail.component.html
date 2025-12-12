@@ -1,1 +1,162 @@
-<p>task-detail works!</p>
+@if (loading) {
+  <div class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل تفاصيل المهمة...</p>
+  </div>
+}
+
+@if (!loading && task) {
+  <div class="task-detail-page" dir="rtl">
+
+    <div class="page-header">
+      <div class="header-top">
+        <button class="btn-back" routerLink="/tasks/board">
+          <lucide-angular name="arrow-right" [size]="20"></lucide-angular>
+          <span>العودة للوحة</span>
+        </button>
+
+        <div class="actions">
+          <button class="btn-action edit" [routerLink]="['/tasks', task.id, 'edit']">
+            <lucide-angular name="edit-3" [size]="18"></lucide-angular>
+            <span>تعديل</span>
+          </button>
+          <button class="btn-action delete" (click)="deleteTask()">
+            <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+            <span>حذف</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="task-title-section">
+        <div class="title-row">
+          <h1 class="task-title">{{ task.title }}</h1>
+          <span class="status-badge" [ngClass]="getStatusClass(task.status)">
+            {{ getStatusLabel(task.status) }}
+          </span>
+        </div>
+
+        <div class="meta-row">
+          <div class="meta-item">
+            <span class="label">المشروع:</span>
+            <a [routerLink]="['/projects', task.project_id]" class="project-link">
+              <lucide-angular name="folder" [size]="16"></lucide-angular>
+              {{ task.project?.title }}
+            </a>
+          </div>
+          <div class="meta-item priority">
+            <span class="label">الأولوية:</span>
+            <span class="priority-tag" [ngClass]="getPriorityClass(task.priority)">
+              {{ getPriorityLabel(task.priority) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content-grid">
+
+      <div class="main-column">
+
+        <div class="card">
+          <div class="card-header">
+            <h3>الوصف</h3>
+          </div>
+          <div class="card-body">
+            <p class="description-text">
+              {{ task.description || 'لا يوجد وصف لهذه المهمة.' }}
+            </p>
+          </div>
+        </div>
+
+        @if (task.dependencies?.length || task.dependent_tasks?.length) {
+          <div class="card">
+            <div class="card-header">
+              <h3>العلاقات والارتباطات</h3>
+            </div>
+            <div class="card-body">
+              @if (task.dependencies?.length) {
+                <div class="dependency-group">
+                  <h4>تعتمد على (يجب إنهاؤها أولاً):</h4>
+                  <ul class="dep-list">
+                    @for (dep of task.dependencies; track dep.id) {
+                      <li>
+                        <span class="status-dot" [ngClass]="getStatusClass(dep.status)"></span>
+                        <a [routerLink]="['/tasks', dep.id]">{{ dep.title }}</a>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (task.dependent_tasks?.length) {
+                <div class="dependency-group">
+                  <h4>مهام بانتظار هذه المهمة:</h4>
+                  <ul class="dep-list">
+                    @for (dep of task.dependent_tasks; track dep.id) {
+                      <li>
+                        <span class="status-dot" [ngClass]="getStatusClass(dep.status)"></span>
+                        <a [routerLink]="['/tasks', dep.id]">{{ dep.title }}</a>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+
+      <div class="side-column">
+
+        <div class="card">
+          <div class="card-header">
+            <h3>المسؤول</h3>
+          </div>
+          <div class="card-body">
+            @if (task.assignee) {
+              <div class="assignee-profile">
+                <div class="avatar">
+                  {{ task.assignee.full_name.charAt(0) }}
+                </div>
+                <div class="info">
+                  <span class="name">{{ task.assignee.full_name }}</span>
+                  <span class="role">{{ task.assignee.role || 'موظف' }}</span>
+                </div>
+              </div>
+            } @else {
+              <div class="unassigned">
+                <lucide-angular name="user-x" [size]="24"></lucide-angular>
+                <span>غير مسندة لأحد</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3>التواريخ</h3>
+          </div>
+          <div class="card-body dates-list">
+            <div class="date-item">
+              <span class="label">البدء:</span>
+              <span class="value">{{ task.start_date | date:'mediumDate' : '' : 'ar-SA'  }}</span>
+            </div>
+            <div class="date-item">
+              <span class="label">التسليم:</span>
+              <span class="value">{{ task.due_date | date:'mediumDate' : '' : 'ar-SA'  }}</span>
+            </div>
+            @if (task.completed_at) {
+              <div class="date-item completed">
+                <span class="label">تم الإنجاز:</span>
+                <span class="value">{{ task.completed_at | date:'mediumDate' : '' : 'ar-SA' }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+}

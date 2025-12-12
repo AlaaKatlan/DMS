@@ -16,9 +16,9 @@ import {
   Eye, Trash2, Edit, Filter, X, Check, Map, Hash,CreditCard,ArrowRight,
   EyeOff, List, Building, Trash,ChartBar,ChartColumn,Briefcase,Workflow,
   LogIn, MapPin, ChevronLeft, ArrowLeft,CircleAlert,Columns,Columns2,Ruler,Kanban,Clock,
-  UserPlus, Phone,Tag,CheckCircle,Flag,Handshake,TrendingDown,Image,XCircle,CircleX,
-  // ADD THESE IF MISSING:Kanban,
-  User,
+  UserPlus, Phone,Tag,CheckCircle,Flag,Handshake,TrendingDown,Image,XCircle,CircleX,Pen,
+  // ADD THESE IF MISSING:Kanban,Edit2
+  User,Sliders,
   LogOut,
   Info
 } from 'lucide-angular';
@@ -37,7 +37,7 @@ export const appConfig: ApplicationConfig = {
 
     // 2. Register icons globally here using importProvidersFrom
     importProvidersFrom(LucideAngularModule.pick({
-      DollarSign, TrendingUp, ArrowDown, Activity, Users, ChevronLeft, Grid,FolderOpen,
+      DollarSign, TrendingUp, ArrowDown, Activity, Users, ChevronLeft, Grid,FolderOpen,Sliders,Pen,
       Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,Flag,Handshake,Briefcase,Workflow,
       // REGISTER NEW ICONS HERE:
       Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,

@@ -22,10 +22,22 @@ export class SettingsService {
   /**
    * جلب قائمة المستخدمين (باستخدام الدالة الآمنة التي أنشأناها)
    */
-  getUsersList(): Observable<UserManagementItem[]> {
-    return this.supabase.rpc('get_users_management_list', {});
-  }
+  /**
+   * جلب قائمة المستخدمين (لإسناد المهام)
+   */
+getUsersList(): Observable<UserManagementItem[]> {
+    // نستخدم جدول profiles مباشرة أو دالة RPC إذا كانت الصلاحيات معقدة
+    return this.supabase.client
+      .from('profiles')
+      .select('*')
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return data as UserManagementItem[];
+      }) as any; // تحويل الوعد إلى Observable (يفضل استخدام from إذا كنت تستخدم rxjs)
 
+      // ملاحظة: الأفضل استخدام from() من rxjs لتحويل الـ Promise
+      // لكن للتبسيط سنستخدم الطريقة الموجودة في base.service لديك
+  }
   /**
    * تحديث صلاحية مستخدم
    */
@@ -42,5 +54,19 @@ updateUserRole(userId: string, newRole: string): Observable<void> {
   deactivateUser(userId: string): Observable<void> {
     // نستخدم الدالة الموجودة في AuthService أو ننشئ واحدة هنا
     return this.supabase.rpc('deactivate_user', { user_id: userId });
+  }// لجعلها متوافقة مع Observables في مشروعك:
+  getAll(): Observable<UserManagementItem[]> {
+     return new Observable(observer => {
+      this.supabase.client
+        .from('profiles')
+        .select('*')
+        .then(({ data, error }) => {
+          if (error) observer.error(error);
+          else {
+            observer.next(data as UserManagementItem[]);
+            observer.complete();
+          }
+        });
+    });
   }
 }

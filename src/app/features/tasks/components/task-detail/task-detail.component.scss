@@ -1,0 +1,114 @@
+@use 'sass:color';
+
+$primary: #4F46E5;
+$bg-page: #F8FAFC;
+$white: #FFFFFF;
+$border: #E2E8F0;
+$text-main: #1E293B;
+$text-light: #64748B;
+$danger: #EF4444;
+
+:host {
+  display: block;
+  min-height: 100vh;
+  background-color: $bg-page;
+  padding: 2rem;
+  @media (max-width: 768px) { padding: 1rem; }
+}
+
+.task-detail-page {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+// Header
+.page-header {
+  margin-bottom: 2rem;
+
+  .header-top {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
+
+    .btn-back {
+      display: flex; align-items: center; gap: 0.5rem; background: none; border: none;
+      color: $text-light; cursor: pointer; font-weight: 600;
+      &:hover { color: $primary; }
+    }
+
+    .actions {
+      display: flex; gap: 0.75rem;
+      .btn-action {
+        display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;
+        border-radius: 0.5rem; font-weight: 600; cursor: pointer; border: 1px solid $border; background: $white;
+        &:hover { background: #f1f5f9; }
+        &.delete:hover { background: #fee2e2; color: $danger; border-color: #fecaca; }
+      }
+    }
+  }
+
+  .task-title-section {
+    .title-row {
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;
+      h1 { font-size: 1.8rem; font-weight: 800; color: $text-main; margin: 0; }
+      .status-badge { padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.85rem; font-weight: 700; }
+    }
+
+    .meta-row {
+      display: flex; gap: 1.5rem; color: $text-light; flex-wrap: wrap;
+      .meta-item {
+        display: flex; align-items: center; gap: 0.5rem;
+        .label { font-weight: 500; }
+        .project-link { color: $primary; text-decoration: none; display: flex; align-items: center; gap: 0.3rem; &:hover { text-decoration: underline; } }
+        .priority-tag { padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+      }
+    }
+  }
+}
+
+// Layout
+.content-grid {
+  display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
+}
+
+.card {
+  background: $white; border-radius: 1rem; border: 1px solid $border; margin-bottom: 1.5rem; overflow: hidden;
+  .card-header { padding: 1rem 1.5rem; border-bottom: 1px solid $border; background: #f8fafc; h3 { margin: 0; font-size: 1rem; color: $text-main; } }
+  .card-body { padding: 1.5rem; }
+}
+
+.description-text { line-height: 1.6; color: $text-main; white-space: pre-line; }
+
+// Dependencies
+.dependency-group {
+  margin-bottom: 1rem;
+  h4 { font-size: 0.9rem; color: $text-light; margin-bottom: 0.5rem; }
+  .dep-list {
+    list-style: none; padding: 0; margin: 0;
+    li {
+      display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;
+      .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; &.bg-green-100 { background: #10B981; } }
+      a { color: $primary; text-decoration: none; &:hover { text-decoration: underline; } }
+    }
+  }
+}
+
+// Assignee
+.assignee-profile {
+  display: flex; align-items: center; gap: 1rem;
+  .avatar { width: 48px; height: 48px; background: $primary; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 700; }
+  .info { display: flex; flex-direction: column; .name { font-weight: 700; color: $text-main; } .role { font-size: 0.85rem; color: $text-light; } }
+}
+.unassigned { display: flex; flex-direction: column; align-items: center; color: $text-light; gap: 0.5rem; py: 1rem; }
+
+// Dates
+.dates-list {
+  .date-item {
+    display: flex; justify-content: space-between; margin-bottom: 0.75rem; font-size: 0.95rem;
+    .label { color: $text-light; } .value { font-weight: 600; color: $text-main; }
+    &.completed .value { color: #10B981; }
+  }
+}
+
+// Loading
+.loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: $primary; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1rem; } }
+@keyframes spin { to { transform: rotate(360deg); } }

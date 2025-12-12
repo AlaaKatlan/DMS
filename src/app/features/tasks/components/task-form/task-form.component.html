@@ -1,1 +1,165 @@
-<p>task-form works!</p>
+<div class="form-page" dir="rtl">
+  <div class="form-container">
+
+    <div class="form-header">
+      <div class="header-content">
+        <button routerLink="/tasks/board" class="btn-back">
+          <lucide-angular name="arrow-right" [size]="24"></lucide-angular>
+        </button>
+        <div class="title-group">
+          <h2>{{ isEditMode ? 'تعديل المهمة' : 'إضافة مهمة جديدة' }}</h2>
+          <p class="subtitle">{{ isEditMode ? 'تحديث تفاصيل المهمة الحالية' : 'إسناد مهمة جديدة للمشروع' }}</p>
+        </div>
+      </div>
+    </div>
+
+    @if (loading) {
+      <div class="loading-container">
+        <div class="spinner"></div>
+        <p>جاري تحميل البيانات...</p>
+      </div>
+    }
+
+    @if (!loading) {
+      <form [formGroup]="taskForm" (ngSubmit)="onSubmit()" class="form-grid">
+
+        <div class="main-column">
+
+          <div class="card">
+            <div class="card-header">
+              <lucide-angular name="check-square" [size]="20"></lucide-angular>
+              <h3>تفاصيل المهمة</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group">
+                <label>عنوان المهمة <span class="required">*</span></label>
+                <input formControlName="title" type="text" placeholder="مثال: تصميم واجهة المستخدم">
+                @if (taskForm.get('title')?.touched && taskForm.get('title')?.invalid) {
+                  <span class="error-msg">العنوان مطلوب (3 أحرف على الأقل)</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label>الوصف</label>
+                <textarea formControlName="description" rows="4" placeholder="تفاصيل إضافية حول المهمة..."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <lucide-angular name="users" [size]="20"></lucide-angular>
+              <h3>الإسناد والمشروع</h3>
+            </div>
+            <div class="card-body grid-2">
+              <div class="form-group">
+                <label>المشروع <span class="required">*</span></label>
+                <select formControlName="project_id">
+                  <option value="">اختر المشروع</option>
+                  @for (project of projects; track project.id) {
+                    <option [value]="project.id">{{ project.title }}</option>
+                  }
+                </select>
+                @if (taskForm.get('project_id')?.touched && taskForm.get('project_id')?.invalid) {
+                  <span class="error-msg">يجب اختيار مشروع</span>
+                }
+              </div>
+
+              <div class="form-group">
+                <label>المعين (الموظف)</label>
+                <select formControlName="assignee_id">
+                  <option [ngValue]="null">-- غير مسند --</option>
+                  @for (user of users; track user.id) {
+                    <option [value]="user.id">{{ user.full_name }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="side-column">
+
+          <div class="card">
+            <div class="card-header">
+              <lucide-angular name="sliders" [size]="20"></lucide-angular>
+              <h3>الإعدادات</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group mb-3">
+                <label>الحالة</label>
+                <select formControlName="status">
+                  @for (status of statuses; track status) {
+                    <option [value]="status">{{ getStatusLabel(status) }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group mb-3">
+                <label>الأولوية</label>
+                <select formControlName="priority">
+                  @for (p of priorities; track p) {
+                    <option [value]="p">{{ getPriorityLabel(p) }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>نوع التنفيذ</label>
+                <select formControlName="task_type">
+                  <option value="parallel">متوازي (Parallel)</option>
+                  <option value="serial">متسلسل (Serial)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <lucide-angular name="calendar" [size]="20"></lucide-angular>
+              <h3>الجدول الزمني</h3>
+            </div>
+            <div class="card-body">
+              <div class="form-group mb-3">
+                <label>تاريخ البدء</label>
+                <input formControlName="start_date" type="date">
+              </div>
+              <div class="form-group">
+                <label>تاريخ التسليم</label>
+                <input formControlName="due_date" type="date">
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <lucide-angular name="dollar-sign" [size]="20"></lucide-angular>
+              <h3>التكلفة</h3>
+            </div>
+            <div class="card-body grid-2">
+              <div class="form-group">
+                <label>الكمية</label>
+                <input formControlName="quantity" type="number" min="1">
+              </div>
+              <div class="form-group">
+                <label>سعر الوحدة</label>
+                <input formControlName="unit_price" type="number" min="0">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="button" routerLink="/tasks/board" class="btn btn-secondary">إلغاء</button>
+          <button type="submit" class="btn btn-primary" [disabled]="taskForm.invalid || submitting">
+            <lucide-angular *ngIf="submitting" name="loader-2" class="animate-spin" [size]="18"></lucide-angular>
+            <span>{{ submitting ? 'جاري الحفظ...' : 'حفظ المهمة' }}</span>
+          </button>
+        </div>
+
+      </form>
+    }
+  </div>
+</div>

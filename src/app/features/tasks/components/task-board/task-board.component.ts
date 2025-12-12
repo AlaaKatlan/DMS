@@ -1,4 +1,3 @@
-// src/app/features/tasks/components/task-board/task-board.component.ts
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -16,12 +15,11 @@ import { ProjectTask, TaskStatus } from '../../../../core/models/base.model';
 })
 export class TaskBoardComponent implements OnInit {
   private tasksService = inject(TasksService);
-  private cd = inject(ChangeDetectorRef);
+  private cd = inject(ChangeDetectorRef); // 1. حقن خدمة التحديث
 
-  // قوائم المهام حسب الحالة
+  // قوائم المهام
   todoTasks: ProjectTask[] = [];
   inProgressTasks: ProjectTask[] = [];
-  reviewTasks: ProjectTask[] = [];
   completedTasks: ProjectTask[] = [];
 
   loading = true;
@@ -34,28 +32,30 @@ export class TaskBoardComponent implements OnInit {
     this.loading = true;
     this.tasksService.getTasksWithRelations().subscribe({
       next: (tasks) => {
-        this.distributeTasks(tasks);
-        this.loading = false;
-        this.cd.detectChanges();
+        // 2. الحل السحري: استخدام setTimeout مع detectChanges
+        setTimeout(() => {
+          this.distributeTasks(tasks);
+          this.loading = false;
+          this.cd.detectChanges(); // تحديث الواجهة يدوياً
+        }, 0);
       },
       error: (err) => {
         console.error('Error loading tasks:', err);
         this.loading = false;
+        this.cd.detectChanges();
       }
     });
   }
 
   distributeTasks(tasks: ProjectTask[]): void {
-    // تصفير القوائم
     this.todoTasks = [];
     this.inProgressTasks = [];
-    this.reviewTasks = [];
     this.completedTasks = [];
 
     tasks.forEach(task => {
       switch (task.status) {
         case 'todo':
-        case 'blocked': // نضع المحظورة مع قائمة الانتظار مبدئياً
+        case 'blocked':
           this.todoTasks.push(task);
           break;
         case 'in_progress':
@@ -65,19 +65,17 @@ export class TaskBoardComponent implements OnInit {
           this.completedTasks.push(task);
           break;
         default:
-          // إذا كانت هناك حالات أخرى مثل review نضعها هنا أو في قائمة الانتظار
-           this.inProgressTasks.push(task);
+          this.todoTasks.push(task);
       }
     });
   }
 
-  drop(event: CdkDragDrop<ProjectTask[]>, newStatus: TaskStatus): void {
+  drop(event: CdkDragDrop<ProjectTask[]>, newStatusStr: string): void {
     if (event.previousContainer === event.container) {
-      // إعادة ترتيب في نفس العمود
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
-      // نقل لعمود آخر
       const task = event.previousContainer.data[event.previousIndex];
+      const newStatus = newStatusStr as TaskStatus;
 
       transferArrayItem(
         event.previousContainer.data,
@@ -86,7 +84,6 @@ export class TaskBoardComponent implements OnInit {
         event.currentIndex,
       );
 
-      // تحديث الحالة في قاعدة البيانات
       this.updateTaskStatus(task.id, newStatus);
     }
   }
@@ -94,9 +91,8 @@ export class TaskBoardComponent implements OnInit {
   updateTaskStatus(taskId: string, status: TaskStatus): void {
     this.tasksService.updateTaskStatus(taskId, status).subscribe({
       error: (err) => {
-        console.error('Failed to update status', err);
-        alert('فشل تحديث حالة المهمة');
-        this.loadTasks(); // تراجع عن التغيير في حال الخطأ
+        alert('فشل تحديث الحالة');
+        this.loadTasks(); // تراجع
       }
     });
   }

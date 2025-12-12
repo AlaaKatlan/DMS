@@ -1,17 +1,21 @@
 <div class="tasks-page" dir="rtl">
+<div class="tasks-page" dir="rtl">
   <div class="page-header">
     <div class="header-content">
       <h1 class="page-title">إدارة المهام</h1>
       <p class="page-subtitle">متابعة سير العمل وإنجاز المشاريع</p>
     </div>
+
     <div class="header-actions">
+      <button routerLink="/tasks/board" class="btn btn-outline"> <lucide-angular name="kanban" [size]="20"></lucide-angular>
+        <span>لوحة المهام</span>
+      </button>
       <button routerLink="/tasks/new" class="btn btn-primary">
         <lucide-angular name="plus-circle" [size]="20"></lucide-angular>
         <span>مهمة جديدة</span>
       </button>
     </div>
   </div>
-
   <div class="filters-section">
     <div class="search-box">
       <lucide-angular name="search" [size]="20"></lucide-angular>
@@ -160,7 +164,7 @@
 
         <div class="card-actions">
           <button [routerLink]="['/tasks', task.id, 'edit']" class="icon-btn edit">
-            <lucide-angular name="edit-2" [size]="16"></lucide-angular>
+            <lucide-angular name="pen" [size]="16"></lucide-angular>
           </button>
           <button (click)="deleteTask(task)" class="icon-btn delete">
             <lucide-angular name="trash" [size]="16"></lucide-angular>

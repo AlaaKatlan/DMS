@@ -16,100 +16,135 @@
     </div>
   </div>
 
-  <div *ngIf="loading" class="loading-container">
-    <div class="spinner"></div>
-    <p>جاري تحميل اللوحة...</p>
-  </div>
-
-  <div class="kanban-board" *ngIf="!loading" cdkDropListGroup>
-
-    <div class="board-column">
-      <div class="column-header header-todo">
-        <h3>قيد الانتظار</h3>
-        <span class="count">{{ todoTasks.length }}</span>
-      </div>
-      <div class="column-content"
-           cdkDropList
-           [cdkDropListData]="todoTasks"
-           (cdkDropListDropped)="drop($event, 'todo')">
-
-        <div class="task-card" *ngFor="let task of todoTasks" cdkDrag [routerLink]="['/tasks', task.id]">
-          <div class="card-badges">
-            <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">{{ task.priority }}</span>
-          </div>
-          <h4 class="card-title">{{ task.title }}</h4>
-          <div class="card-meta" *ngIf="task.project">
-            <lucide-angular name="folder" [size]="14"></lucide-angular>
-            <span>{{ task.project.title }}</span>
-          </div>
-          <div class="card-footer">
-            <div class="assignee" *ngIf="task.assignee">
-              <img alt="" [src]="task.assignee.avatar_url || 'assets/images/avatar-placeholder.png'" class="avatar">
-              <span>{{ task.assignee.full_name }}</span>
-            </div>
-            <span class="date" *ngIf="task.due_date">{{ task.due_date | date:'dd MMM' }}</span>
-          </div>
-        </div>
-        <div class="empty-state" *ngIf="todoTasks.length === 0">لا توجد مهام</div>
-      </div>
+  @if (loading) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>جاري تحميل اللوحة...</p>
     </div>
+  }
 
-    <div class="board-column">
-      <div class="column-header header-progress">
-        <h3>جاري العمل</h3>
-        <span class="count">{{ inProgressTasks.length }}</span>
-      </div>
-      <div class="column-content"
-           cdkDropList
-           [cdkDropListData]="inProgressTasks"
-           (cdkDropListDropped)="drop($event, 'in_progress')">
+  @if (!loading) {
+    <div class="kanban-board" cdkDropListGroup>
 
-        <div class="task-card" *ngFor="let task of inProgressTasks" cdkDrag [routerLink]="['/tasks', task.id]">
-          <div class="card-badges">
-            <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">{{ task.priority }}</span>
-          </div>
-          <h4 class="card-title">{{ task.title }}</h4>
-          <div class="card-meta" *ngIf="task.project">
-            <lucide-angular name="folder" [size]="14"></lucide-angular>
-            <span>{{ task.project.title }}</span>
-          </div>
-          <div class="card-footer">
-            <div class="assignee" *ngIf="task.assignee">
-              <img alt="" [src]="task.assignee.avatar_url || 'assets/images/avatar-placeholder.png'" class="avatar">
-              <span>{{ task.assignee.full_name }}</span>
-            </div>
-            <span class="date">{{ task.due_date | date:'dd MMM' }}</span>
-          </div>
+      <div class="board-column">
+        <div class="column-header header-todo">
+          <h3>قيد الانتظار</h3>
+          <span class="count">{{ todoTasks.length }}</span>
         </div>
-        <div class="empty-state" *ngIf="inProgressTasks.length === 0">اسحب المهام هنا للبدء</div>
-      </div>
-    </div>
+        <div class="column-content"
+             cdkDropList
+             [cdkDropListData]="todoTasks"
+             (cdkDropListDropped)="drop($event, 'todo')">
 
-    <div class="board-column">
-      <div class="column-header header-done">
-        <h3>مكتمل</h3>
-        <span class="count">{{ completedTasks.length }}</span>
-      </div>
-      <div class="column-content"
-           cdkDropList
-           [cdkDropListData]="completedTasks"
-           (cdkDropListDropped)="drop($event, 'completed')">
+          @for (task of todoTasks; track task.id) {
+            <div class="task-card" cdkDrag [routerLink]="['/tasks', task.id]">
+              <div class="card-badges">
+                <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">{{ task.priority }}</span>
+              </div>
+              <h4 class="card-title">{{ task.title }}</h4>
 
-        <div class="task-card done-card" *ngFor="let task of completedTasks" cdkDrag [routerLink]="['/tasks', task.id]">
-          <div class="card-header-mini">
-            <h4 class="card-title">{{ task.title }}</h4>
-            <lucide-angular name="check" [size]="16" class="check-icon"></lucide-angular>
-          </div>
-          <div class="card-footer">
-             <div class="assignee" *ngIf="task.assignee">
-              <img alt="Assignee Avatar" [src]="task.assignee.avatar_url || 'assets/images/avatar-placeholder.png'" class="avatar">
+              @if (task.project) {
+                <div class="card-meta">
+                  <lucide-angular name="folder" [size]="14"></lucide-angular>
+                  <span>{{ task.project.title }}</span>
+                </div>
+              }
+
+              <div class="card-footer">
+                @if (task.assignee) {
+                  <div class="assignee">
+                    <lucide-angular name="user" [size]="14"></lucide-angular>
+                    <span>{{ task.assignee.full_name }}</span>
+                  </div>
+                }
+                @if (task.due_date) {
+                  <span class="date">{{ task.due_date | date:'dd MMM' }}</span>
+                }
+              </div>
             </div>
-            <span class="date text-success">تم الإنجاز</span>
-          </div>
+          }
+          @if (todoTasks.length === 0) {
+            <div class="empty-state">لا توجد مهام</div>
+          }
         </div>
-        <div class="empty-state" *ngIf="completedTasks.length === 0">لا مهام مكتملة</div>
       </div>
-    </div>
 
-  </div>
+      <div class="board-column">
+        <div class="column-header header-progress">
+          <h3>جاري العمل</h3>
+          <span class="count">{{ inProgressTasks.length }}</span>
+        </div>
+        <div class="column-content"
+             cdkDropList
+             [cdkDropListData]="inProgressTasks"
+             (cdkDropListDropped)="drop($event, 'in_progress')">
+
+          @for (task of inProgressTasks; track task.id) {
+            <div class="task-card" cdkDrag [routerLink]="['/tasks', task.id]">
+              <div class="card-badges">
+                <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">{{ task.priority }}</span>
+              </div>
+              <h4 class="card-title">{{ task.title }}</h4>
+
+              @if (task.project) {
+                <div class="card-meta">
+                  <lucide-angular name="folder" [size]="14"></lucide-angular>
+                  <span>{{ task.project.title }}</span>
+                </div>
+              }
+
+              <div class="card-footer">
+                @if (task.assignee) {
+                  <div class="assignee">
+                    <lucide-angular name="user" [size]="14"></lucide-angular>
+                    <span>{{ task.assignee.full_name }}</span>
+                  </div>
+                }
+                @if (task.due_date) {
+                  <span class="date">{{ task.due_date | date:'dd MMM' }}</span>
+                }
+              </div>
+            </div>
+          }
+          @if (inProgressTasks.length === 0) {
+            <div class="empty-state">اسحب المهام هنا</div>
+          }
+        </div>
+      </div>
+
+      <div class="board-column">
+        <div class="column-header header-done">
+          <h3>مكتمل</h3>
+          <span class="count">{{ completedTasks.length }}</span>
+        </div>
+        <div class="column-content"
+             cdkDropList
+             [cdkDropListData]="completedTasks"
+             (cdkDropListDropped)="drop($event, 'completed')">
+
+          @for (task of completedTasks; track task.id) {
+            <div class="task-card done-card" cdkDrag [routerLink]="['/tasks', task.id]">
+              <div class="card-header-mini">
+                <h4 class="card-title">{{ task.title }}</h4>
+                <lucide-angular name="check" [size]="16" class="check-icon"></lucide-angular>
+              </div>
+              <div class="card-footer">
+                @if (task.assignee) {
+                  <div class="assignee">
+                    <lucide-angular name="user" [size]="14"></lucide-angular>
+                    <span>{{ task.assignee.full_name }}</span>
+                  </div>
+                }
+                <span class="date text-success">تم الإنجاز</span>
+              </div>
+            </div>
+          }
+          @if (completedTasks.length === 0) {
+            <div class="empty-state">لا مهام مكتملة</div>
+          }
+        </div>
+      </div>
+
+    </div>
+  }
 </div>
