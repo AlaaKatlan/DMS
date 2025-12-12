@@ -1,0 +1,147 @@
+@use 'sass:color';
+
+$primary: #4F46E5;
+$bg-page: #F8FAFC;
+$border: #E2E8F0;
+$text-main: #1E293B;
+$text-light: #64748B;
+
+.graph-card {
+  background: white;
+  border: 1px solid $border;
+  border-radius: 1rem;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+
+  .card-header {
+    background: $bg-page;
+    padding: 1rem;
+    border-bottom: 1px solid $border;
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      h3 { margin: 0; font-size: 1rem; font-weight: 700; color: $text-main; }
+      lucide-angular { color: $primary; }
+    }
+  }
+}
+
+.graph-container {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  padding: 2rem;
+  gap: 1rem;
+  background: #fff;
+  overflow-x: auto;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.graph-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-width: 150px;
+
+  .col-title {
+    font-size: 0.8rem;
+    color: $text-light;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+  }
+
+  .nodes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    width: 100%;
+    align-items: center;
+  }
+}
+
+.node-item {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid;
+  font-size: 0.9rem;
+  text-align: center;
+  transition: all 0.2s;
+  position: relative;
+  background: white;
+
+  &.current-node {
+    background: $primary;
+    color: white;
+    border-color: $primary;
+    box-shadow: 0 4px 6px -1px rgba($primary, 0.3);
+    font-weight: 700;
+    transform: scale(1.1);
+
+    .status-badge {
+      display: block;
+      font-size: 0.7rem;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      margin-top: 4px;
+      padding: 2px;
+    }
+  }
+
+  .node-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+
+    .id {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+
+    &:hover { opacity: 0.8; }
+  }
+
+  // Status colors (matching Tailwind utility classes used in TS)
+  &.bg-green-100 { background-color: #DCFCE7; color: #166534; border-color: #BBF7D0; }
+  &.bg-blue-100 { background-color: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
+  &.bg-red-100 { background-color: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+  &.bg-gray-50 { background-color: $bg-page; color: $text-light; border-color: $border; }
+}
+
+.empty-node {
+  border: 2px dashed $border;
+  color: $text-light;
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  background: $bg-page;
+}
+
+.connector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $text-light;
+  opacity: 0.5;
+
+  @media (max-width: 768px) {
+    transform: rotate(90deg);
+    margin: 1rem 0;
+  }
+}

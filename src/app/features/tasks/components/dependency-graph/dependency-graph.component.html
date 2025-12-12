@@ -1,1 +1,53 @@
-<p>dependency-graph works!</p>
+<div class="graph-card" dir="rtl">
+  <div class="card-header">
+    <div class="header-title">
+      <lucide-angular name="git-merge" [size]="20"></lucide-angular>
+      <h3>تسلسل العمليات (Dependencies)</h3>
+    </div>
+  </div>
+
+  <div class="graph-container">
+
+    <div class="graph-column dependencies">
+      <h4 class="col-title">يجب إنهاؤها أولاً</h4>
+      <div class="nodes-list">
+        <div *ngFor="let task of dependencies" class="node-item" [ngClass]="getStatusColor(task.status)">
+          <a [routerLink]="['/tasks', task.id]" class="node-link">
+            <span class="id">#{{ task.title }}</span>
+            <lucide-angular *ngIf="task.status === 'completed'" name="check-circle" [size]="14"></lucide-angular>
+          </a>
+        </div>
+        <div *ngIf="dependencies.length === 0" class="empty-node">البداية</div>
+      </div>
+    </div>
+
+    <div class="connector">
+      <lucide-angular name="arrow-left" [size]="24"></lucide-angular> </div>
+
+    <div class="graph-column current">
+      <h4 class="col-title">المهمة الحالية</h4>
+      <div class="node-item current-node">
+        <span class="title">{{ currentTask.title }}</span>
+        <span class="status-badge">{{ currentTask.status }}</span>
+      </div>
+    </div>
+
+    <div class="connector">
+      <lucide-angular name="arrow-left" [size]="24"></lucide-angular>
+    </div>
+
+    <div class="graph-column dependents">
+      <h4 class="col-title">بانتظار هذه المهمة</h4>
+      <div class="nodes-list">
+        <div *ngFor="let task of dependents" class="node-item" [ngClass]="getStatusColor(task.status)">
+          <a [routerLink]="['/tasks', task.id]" class="node-link">
+            <span class="id">#{{ task.title }}</span>
+            <lucide-angular name="lock" [size]="14" *ngIf="task.status === 'blocked'"></lucide-angular>
+          </a>
+        </div>
+        <div *ngIf="dependents.length === 0" class="empty-node">النهاية</div>
+      </div>
+    </div>
+
+  </div>
+</div>
