@@ -16,9 +16,9 @@ import {
   Eye, Trash2, Edit, Filter, X, Check, Map, Hash,CreditCard,ArrowRight,Loader2,LoaderCircle,
   EyeOff, List, Building, Trash,ChartBar,ChartColumn,Briefcase,Workflow,Printer,
   LogIn, MapPin, ChevronLeft, ArrowLeft,CircleAlert,Columns,Columns2,Ruler,Kanban,Clock,
-  UserPlus, Phone,Tag,CheckCircle,Flag,Handshake,TrendingDown,Image,XCircle,CircleX,Pen,
+  UserPlus, Phone,Tag,CheckCircle,Flag,Handshake,TrendingDown,Image,XCircle,CircleX,Pen,ShoppingCart,
   // ADD THESE IF MISSING:Kanban,Edit2
-  User,Sliders,
+  User,Sliders,Download,
   LogOut,
   Info
 } from 'lucide-angular';
@@ -40,8 +40,8 @@ export const appConfig: ApplicationConfig = {
       DollarSign, TrendingUp, ArrowDown, Activity, Users, ChevronLeft, Grid,FolderOpen,Sliders,Pen,
       Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search,Flag,Handshake,Briefcase,Workflow,
       // REGISTER NEW ICONS HERE:
-      Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,Printer,
-      Mail, MapPin, FileQuestion,PlusCircle,CheckCircle,FileX,Loader2,LoaderCircle,
+      Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical,Printer,Download,
+      Mail, MapPin, FileQuestion,PlusCircle,CheckCircle,FileX,Loader2,LoaderCircle,ShoppingCart,
       Lock, List, Check, Map, Building, Trash,Hash,CreditCard,ArrowRight,Edit3,CircleCheck,
       Eye, Phone, Plus,ArrowLeft,CircleAlert,Book,Ruler,Image,PenLine,Kanban,CircleX,
       EyeOff, UserPlus,ChartBar,ChartColumn,TrendingDown,Clock,XCircle,
