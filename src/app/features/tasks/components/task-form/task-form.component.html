@@ -154,7 +154,7 @@
         <div class="form-actions">
           <button type="button" routerLink="/tasks/board" class="btn btn-secondary">إلغاء</button>
           <button type="submit" class="btn btn-primary" [disabled]="taskForm.invalid || submitting">
-            <lucide-angular *ngIf="submitting" name="loader-circle" class="animate-spin" [size]="18"></lucide-angular>
+            <lucide-angular *ngIf="submitting" name="loader-2" class="animate-spin" [size]="18"></lucide-angular>
             <span>{{ submitting ? 'جاري الحفظ...' : 'حفظ المهمة' }}</span>
           </button>
         </div>
