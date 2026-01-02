@@ -1,1 +1,63 @@
-<p>profile works!</p>
+<div class="settings-card">
+  <div class="card-header">
+    <div class="icon-box">
+      <lucide-angular name="user" [size]="24"></lucide-angular>
+    </div>
+    <div class="titles">
+      <h2>الملف الشخصي</h2>
+      <p>قم بتحديث بياناتك الشخصية ومعلومات الاتصال</p>
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="loading">جاري التحميل...</div>
+  } @else if (user) {
+    <div class="form-grid">
+
+      <div class="form-group full-width">
+        <label>الاسم الكامل</label>
+        <div class="input-wrapper">
+          <lucide-angular name="user" [size]="18" class="input-icon"></lucide-angular>
+          <input type="text" [(ngModel)]="user.full_name" placeholder="الاسم الكامل">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>البريد الإلكتروني</label>
+        <div class="input-wrapper disabled">
+          <lucide-angular name="mail" [size]="18" class="input-icon"></lucide-angular>
+          <input type="email" [value]="user.email" disabled readonly>
+        </div>
+        <span class="hint">لا يمكن تغيير البريد الإلكتروني</span>
+      </div>
+
+      <div class="form-group">
+        <label>رقم الهاتف</label>
+        <div class="input-wrapper">
+          <lucide-angular name="phone" [size]="18" class="input-icon"></lucide-angular>
+          <input type="tel" [(ngModel)]="user.phone" placeholder="مثال: +963...">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>الصلاحية / الدور</label>
+        <div class="role-badge">
+          {{ user.role }}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="actions">
+      <button class="btn-save" (click)="saveChanges()" [disabled]="saving">
+        @if (saving) {
+          <lucide-angular name="loader-2" class="spin" [size]="18"></lucide-angular>
+          جاري الحفظ...
+        } @else {
+          <lucide-angular name="save" [size]="18"></lucide-angular>
+          حفظ التغييرات
+        }
+      </button>
+    </div>
+  }
+</div>

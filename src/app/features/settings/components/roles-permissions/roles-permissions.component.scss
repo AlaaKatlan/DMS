@@ -1,0 +1,45 @@
+@use 'sass:color';
+
+$border: #E2E8F0;
+$text-main: #1E293B;
+$success: #10B981;
+$bg-header: #F8FAFC;
+
+.settings-card {
+  background: white; border: 1px solid $border; border-radius: 1rem; padding: 1.5rem;
+
+  .card-header {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;
+    .icon-box.lock { background: #FEF3C7; color: #D97706; padding: 0.75rem; border-radius: 0.75rem; }
+    .titles h2 { margin: 0; font-size: 1.25rem; }
+    .titles p { margin: 0.25rem 0 0; color: #64748B; font-size: 0.9rem; }
+  }
+}
+
+.matrix-container {
+  overflow-x: auto;
+
+  .matrix-table {
+    width: 100%; border-collapse: collapse; min-width: 600px;
+
+    th, td { border: 1px solid $border; padding: 0.75rem 1rem; }
+
+    thead th { background: $bg-header; color: #64748B; font-size: 0.85rem; }
+
+    .perm-head { text-align: right; width: 40%; }
+    .role-head { text-align: center; }
+
+    .group-header td {
+      background: #F1F5F9; font-weight: 700; color: $text-main;
+      font-size: 0.9rem; border-left: none; border-right: none;
+    }
+
+    .action-name { color: $text-main; font-size: 0.95rem; }
+
+    .check-cell {
+      text-align: center;
+      .icon-check { color: $success; }
+      .dash { color: #CBD5E1; font-weight: bold; }
+    }
+  }
+}

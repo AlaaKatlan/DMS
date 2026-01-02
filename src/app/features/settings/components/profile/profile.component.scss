@@ -1,0 +1,118 @@
+@use 'sass:color';
+
+$primary: #4F46E5;
+$text-main: #1E293B;
+$text-light: #64748B;
+$border: #E2E8F0;
+$bg-input: #F8FAFC;
+
+:host {
+  display: block;
+}
+
+.settings-card {
+  background: white;
+  border: 1px solid $border;
+  border-radius: 1rem;
+  padding: 2rem;
+  max-width: 800px;
+  margin-bottom: 2rem;
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid $border;
+
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: #EEF2FF;
+      color: $primary;
+      display: flex; align-items: center; justify-content: center;
+
+      &.warning { background: #FEF3C7; color: #D97706; }
+    }
+
+    .titles {
+      h2 { margin: 0; font-size: 1.25rem; color: $text-main; }
+      p { margin: 0.25rem 0 0; color: $text-light; font-size: 0.9rem; }
+    }
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+
+    .full-width { grid-column: 1 / -1; }
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group {
+    display: flex; flex-direction: column; gap: 0.5rem;
+
+    label { font-weight: 600; font-size: 0.9rem; color: $text-main; }
+
+    .input-wrapper {
+      position: relative;
+
+      .input-icon {
+        position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+        color: $text-light; pointer-events: none;
+      }
+
+      input, select {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 2.5rem; // مساحة للأيقونة
+        border: 1px solid $border;
+        border-radius: 0.5rem;
+        background: $bg-input;
+        font-family: inherit;
+        color: $text-main;
+        transition: all 0.2s;
+
+        &:focus {
+          outline: none; border-color: $primary; background: white;
+          box-shadow: 0 0 0 3px rgba($primary, 0.1);
+        }
+      }
+
+      &.disabled {
+        input { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; }
+      }
+    }
+
+    .hint { font-size: 0.8rem; color: $text-light; }
+
+    .role-badge {
+      display: inline-block; padding: 0.5rem 1rem;
+      background: #E0E7FF; color: $primary;
+      border-radius: 0.5rem; font-weight: 700; width: fit-content;
+    }
+  }
+
+  .actions {
+    margin-top: 2.5rem; display: flex; justify-content: flex-end;
+
+    .btn-save {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: $primary; color: white; border: none;
+      padding: 0.75rem 1.5rem; border-radius: 0.5rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+
+      &:hover:not(:disabled) { background: color.mix(black, $primary, 10%); }
+      &:disabled { opacity: 0.7; cursor: not-allowed; }
+
+      .spin { animation: spin 1s linear infinite; }
+    }
+  }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }

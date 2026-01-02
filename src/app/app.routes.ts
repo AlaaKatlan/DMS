@@ -235,20 +235,34 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['admin', 'manager'] },
         children: [
-          {
-            path: '',
-            redirectTo: 'profile',
-            pathMatch: 'full'
-          },
-          {
-            path: 'profile',
-            loadComponent: () => import('./features/settings/components/profile/profile.component').then(m => m.ProfileComponent)
-          },
-          {
-            path: 'users',
-            loadComponent: () => import('./features/settings/components/users/users.component').then(m => m.UsersComponent)
-          }
-        ]
+    {
+      path: '',
+      redirectTo: 'profile',
+      pathMatch: 'full'
+    },
+    {
+      path: 'profile',
+      loadComponent: () => import('./features/settings/components/profile/profile.component').then(m => m.ProfileComponent)
+    },
+    {
+      path: 'users',
+      loadComponent: () => import('./features/settings/components/users/users.component').then(m => m.UsersComponent),
+      canActivate: [roleGuard],
+      data: { roles: ['admin'] }
+    },
+    {
+      path: 'roles',
+      loadComponent: () => import('./features/settings/components/roles-permissions/roles-permissions.component').then(m => m.RolesPermissionsComponent),
+      canActivate: [roleGuard],
+      data: { roles: ['admin'] }
+    },
+    {
+      path: 'system',
+      loadComponent: () => import('./features/settings/components/system-settings/system-settings.component').then(m => m.SystemSettingsComponent),
+      canActivate: [roleGuard],
+      data: { roles: ['admin'] }
+    }
+  ]
       }
     ]
   },

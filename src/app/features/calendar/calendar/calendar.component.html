@@ -1,1 +1,74 @@
-<p>calendar works!</p>
+<div class="calendar-page" dir="rtl">
+
+  <div class="calendar-header">
+    <div class="title-section">
+      <h1>التقويم</h1>
+      <span class="subtitle">{{ currentDate | date:'MMMM yyyy' }}</span>
+    </div>
+
+    <div class="actions">
+      <button class="btn-nav" (click)="changeMonth(-1)">
+        <lucide-angular name="chevron-right"></lucide-angular>
+      </button>
+      <button class="btn-today" (click)="goToToday()">اليوم</button>
+      <button class="btn-nav" (click)="changeMonth(1)">
+        <lucide-angular name="chevron-left"></lucide-angular>
+      </button>
+    </div>
+  </div>
+
+  <div class="calendar-wrapper">
+    <div class="weekdays-header">
+      @for (day of weekDays; track day) {
+        <div class="weekday">{{ day }}</div>
+      }
+    </div>
+
+    <div class="days-grid">
+      @if (loading) {
+        <div class="loading-overlay">جاري تحميل الأحداث...</div>
+      }
+
+      @for (day of calendarDays; track day.date) {
+        <div class="day-cell"
+             [class.other-month]="!day.isCurrentMonth"
+             [class.today]="day.isToday">
+
+          <div class="day-number">{{ day.date | date:'d' }}</div>
+
+          <div class="events-list">
+            @for (event of day.events; track event.id) {
+              <div class="event-pill"
+                   [style.background-color]="event.color + '20'"
+                   [style.color]="event.color"
+                   [style.border-left-color]="event.color"
+                   [title]="event.title">
+                {{ event.title }}
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <span class="dot" style="background: #3B82F6"></span>
+      <span>بداية مشروع</span>
+    </div>
+    <div class="legend-item">
+      <span class="dot" style="background: #EF4444"></span>
+      <span>تسليم مشروع</span>
+    </div>
+    <div class="legend-item">
+      <span class="dot" style="background: #10B981"></span>
+      <span>مهام</span>
+    </div>
+    <div class="legend-item">
+      <span class="dot" style="background: #F59E0B"></span>
+      <span>محطات مالية</span>
+    </div>
+  </div>
+
+</div>

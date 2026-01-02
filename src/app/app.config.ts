@@ -17,7 +17,7 @@ import {
   LogIn, MapPin, ChevronLeft, ArrowLeft, CircleAlert, Columns, Columns2, Ruler, Kanban, Clock,
   UserPlus, Phone, Tag, CheckCircle, Flag, Handshake, TrendingDown, Image, XCircle, CircleX, Pen, ShoppingCart,
   User, Sliders, Download,
-  LogOut,
+  LogOut,Save,
   Info
 } from 'lucide-angular';
 
@@ -56,7 +56,7 @@ export const appConfig: ApplicationConfig = {
       EyeOff, UserPlus, ChartBar, ChartColumn, TrendingDown, Clock, XCircle,
       LogIn, Trash2, Edit, Filter, Columns2, Tag,
       User, X,
-      LogOut,
+      LogOut,Save,
       Info
     })),
 

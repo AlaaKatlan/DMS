@@ -1,14 +1,13 @@
-// src/app/features/settings/components/users/users.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SettingsService, UserManagementItem } from '../../settings.service';
-import { LucideAngularModule } from 'lucide-angular';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
+import { SettingsService, UserManagementItem } from '../../settings.service';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, LucideAngularModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss']
 })
@@ -16,16 +15,16 @@ export class UsersComponent implements OnInit {
   private settingsService = inject(SettingsService);
 
   users: UserManagementItem[] = [];
-  loading = true;
-  error: string | null = null;
+  loading = false;
 
-  // قائمة الصلاحيات المتاحة
-  availableRoles = [
-    { value: 'admin', label: 'مدير نظام' },
-    { value: 'manager', label: 'مدير' },
+  // قائمة الأدوار المتاحة في النظام
+  roles = [
+    { value: 'admin', label: 'مدير النظام' },
+    { value: 'manager', label: 'مدير مشاريع' },
     { value: 'accountant', label: 'محاسب' },
     { value: 'employee', label: 'موظف' },
-    { value: 'freelancer', label: 'مستقل' }
+    { value: 'freelancer', label: 'مستقل' },
+    { value: 'client', label: 'عميل' }
   ];
 
   ngOnInit(): void {
@@ -41,15 +40,14 @@ export class UsersComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error loading users:', err);
-        this.error = 'حدث خطأ أثناء تحميل المستخدمين. تأكد من صلاحياتك.';
         this.loading = false;
       }
     });
   }
 
-  onRoleChange(user: UserManagementItem, newRole: string): void {
-    if (!confirm(`هل أنت متأكد من تغيير صلاحية ${user.full_name} إلى ${newRole}؟`)) {
-      // إعادة القيمة السابقة إذا ألغى المستخدم (يمكن تحسينها بإعادة تحميل القائمة)
+  updateRole(user: UserManagementItem, newRole: string): void {
+    if (!confirm(`هل أنت متأكد من تغيير صلاحية ${user.full_name}؟`)) {
+      // إعادة القيمة السابقة في حال الإلغاء (يحتاج منطق إضافي أو إعادة تحميل)
       this.loadUsers();
       return;
     }
@@ -57,12 +55,27 @@ export class UsersComponent implements OnInit {
     this.settingsService.updateUserRole(user.id, newRole).subscribe({
       next: () => {
         alert('تم تحديث الصلاحية بنجاح');
-        user.role = newRole; // تحديث محلي
       },
-      error: (err) => {
-        console.error(err);
-        alert('فشل التحديث');
+      error: () => {
+        alert('حدث خطأ أثناء التحديث');
       }
     });
+  }
+
+  deleteUser(user: UserManagementItem): void {
+    if (!confirm(`تحذير: هل أنت متأكد من حذف المستخدم ${user.full_name} نهائياً؟`)) return;
+
+    // ملاحظة: تأكد من وجود دالة deleteUser في السيرفس (أضفناها سابقاً)
+    this.settingsService.deleteUser(user.id).subscribe({
+      next: () => {
+        this.users = this.users.filter(u => u.id !== user.id);
+        alert('تم حذف المستخدم');
+      },
+      error: () => alert('لا يمكن حذف المستخدم، قد يكون مرتبطاً ببيانات أخرى.')
+    });
+  }
+
+  getRoleLabel(roleValue: string): string {
+    return this.roles.find(r => r.value === roleValue)?.label || roleValue;
   }
 }

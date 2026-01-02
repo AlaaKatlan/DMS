@@ -1,1 +1,46 @@
-<p>roles-permissions works!</p>
+<div class="settings-card permissions-card" dir="rtl">
+  <div class="card-header">
+    <div class="icon-box lock">
+      <lucide-angular name="lock" [size]="24"></lucide-angular>
+    </div>
+    <div class="titles">
+      <h2>مصفوفة الصلاحيات</h2>
+      <p>توضيح للصلاحيات الممنوحة لكل دور وظيفي في النظام</p>
+    </div>
+  </div>
+
+  <div class="matrix-container">
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th class="perm-head">الصلاحية / القسم</th>
+          @for (role of roles; track role.key) {
+            <th class="role-head">{{ role.label }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (group of permissions; track group.module) {
+          <tr class="group-header">
+            <td [attr.colspan]="roles.length + 1">{{ group.module }}</td>
+          </tr>
+
+          @for (action of group.actions; track action.name) {
+            <tr>
+              <td class="action-name">{{ action.name }}</td>
+              @for (role of roles; track role.key) {
+                <td class="check-cell">
+                  @if (hasPermission(role.key, action.roles)) {
+                    <lucide-angular name="check-circle" class="icon-check" [size]="20"></lucide-angular>
+                  } @else {
+                    <span class="dash">-</span>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

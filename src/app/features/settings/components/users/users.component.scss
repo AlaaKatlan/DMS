@@ -1,0 +1,81 @@
+@use 'sass:color';
+
+$primary: #4F46E5;
+$danger: #EF4444;
+$text-main: #1E293B;
+$text-light: #64748B;
+$border: #E2E8F0;
+$bg-head: #F8FAFC;
+
+.settings-card {
+  background: white;
+  border: 1px solid $border;
+  border-radius: 1rem;
+  padding: 1.5rem;
+
+  .card-header {
+    display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;
+
+    .icon-box.info { background: #E0F2FE; color: #0284C7; padding: 0.75rem; border-radius: 0.75rem; }
+
+    .titles {
+      flex: 1;
+      h2 { margin: 0; font-size: 1.25rem; color: $text-main; }
+      p { margin: 0.25rem 0 0; color: $text-light; font-size: 0.9rem; }
+    }
+
+    .btn-refresh {
+      background: white; border: 1px solid $border; padding: 0.5rem 1rem;
+      border-radius: 0.5rem; cursor: pointer; display: flex; gap: 0.5rem; color: $text-main;
+      &:hover { border-color: $primary; color: $primary; }
+    }
+  }
+}
+
+.table-container {
+  overflow-x: auto;
+
+  .users-table {
+    width: 100%; border-collapse: collapse; min-width: 700px;
+
+    th {
+      text-align: right; padding: 1rem; background: $bg-head;
+      color: $text-light; font-size: 0.85rem; font-weight: 700;
+      border-bottom: 1px solid $border;
+    }
+
+    td {
+      padding: 1rem; border-bottom: 1px solid $border;
+      vertical-align: middle; color: $text-main; font-size: 0.95rem;
+    }
+
+    .user-info {
+      display: flex; align-items: center; gap: 0.75rem;
+      .avatar-circle {
+        width: 32px; height: 32px; background: $primary; color: white;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 0.85rem;
+      }
+    }
+
+    .email-col { color: $text-light; font-family: sans-serif; }
+    .date-col { font-size: 0.85rem; color: $text-light; }
+
+    .role-select {
+      padding: 0.4rem 0.8rem; border-radius: 2rem; border: 1px solid $border;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none;
+      background-color: white;
+
+      &.admin { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
+      &.manager { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
+      &.accountant { background: #ECFDF5; color: #059669; border-color: #A7F3D0; }
+      &.employee { background: #F3F4F6; color: $text-main; }
+    }
+
+    .btn-icon.delete {
+      background: none; border: none; color: $text-light; cursor: pointer;
+      transition: color 0.2s;
+      &:hover { color: $danger; }
+    }
+  }
+}
