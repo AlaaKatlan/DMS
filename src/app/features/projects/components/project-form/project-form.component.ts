@@ -43,17 +43,20 @@ export class ProjectFormComponent implements OnInit {
   /**
    * دورة حياة المكون عند البدء
    */
-  ngOnInit(): void {
-    // 1. تهيئة الفورم أولاً لتجنب خطأ undefined
+ngOnInit(): void {
+    // 1. تهيئة الفورم فوراً لتجنب الأخطاء
     this.initForm();
 
-    // 2. تحميل قائمة العملاء لتعبئة الـ Select
+    // 2. تحميل العملاء لتعبئة القائمة المنسدلة
     this.loadCustomers();
 
-    // 3. التحقق من الرابط لجلب بيانات المشروع في حالة التعديل
-    this.checkEditMode();
+    // 3. التحقق من وضع التعديل
+    this.projectId = this.route.snapshot.paramMap.get('id');
+    if (this.projectId) {
+      this.isEditMode = true;
+      this.loadProject(this.projectId);
+    }
   }
-
   /**
    * تهيئة هيكلية النموذج (Form Group)
    */

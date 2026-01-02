@@ -109,7 +109,7 @@ export const routes: Routes = [
         ]
       },
 
-      // Projects
+  // Projects
       {
         path: 'projects',
         children: [
@@ -129,7 +129,7 @@ export const routes: Routes = [
             path: 'new',
             loadComponent: () => import('./features/projects/components/project-form/project-form.component').then(m => m.ProjectFormComponent)
           },
-          // 👇 تمت إضافة مسار التعديل هنا (يجب أن يكون قبل :id)
+          // 👇 هذا المسار كان مفقوداً، وهو ضروري لزر التعديل
           {
             path: ':id/edit',
             loadComponent: () => import('./features/projects/components/project-form/project-form.component').then(m => m.ProjectFormComponent)

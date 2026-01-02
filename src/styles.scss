@@ -24,6 +24,10 @@ body {
   background: #f8fafc;
   direction: rtl;
   overflow-x: hidden;
+
+  /* الإضافة المطلوبة للأرقام الإنجليزية */
+  font-feature-settings: "ss01" 0;
+  font-variant-numeric: tabular-nums;
 }
 
 // ==================== SCROLLBAR STYLING ====================

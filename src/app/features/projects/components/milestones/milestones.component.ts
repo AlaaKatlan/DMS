@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -8,92 +8,113 @@ import { ProjectMilestone } from '../../../../core/models/base.model';
 @Component({
   selector: 'app-milestones',
   standalone: true,
-  imports: [CommonModule, FormsModule, LucideAngularModule],
+  imports: [CommonModule, LucideAngularModule, FormsModule],
   templateUrl: './milestones.component.html',
   styleUrls: ['./milestones.component.scss']
 })
-export class MilestonesComponent implements OnInit {
-  @Input() projectId!: string;
+export class MilestonesComponent {
   private projectsService = inject(ProjectsService);
+  private cdr = inject(ChangeDetectorRef);
 
   milestones: ProjectMilestone[] = [];
   loading = false;
 
-  // لنموذج الإضافة السريع
+  // ✅ تعريف المتغيرات الناقصة
   isAdding = false;
   newMilestoneTitle = '';
   newMilestoneDate = '';
-  newMilestoneAmount = 0;
+  newMilestoneAmount: number | null = null;
 
-  ngOnInit(): void {
-   if (this.projectId) {
+  private _projectId: string | null = null;
+
+  @Input()
+  set projectId(value: string | undefined | null) {
+    if (value) {
+      this._projectId = value;
       this.loadMilestones();
     }
   }
-// أضف هذه الدالة
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['projectId'] && changes['projectId'].currentValue) {
-      this.loadMilestones();
-    }
+
+  get projectId(): string | null {
+    return this._projectId;
   }
-loadMilestones(): void {
-    if (!this.projectId) return; // حماية إضافية
+
+  loadMilestones(): void {
+    if (!this._projectId) return;
+
     this.loading = true;
-    this.projectsService.getProjectMilestones(this.projectId).subscribe({
+    this.projectsService.getProjectMilestones(this._projectId).subscribe({
       next: (data) => {
         this.milestones = data;
         this.loading = false;
-       },
-      error: () => this.loading = false
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading milestones:', err);
+        this.loading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  // ✅ تعريف دالة الحفظ
+  saveNewMilestone(): void {
+    if (!this.newMilestoneTitle || !this._projectId) return;
+
+    const newMilestone = {
+      project_id: this._projectId,
+      title: this.newMilestoneTitle,
+      due_date: this.newMilestoneDate || undefined,
+      amount: this.newMilestoneAmount || 0,
+      status: 'pending' as const
+    };
+
+    this.projectsService.createMilestone(newMilestone).subscribe({
+      next: (ms) => {
+        this.milestones.push(ms);
+        // إعادة تعيين النموذج
+        this.isAdding = false;
+        this.newMilestoneTitle = '';
+        this.newMilestoneDate = '';
+        this.newMilestoneAmount = null;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error creating milestone:', err);
+        alert('حدث خطأ أثناء حفظ المحطة');
+      }
+    });
+  }
+
+  deleteMilestone(id: string): void {
+    if (!confirm('هل أنت متأكد من حذف هذه المحطة؟')) return;
+
+    this.projectsService.deleteMilestone(id).subscribe({
+      next: () => {
+        this.milestones = this.milestones.filter(m => m.id !== id);
+        this.cdr.detectChanges();
+      },
+      error: (err) => console.error('Delete error:', err)
     });
   }
 
   toggleStatus(milestone: ProjectMilestone): void {
-    if (milestone.status === 'completed') return; // لا نعدل المكتمل حالياً
+    const newStatus = milestone.status === 'pending' ? 'completed' : 'pending';
+    const oldStatus = milestone.status;
 
-    if (confirm('هل تريد تأكيد إتمام هذه المحطة؟')) {
-      this.projectsService.completeMilestone(milestone.id).subscribe({
-        next: (updated) => {
-          milestone.status = 'completed';
-          milestone.completed_at = updated.completed_at;
-        }
-      });
-    }
-  }
+    milestone.status = newStatus;
 
-  deleteMilestone(id: string): void {
-    if (confirm('هل أنت متأكد من الحذف؟')) {
-      this.projectsService.deleteMilestone(id).subscribe({
-        next: () => {
-          this.milestones = this.milestones.filter(m => m.id !== id);
-        }
-      });
-    }
-  }
-
-  saveNewMilestone(): void {
-    if (!this.newMilestoneTitle) return;
-
-    this.projectsService.createMilestone({
-      project_id: this.projectId,
-      title: this.newMilestoneTitle,
-      due_date: this.newMilestoneDate || undefined,
-      amount: this.newMilestoneAmount || 0,
-      status: 'pending'
-    }).subscribe({
-      next: (newItem) => {
-        this.milestones.push(newItem);
-        // إعادة تعيين النموذج
-        this.newMilestoneTitle = '';
-        this.newMilestoneDate = '';
-        this.newMilestoneAmount = 0;
-        this.isAdding = false;
-      },
-      error: (err) => alert('حدث خطأ أثناء الإضافة')
+    this.projectsService.updateMilestone(milestone.id, { status: newStatus }).subscribe({
+      error: () => {
+        milestone.status = oldStatus;
+        alert('حدث خطأ أثناء تحديث الحالة');
+        this.cdr.detectChanges();
+      }
     });
   }
 
+  // ✅ تعريف دالة تنسيق العملة
   formatCurrency(amount: number): string {
-    return amount ? `$${amount.toLocaleString()}` : '-';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   }
 }

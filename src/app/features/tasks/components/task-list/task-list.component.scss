@@ -23,14 +23,16 @@ $text-main: #1E293B;
 
 :host {
   display: block;
-  min-height: 100vh;
+  width: 100%; /* إضافة: لضمان أخذ المكون كامل العرض */
+  min-height: 100%; /* تعديل: ليتناسب مع الـ Layout */
   background-color: $bg-page;
 }
 
 .tasks-page {
   padding: 2rem;
-  max-width: 1600px;
-  margin: 0 auto;
+  width: 100%;      /* إضافة: عرض كامل */
+  max-width: 100%;  /* تعديل: كان 1600px وهو سبب المشكلة */
+  margin: 0;        /* تعديل: إزالة التوسيط لأنه أصبح كامل العرض */
 
   @media (max-width: 768px) {
     padding: 1rem;
@@ -203,6 +205,7 @@ $text-main: #1E293B;
   border-radius: 1rem;
   border: 1px solid $border;
   overflow-x: auto;
+  width: 100%; /* التأكد من أن الجدول يأخذ كامل العرض */
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
 
   .tasks-table {
