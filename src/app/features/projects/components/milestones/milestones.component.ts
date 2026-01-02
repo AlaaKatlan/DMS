@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -26,18 +26,24 @@ export class MilestonesComponent implements OnInit {
   newMilestoneAmount = 0;
 
   ngOnInit(): void {
-    if (this.projectId) {
+   if (this.projectId) {
       this.loadMilestones();
     }
   }
-
-  loadMilestones(): void {
+// أضف هذه الدالة
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['projectId'] && changes['projectId'].currentValue) {
+      this.loadMilestones();
+    }
+  }
+loadMilestones(): void {
+    if (!this.projectId) return; // حماية إضافية
     this.loading = true;
     this.projectsService.getProjectMilestones(this.projectId).subscribe({
       next: (data) => {
         this.milestones = data;
         this.loading = false;
-      },
+       },
       error: () => this.loading = false
     });
   }

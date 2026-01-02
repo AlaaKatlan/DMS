@@ -129,6 +129,12 @@ export const routes: Routes = [
             path: 'new',
             loadComponent: () => import('./features/projects/components/project-form/project-form.component').then(m => m.ProjectFormComponent)
           },
+          // 👇 تمت إضافة مسار التعديل هنا (يجب أن يكون قبل :id)
+          {
+            path: ':id/edit',
+            loadComponent: () => import('./features/projects/components/project-form/project-form.component').then(m => m.ProjectFormComponent)
+          },
+          // 👆
           {
             path: ':id',
             loadComponent: () => import('./features/projects/components/project-detail/project-detail.component').then(m => m.ProjectDetailComponent)
@@ -137,8 +143,7 @@ export const routes: Routes = [
       },
 
 
-     // Tasks
-      // Tasks
+       // Tasks
       {
         path: 'tasks',
         children: [

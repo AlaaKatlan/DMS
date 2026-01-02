@@ -1,1 +1,77 @@
-<p>ledger works!</p>
+<div class="ledger-container" dir="rtl">
+
+  <div class="header-section">
+    <h1>السجل المالي (دفتر الأستاذ)</h1>
+
+    @if (balance) {
+      <div class="balance-cards">
+        <div class="card income">
+          <span class="label">إجمالي الإيرادات</span>
+          <span class="value">{{ formatCurrency(balance.total_income, balance.currency) }}</span>
+        </div>
+        <div class="card expense">
+          <span class="label">إجمالي المصروفات</span>
+          <span class="value">{{ formatCurrency(balance.total_expenses, balance.currency) }}</span>
+        </div>
+        <div class="card net" [class.negative]="balance.balance < 0">
+          <span class="label">صافي الرصيد</span>
+          <span class="value">{{ formatCurrency(balance.balance, balance.currency) }}</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="filters-bar">
+    <div class="date-inputs">
+      <input type="date" [(ngModel)]="startDate" class="input-control">
+      <span>إلى</span>
+      <input type="date" [(ngModel)]="endDate" class="input-control">
+      <button (click)="filterByDate()" class="btn-primary">عرض</button>
+      <button (click)="resetFilter()" class="btn-outline">إلغاء الفلتر</button>
+    </div>
+    <button (click)="exportData()" class="btn-secondary">
+      <lucide-angular name="download" [size]="16"></lucide-angular>
+      تصدير تقرير
+    </button>
+  </div>
+
+  <div class="table-wrapper">
+    @if (loading) {
+      <div class="spinner">جاري التحميل...</div>
+    } @else {
+      <table class="ledger-table">
+        <thead>
+          <tr>
+            <th>التاريخ</th>
+            <th>النوع</th>
+            <th>الوصف</th>
+            <th>المبلغ</th>
+            <th>العملة</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of entries; track entry.id) {
+            <tr>
+              <td>{{ entry.entry_date | date:'mediumDate' }}</td>
+              <td>
+                <span class="badge" [class.income]="entry.entry_type === 'income'" [class.expense]="entry.entry_type === 'expense'">
+                  {{ entry.entry_type === 'income' ? 'إيراد' : 'مصروف' }}
+                </span>
+              </td>
+              <td>{{ entry.description || '-' }}</td>
+              <td [class.text-green]="entry.entry_type === 'income'" [class.text-red]="entry.entry_type === 'expense'">
+                {{ formatCurrency(entry.amount, entry.currency) }}
+              </td>
+              <td>{{ entry.currency }}</td>
+            </tr>
+          }
+          @if (entries.length === 0) {
+            <tr>
+              <td colspan="5" class="text-center">لا توجد سجلات مالية</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

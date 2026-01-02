@@ -76,11 +76,11 @@ export class ProjectDetailComponent implements OnInit {
     this.activeTab = tab;
   }
 
-  editProject(): void {
-    if (this.projectId) {
-      this.router.navigate(['/projects', this.projectId, 'edit']);
-    }
+editProject(): void {
+  if (this.projectId) {
+    this.router.navigate(['/projects', this.projectId, 'edit']);
   }
+}
 
   deleteProject(): void {
     if (!this.project) return;
@@ -103,11 +103,17 @@ export class ProjectDetailComponent implements OnInit {
     this.router.navigate(['/projects']);
   }
 
-  calculateProgress(): number {
-    if (!this.project?.tasks || this.project.tasks.length === 0) return 0;
-    const completed = this.project.tasks.filter(t => t.status === 'completed').length;
-    return Math.round((completed / this.project.tasks.length) * 100);
-  }
+calculateProgress(): number {
+  // 1. إذا كان المشروع مكتمل يدوياً، أرجع 100%
+  if (this.project?.status === 'completed') return 100;
+
+  // 2. إذا لم يكن هناك مهام، النسبة 0
+  if (!this.project?.tasks || this.project.tasks.length === 0) return 0;
+
+  // 3. الحساب التقليدي
+  const completed = this.project.tasks.filter(t => t.status === 'completed').length;
+  return Math.round((completed / this.project.tasks.length) * 100);
+}
 
   getTasksByStatus(status: string): ProjectTask[] {
     if (!this.project?.tasks) return [];

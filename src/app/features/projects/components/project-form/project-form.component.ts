@@ -4,8 +4,12 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+
+// الخدمات
 import { ProjectsService } from '../../projects.service';
 import { CustomersService } from '../../../customers/customers.service';
+
+// النماذج (Models)
 import { Project, Customer, Currency, ProjectStatus } from '../../../../core/models/base.model';
 
 @Component({
@@ -16,34 +20,48 @@ import { Project, Customer, Currency, ProjectStatus } from '../../../../core/mod
   styleUrls: ['./project-form.component.scss']
 })
 export class ProjectFormComponent implements OnInit {
+  // حقن الاعتماديات (Dependency Injection)
   private fb = inject(FormBuilder);
   private projectsService = inject(ProjectsService);
   private customersService = inject(CustomersService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
+  // متغيرات الفورم والحالة
   projectForm!: FormGroup;
   loading = false;
   saving = false;
   isEditMode = false;
   projectId: string | null = null;
 
+  // القوائم المنسدلة
   customers: Customer[] = [];
   currencies: Currency[] = ['USD', 'AED', 'QR', 'SYP', 'OMR'];
   statuses: ProjectStatus[] = ['active', 'completed', 'cancelled', 'on_hold'];
   projectTypes = ['قصة', 'رسم', 'تحريك', 'أغنية', 'كتاب', 'تصميم', 'برمجة', 'تسويق'];
 
+  /**
+   * دورة حياة المكون عند البدء
+   */
   ngOnInit(): void {
+    // 1. تهيئة الفورم أولاً لتجنب خطأ undefined
     this.initForm();
+
+    // 2. تحميل قائمة العملاء لتعبئة الـ Select
     this.loadCustomers();
+
+    // 3. التحقق من الرابط لجلب بيانات المشروع في حالة التعديل
     this.checkEditMode();
   }
 
+  /**
+   * تهيئة هيكلية النموذج (Form Group)
+   */
   initForm(): void {
     this.projectForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(3)]],
       customer_id: ['', [Validators.required]],
-      project_type: [''],
+      project_type: [''], // يمكن وضع قيمة افتراضية إذا أردت
       total_price: [0, [Validators.min(0)]],
       currency: ['USD'],
       status: ['active'],
@@ -53,6 +71,9 @@ export class ProjectFormComponent implements OnInit {
     });
   }
 
+  /**
+   * جلب قائمة العملاء من السيرفر
+   */
   loadCustomers(): void {
     this.customersService.getAll().subscribe({
       next: (data) => {
@@ -64,6 +85,9 @@ export class ProjectFormComponent implements OnInit {
     });
   }
 
+  /**
+   * التحقق هل نحن في وضع التعديل أم الإضافة
+   */
   checkEditMode(): void {
     this.projectId = this.route.snapshot.paramMap.get('id');
     if (this.projectId) {
@@ -72,11 +96,15 @@ export class ProjectFormComponent implements OnInit {
     }
   }
 
+  /**
+   * تحميل بيانات المشروع وتعبئتها في الفورم (وضع التعديل)
+   */
   loadProject(id: string): void {
     this.loading = true;
     this.projectsService.getById(id).subscribe({
       next: (project) => {
         if (project) {
+          // استخدام patchValue لتعبئة البيانات الموجودة فقط
           this.projectForm.patchValue({
             title: project.title,
             customer_id: project.customer_id,
@@ -84,7 +112,7 @@ export class ProjectFormComponent implements OnInit {
             total_price: project.total_price,
             currency: project.currency,
             status: project.status,
-            start_date: project.start_date,
+            start_date: project.start_date, // تأكد أن التنسيق يطابق input type=date (YYYY-MM-DD)
             due_date: project.due_date,
             notes: project.notes
           });
@@ -100,21 +128,26 @@ export class ProjectFormComponent implements OnInit {
     });
   }
 
+  /**
+   * دالة الحفظ (تعمل للإضافة والتعديل معاً)
+   */
   async onSubmit(): Promise<void> {
+    // 1. التحقق من صحة الفورم
     if (this.projectForm.invalid) {
       this.markFormGroupTouched(this.projectForm);
       return;
     }
 
     this.saving = true;
-
     const formData = this.projectForm.value;
 
+    // 2. إرسال البيانات حسب الوضع (تعديل أو إضافة)
     if (this.isEditMode && this.projectId) {
+      // --- تحديث (Update) ---
       this.projectsService.update(this.projectId, formData).subscribe({
         next: () => {
           alert('تم تحديث بيانات المشروع بنجاح');
-          this.router.navigate(['/projects', this.projectId]);
+          this.router.navigate(['/projects', this.projectId]); // العودة للتفاصيل
         },
         error: (error) => {
           console.error('Error updating project:', error);
@@ -123,10 +156,11 @@ export class ProjectFormComponent implements OnInit {
         }
       });
     } else {
+      // --- إنشاء جديد (Create) ---
       this.projectsService.create(formData).subscribe({
         next: (project) => {
           alert('تم إضافة المشروع بنجاح');
-          this.router.navigate(['/projects', project.id]);
+          this.router.navigate(['/projects', project.id]); // الذهاب للمشروع الجديد
         },
         error: (error) => {
           console.error('Error creating project:', error);
@@ -137,6 +171,9 @@ export class ProjectFormComponent implements OnInit {
     }
   }
 
+  /**
+   * زر الإلغاء والعودة
+   */
   cancel(): void {
     if (this.isEditMode && this.projectId) {
       this.router.navigate(['/projects', this.projectId]);
@@ -145,6 +182,9 @@ export class ProjectFormComponent implements OnInit {
     }
   }
 
+  /**
+   * تعليم جميع الحقول كلمسها لإظهار أخطاء التحقق (Validation)
+   */
   private markFormGroupTouched(formGroup: FormGroup): void {
     Object.keys(formGroup.controls).forEach(key => {
       const control = formGroup.get(key);
@@ -152,7 +192,8 @@ export class ProjectFormComponent implements OnInit {
     });
   }
 
-  // Getters for validation
+  // ==================== Getters & Helpers ====================
+
   get titleError(): string {
     const title = this.projectForm.get('title');
     if (title?.hasError('required') && title.touched) {
@@ -187,6 +228,6 @@ export class ProjectFormComponent implements OnInit {
       'cancelled': 'ملغي',
       'on_hold': 'متوقف'
     };
-    return labels[status];
+    return labels[status] || status;
   }
 }
