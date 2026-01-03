@@ -10,7 +10,6 @@ import { LucideAngularModule } from 'lucide-angular';
   styleUrls: ['./roles-permissions.component.scss']
 })
 export class RolesPermissionsComponent {
-
   roles = [
     { key: 'admin', label: 'Admin' },
     { key: 'manager', label: 'Manager' },
@@ -18,7 +17,6 @@ export class RolesPermissionsComponent {
     { key: 'employee', label: 'Employee' }
   ];
 
-  // تعريف مصفوفة الصلاحيات (ثابتة للعرض)
   permissions = [
     {
       module: 'المشاريع',
@@ -28,13 +26,22 @@ export class RolesPermissionsComponent {
         { name: 'حذف مشروع', roles: ['admin'] }
       ]
     },
+    // ✅ تمت إضافة قسم المهام هنا
+    {
+      module: 'المهام',
+      actions: [
+        { name: 'عرض المهام', roles: ['admin', 'manager', 'accountant', 'employee'] },
+        { name: 'إنشاء مهام', roles: ['admin', 'manager'] },
+        { name: 'توزيع المهام (Assign)', roles: ['admin', 'manager'] },
+        { name: 'إكمال المهام', roles: ['admin', 'manager', 'employee'] }
+      ]
+    },
     {
       module: 'المالية',
       actions: [
         { name: 'عرض الفواتير', roles: ['admin', 'manager', 'accountant'] },
         { name: 'إنشاء فواتير', roles: ['admin', 'accountant'] },
-        { name: 'تسجيل مصاريف', roles: ['admin', 'manager', 'accountant', 'employee'] },
-        { name: 'تقارير الأرباح', roles: ['admin', 'accountant'] }
+        { name: 'تسجيل مصاريف', roles: ['admin', 'manager', 'accountant', 'employee'] }
       ]
     },
     {

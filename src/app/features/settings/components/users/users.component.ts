@@ -17,14 +17,17 @@ export class UsersComponent implements OnInit {
   users: UserManagementItem[] = [];
   loading = false;
 
-  // قائمة الأدوار المتاحة في النظام
+  showModal = false;
+  isEditMode = false;
+  currentUserForm: Partial<UserManagementItem> = {};
+
   roles = [
-    { value: 'admin', label: 'مدير النظام' },
-    { value: 'manager', label: 'مدير مشاريع' },
-    { value: 'accountant', label: 'محاسب' },
-    { value: 'employee', label: 'موظف' },
-    { value: 'freelancer', label: 'مستقل' },
-    { value: 'client', label: 'عميل' }
+    { value: 'admin', label: 'مدير النظام (Admin)' },
+    { value: 'manager', label: 'مدير مشاريع (Manager)' },
+    { value: 'accountant', label: 'محاسب (Accountant)' },
+    { value: 'employee', label: 'موظف (Employee)' },
+    { value: 'freelancer', label: 'مستقل (Freelancer)' },
+    { value: 'client', label: 'عميل (Client)' }
   ];
 
   ngOnInit(): void {
@@ -39,39 +42,56 @@ export class UsersComponent implements OnInit {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error loading users:', err);
+        console.error(err);
         this.loading = false;
       }
     });
   }
 
-  updateRole(user: UserManagementItem, newRole: string): void {
-    if (!confirm(`هل أنت متأكد من تغيير صلاحية ${user.full_name}؟`)) {
-      // إعادة القيمة السابقة في حال الإلغاء (يحتاج منطق إضافي أو إعادة تحميل)
-      this.loadUsers();
-      return;
-    }
+  openEditModal(user: UserManagementItem): void {
+    this.isEditMode = true;
+    this.currentUserForm = { ...user };
+    this.showModal = true;
+  }
 
-    this.settingsService.updateUserRole(user.id, newRole).subscribe({
-      next: () => {
-        alert('تم تحديث الصلاحية بنجاح');
-      },
-      error: () => {
-        alert('حدث خطأ أثناء التحديث');
-      }
-    });
+  openAddModal(): void {
+    this.isEditMode = false;
+    this.currentUserForm = { role: 'employee' };
+    this.showModal = true;
+  }
+
+  closeModal(): void {
+    this.showModal = false;
+  }
+
+  saveUser(): void {
+    if (this.isEditMode && this.currentUserForm.id) {
+      this.settingsService.updateUserFull(this.currentUserForm.id, this.currentUserForm).subscribe({
+        next: () => {
+          alert('تم تحديث البيانات بنجاح');
+          this.loadUsers();
+          this.closeModal();
+        },
+        error: () => alert('فشل التحديث. تأكد من صلاحياتك.')
+      });
+    } else {
+      this.closeModal();
+      // هنا يمكن إضافة كود لإنشاء مستخدم عبر Supabase Edge Function مستقبلاً
+    }
   }
 
   deleteUser(user: UserManagementItem): void {
-    if (!confirm(`تحذير: هل أنت متأكد من حذف المستخدم ${user.full_name} نهائياً؟`)) return;
+    if (!confirm(`هل أنت متأكد تماماً من حذف المستخدم ${user.full_name}؟ هذا الإجراء قد لا يمكن التراجع عنه.`)) return;
 
-    // ملاحظة: تأكد من وجود دالة deleteUser في السيرفس (أضفناها سابقاً)
     this.settingsService.deleteUser(user.id).subscribe({
       next: () => {
         this.users = this.users.filter(u => u.id !== user.id);
-        alert('تم حذف المستخدم');
+        alert('تم الحذف بنجاح');
       },
-      error: () => alert('لا يمكن حذف المستخدم، قد يكون مرتبطاً ببيانات أخرى.')
+      error: (err) => {
+        console.error(err);
+        alert('حدث خطأ أثناء الحذف. قد يكون المستخدم مرتبطاً ببيانات أخرى.');
+      }
     });
   }
 

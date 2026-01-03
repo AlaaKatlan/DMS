@@ -15,10 +15,10 @@ export interface UserManagementItem {
 }
 
 export interface SystemConfig {
-  companyName: string;
+  id?: string;
+  company_name: string;
   currency: string;
-  taxRate: number;
-  logoUrl?: string;
+  logo_url?: string;
 }
 
 @Injectable({
@@ -42,19 +42,48 @@ export class SettingsService {
     );
   }
 
+  createUser(user: any): Observable<void> {
+    console.log('Creating user logic needs Supabase Edge Function', user);
+    return of(void 0);
+  }
+
+  updateUserFull(userId: string, data: Partial<UserManagementItem>): Observable<void> {
+    return from(
+      // ✅ الحل: تحويل (from) إلى (any) ليقبل دالة update بدون قيود
+      (this.supabase.client.from('profiles') as any)
+        .update(data)
+        .eq('id', userId)
+    ).pipe(
+      map(({ error }: any) => { // تمت إضافة النوع للمتغير error
+        if (error) throw error;
+      })
+    );
+  }
+
   updateUserRole(userId: string, newRole: string): Observable<void> {
-    return this.supabase.update('profiles', userId, { role: newRole }).pipe(
-      map(() => void 0)
+    return from(
+      // ✅ الحل: نفس الطريقة هنا
+      (this.supabase.client.from('profiles') as any)
+        .update({ role: newRole })
+        .eq('id', userId)
+    ).pipe(
+      map(({ error }: any) => {
+        if (error) throw error;
+      })
     );
   }
 
   deleteUser(id: string): Observable<void> {
     return from(
       this.supabase.client.from('profiles').delete().eq('id', id)
-    ).pipe(map(() => void 0));
+    ).pipe(
+      map(({ error }) => {
+        if (error) throw error;
+      })
+    );
   }
 
-  // ==================== الملف الشخصي (Profile) ====================
+  // ==================== الملف الشخصي ====================
 
   getProfile(userId: string): Observable<UserManagementItem> {
     return from(
@@ -71,25 +100,51 @@ export class SettingsService {
   }
 
   updateProfile(userId: string, data: Partial<UserManagementItem>): Observable<void> {
-    return this.supabase.update('profiles', userId, data).pipe(
-      map(() => void 0)
+    return from(
+      // ✅ الحل: وهنا أيضاً
+      (this.supabase.client.from('profiles') as any)
+        .update(data)
+        .eq('id', userId)
+    ).pipe(
+      map(({ error }: any) => {
+        if (error) throw error;
+      })
     );
   }
 
-  // ==================== إعدادات النظام ====================
+  // ==================== إعدادات النظام (System Settings) ====================
 
   getSystemSettings(): Observable<SystemConfig> {
-    const saved = localStorage.getItem('dms_system_config');
-    const defaultSettings: SystemConfig = {
-      companyName: 'دار الزيبق للنشر',
-      currency: 'USD',
-      taxRate: 5
-    };
-    return of(saved ? JSON.parse(saved) : defaultSettings);
+    return from(
+      (this.supabase.client as any)
+        .from('system_settings')
+        .select('*')
+        .single()
+        .then(({ data, error }: any) => {
+          if (error && error.code !== 'PGRST116') {
+            throw error;
+          }
+
+          if (!data) {
+            return { company_name: 'دار الزيبق', currency: 'USD' } as SystemConfig;
+          }
+          return data as SystemConfig;
+        }) as Promise<SystemConfig>
+    );
   }
 
   saveSystemSettings(settings: SystemConfig): Observable<void> {
-    localStorage.setItem('dms_system_config', JSON.stringify(settings));
-    return of(void 0);
+    const { id, ...payload } = settings;
+
+    return from(
+      (this.supabase.client as any)
+        .from('system_settings')
+        .upsert(payload)
+        .select()
+    ).pipe(
+      map(({ error }: any) => {
+        if (error) throw error;
+      })
+    );
   }
 }

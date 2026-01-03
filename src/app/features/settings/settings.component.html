@@ -1,0 +1,47 @@
+<div class="settings-layout" dir="rtl">
+
+  <aside class="settings-sidebar">
+    <div class="sidebar-header">
+      <h2>الإعدادات</h2>
+      <p>تحكم في حسابك وإعدادات النظام</p>
+    </div>
+
+    <nav class="settings-nav">
+
+      <div class="nav-group">
+        <span class="group-title">عام</span>
+        <a routerLink="profile" routerLinkActive="active" class="nav-item">
+          <lucide-angular name="user" [size]="20"></lucide-angular>
+          <span>الملف الشخصي</span>
+        </a>
+      </div>
+
+      @if (isAdmin) {
+        <div class="nav-group">
+          <span class="group-title">الإدارة</span>
+
+          <a routerLink="users" routerLinkActive="active" class="nav-item">
+            <lucide-angular name="users" [size]="20"></lucide-angular>
+            <span>المستخدمين</span>
+          </a>
+
+          <a routerLink="roles" routerLinkActive="active" class="nav-item">
+            <lucide-angular name="shield" [size]="20"></lucide-angular>
+            <span>الصلاحيات</span>
+          </a>
+
+          <a routerLink="system" routerLinkActive="active" class="nav-item">
+            <lucide-angular name="settings" [size]="20"></lucide-angular>
+            <span>إعدادات النظام</span>
+          </a>
+        </div>
+      }
+
+    </nav>
+  </aside>
+
+  <main class="settings-content">
+    <router-outlet></router-outlet>
+  </main>
+
+</div>

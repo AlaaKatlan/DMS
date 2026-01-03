@@ -1,11 +1,11 @@
-// src/app/features/suppliers/components/supplier-list/supplier-list.component.ts
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router'; // أضفنا Router
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { SuppliersService } from '../../suppliers.service';
-import { Supplier } from '../../../../core/models/base.model';
+// ✅ نستخدم النموذج الموسع لدعم الحقول المالية (total_due, total_paid)
+import { SupplierExtended } from '../../models/supplier.model';
 
 @Component({
   selector: 'app-supplier-list',
@@ -16,15 +16,15 @@ import { Supplier } from '../../../../core/models/base.model';
 })
 export class SupplierListComponent implements OnInit {
   private suppliersService = inject(SuppliersService);
-  private router = inject(Router); // لحقن Router لاستخدامه في التنقل
+  private router = inject(Router);
   private cd = inject(ChangeDetectorRef);
 
-  suppliers: Supplier[] = [];
-  filteredSuppliers: Supplier[] = [];
+  // ✅ استخدام SupplierExtended بدلاً من Supplier
+  suppliers: SupplierExtended[] = [];
+  filteredSuppliers: SupplierExtended[] = [];
   loading = false;
   searchQuery = '';
 
-  // المتغيرات المضافة لحل الأخطاء
   viewMode: 'list' | 'grid' = 'list';
   selectedType: string = 'all';
 
@@ -35,7 +35,7 @@ export class SupplierListComponent implements OnInit {
   loadSuppliers(): void {
     this.loading = true;
     this.suppliersService.getSuppliersWithRelations().subscribe({
-      next: (data: Supplier[]) => {
+      next: (data: SupplierExtended[]) => {
         this.suppliers = data;
         this.applyFilters();
         this.loading = false;
@@ -58,26 +58,23 @@ export class SupplierListComponent implements OnInit {
       filtered = filtered.filter(s =>
         s.name.toLowerCase().includes(query) ||
         s.phone?.includes(query) ||
-        s.type?.toLowerCase().includes(query)
+        (s.service_type && s.service_type.toString().toLowerCase().includes(query))
       );
     }
 
     // فلترة بالنوع
     if (this.selectedType !== 'all') {
-      filtered = filtered.filter(s => s.type === this.selectedType);
+      filtered = filtered.filter(s => s.service_type === this.selectedType);
     }
 
     this.filteredSuppliers = filtered;
   }
 
-  // --- الدوال الناقصة التي يطلبها الـ HTML ---
-
   getUniqueTypes(): string[] {
-    // استخراج الأنواع الفريدة من خدمات خارجية لملء القائمة المنسدلة
     const types = this.suppliers
-      .map(s => s.type)
-      .filter((type): type is string => !!type); // إزالة القيم الفارغة
-    return [...new Set(types)]; // إزالة التكرار
+      .map(s => s.service_type)
+      .filter((type): type is string => !!type);
+    return [...new Set(types)];
   }
 
   toggleViewMode(): void {
@@ -92,7 +89,7 @@ export class SupplierListComponent implements OnInit {
     this.router.navigate(['/suppliers', id, 'edit']);
   }
 
-  deleteSupplier(supplier: Supplier): void {
+  deleteSupplier(supplier: SupplierExtended): void {
     if (confirm(`هل أنت متأكد من حذف المورد: ${supplier.name}؟`)) {
       this.suppliersService.delete(supplier.id).subscribe({
         next: () => this.loadSuppliers(),
@@ -101,13 +98,12 @@ export class SupplierListComponent implements OnInit {
     }
   }
 
-  // دوال مساعدة للعرض
   formatCurrency(amount: number | undefined | null): string {
     if (amount === undefined || amount === null) return '$0';
     return `$${amount.toLocaleString()}`;
   }
 
-  getBalance(supplier: Supplier): number {
+  getBalance(supplier: SupplierExtended): number {
     const due = supplier.total_due || 0;
     const paid = supplier.total_paid || 0;
     return due - paid;

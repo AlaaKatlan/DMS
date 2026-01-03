@@ -109,7 +109,7 @@ export const routes: Routes = [
         ]
       },
 
-  // Projects
+      // Projects
       {
         path: 'projects',
         children: [
@@ -143,7 +143,7 @@ export const routes: Routes = [
       },
 
 
-       // Tasks
+      // Tasks
       {
         path: 'tasks',
         children: [
@@ -230,39 +230,42 @@ export const routes: Routes = [
       },
 
       // Settings - فقط للـ Admin & Manager
+      // Settings - فقط للـ Admin & Manager
       {
         path: 'settings',
         canActivate: [roleGuard],
         data: { roles: ['admin', 'manager'] },
+        // 👇 هذا السطر هو الأهم: تحميل المكون الحاوي (Layout)
+        loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent),
         children: [
-    {
-      path: '',
-      redirectTo: 'profile',
-      pathMatch: 'full'
-    },
-    {
-      path: 'profile',
-      loadComponent: () => import('./features/settings/components/profile/profile.component').then(m => m.ProfileComponent)
-    },
-    {
-      path: 'users',
-      loadComponent: () => import('./features/settings/components/users/users.component').then(m => m.UsersComponent),
-      canActivate: [roleGuard],
-      data: { roles: ['admin'] }
-    },
-    {
-      path: 'roles',
-      loadComponent: () => import('./features/settings/components/roles-permissions/roles-permissions.component').then(m => m.RolesPermissionsComponent),
-      canActivate: [roleGuard],
-      data: { roles: ['admin'] }
-    },
-    {
-      path: 'system',
-      loadComponent: () => import('./features/settings/components/system-settings/system-settings.component').then(m => m.SystemSettingsComponent),
-      canActivate: [roleGuard],
-      data: { roles: ['admin'] }
-    }
-  ]
+          {
+            path: '',
+            redirectTo: 'profile',
+            pathMatch: 'full'
+          },
+          {
+            path: 'profile',
+            loadComponent: () => import('./features/settings/components/profile/profile.component').then(m => m.ProfileComponent)
+          },
+          {
+            path: 'users',
+            loadComponent: () => import('./features/settings/components/users/users.component').then(m => m.UsersComponent),
+            canActivate: [roleGuard],
+            data: { roles: ['admin'] }
+          },
+          {
+            path: 'roles',
+            loadComponent: () => import('./features/settings/components/roles-permissions/roles-permissions.component').then(m => m.RolesPermissionsComponent),
+            canActivate: [roleGuard],
+            data: { roles: ['admin'] }
+          },
+          {
+            path: 'system',
+            loadComponent: () => import('./features/settings/components/system-settings/system-settings.component').then(m => m.SystemSettingsComponent),
+            canActivate: [roleGuard],
+            data: { roles: ['admin'] }
+          }
+        ]
       }
     ]
   },

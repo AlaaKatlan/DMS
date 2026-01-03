@@ -1,1 +1,135 @@
-<p>print-orders works!</p>
+<div class="print-orders-container">
+  <div class="header-actions mb-4 flex justify-between items-center">
+    <h3 class="text-lg font-bold">أوامر الشراء (Purchase Orders)</h3>
+    <button class="btn btn-primary btn-sm flex items-center gap-2" (click)="showForm = !showForm">
+      <lucide-angular name="plus" [size]="16"></lucide-angular>
+      {{ showForm ? 'إلغاء' : 'طلب جديد' }}
+    </button>
+  </div>
+
+  @if (showForm) {
+    <div class="order-form card p-4 mb-6 bg-gray-50 border border-gray-200 rounded-lg">
+      <form [formGroup]="poForm" (ngSubmit)="submitOrder()">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div class="form-group">
+            <label>رقم الطلب</label>
+            <input formControlName="order_number" class="input input-sm w-full" readonly>
+          </div>
+
+          <div class="form-group">
+            <label>العملة</label>
+            <select formControlName="currency" class="input input-sm w-full">
+              <option value="USD">USD</option>
+              <option value="SYP">SYP</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>تاريخ التوصيل المتوقع</label>
+            <input type="date" formControlName="expected_delivery_date" class="input input-sm w-full">
+          </div>
+
+          <div class="form-group">
+             <label>الحالة</label>
+             <input value="مسودة (Draft)" disabled class="input input-sm w-full bg-gray-100">
+          </div>
+        </div>
+
+        <div class="items-section mb-4">
+          <div class="flex justify-between items-center mb-2 border-b pb-2">
+            <h4 class="font-semibold text-sm">بنود الطلب</h4>
+            <button type="button" (click)="addLine()" class="text-blue-600 text-sm hover:underline">
+              + إضافة بند
+            </button>
+          </div>
+
+          <div formArrayName="lines">
+            @for (line of lines.controls; track $index) {
+              <div [formGroupName]="$index" class="grid grid-cols-12 gap-2 mb-2 items-center">
+                <div class="col-span-5">
+                  <input formControlName="description" placeholder="وصف المنتج/الخدمة" class="input input-sm w-full">
+                </div>
+                <div class="col-span-2">
+                  <input type="number" formControlName="quantity" placeholder="الكمية" class="input input-sm w-full">
+                </div>
+                <div class="col-span-2">
+                  <input type="number" formControlName="unit_price" placeholder="سعر الوحدة" class="input input-sm w-full">
+                </div>
+                <div class="col-span-2">
+                  <input type="number" formControlName="total" readonly class="input input-sm w-full bg-gray-100 text-center">
+                </div>
+                <div class="col-span-1 text-center">
+                  <button type="button" (click)="removeLine($index)" class="text-red-500 hover:text-red-700">
+                    <lucide-angular name="trash-2" [size]="16"></lucide-angular>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          @if (lines.length === 0) {
+            <div class="text-center text-gray-400 py-4 text-sm">
+              لا توجد بنود مضافة. اضغط على "إضافة بند".
+            </div>
+          }
+        </div>
+
+        <div class="footer flex justify-between items-center border-t pt-4">
+          <div class="total font-bold text-lg">
+            الإجمالي: {{ totalAmount | currency: poForm.get('currency')?.value }}
+          </div>
+          <button type="submit" class="btn btn-success" [disabled]="poForm.invalid || isSubmitting">
+            <lucide-angular name="save" [size]="18" class="mr-1"></lucide-angular>
+            حفظ الطلب
+          </button>
+        </div>
+
+      </form>
+    </div>
+  }
+
+  <div class="orders-list">
+    @if (orders.length > 0) {
+      <div class="overflow-x-auto">
+        <table class="table w-full text-sm text-right">
+          <thead class="bg-gray-100">
+            <tr>
+              <th class="p-3">رقم الطلب</th>
+              <th class="p-3">التاريخ</th>
+              <th class="p-3">الحالة</th>
+              <th class="p-3">الإجمالي</th>
+              <th class="p-3">الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of orders; track order.id) {
+              <tr class="border-b hover:bg-gray-50">
+                <td class="p-3 font-medium">{{ order.order_number }}</td>
+                <td class="p-3">{{ order.created_at | date:'shortDate' }}</td>
+                <td class="p-3">
+                  <span class="badge" [ngClass]="{
+                    'badge-warning': order.status === 'draft',
+                    'badge-info': order.status === 'sent',
+                    'badge-success': order.status === 'received'
+                  }">
+                    {{ order.status }}
+                  </span>
+                </td>
+                <td class="p-3">{{ order.total_amount | currency: order.currency }}</td>
+                <td class="p-3">
+                  <button class="btn btn-ghost btn-xs text-blue-600">عرض</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="empty-state text-center py-10 text-gray-500">
+        <lucide-angular name="file-text" [size]="48" class="mx-auto mb-2 opacity-20"></lucide-angular>
+        <p>لا توجد أوامر شراء مسجلة لهذا المورد.</p>
+      </div>
+    }
+  </div>
+</div>

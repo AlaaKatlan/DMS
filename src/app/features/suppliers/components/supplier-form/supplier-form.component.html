@@ -1,1 +1,133 @@
-<p>supplier-form works!</p>
+<div class="form-container" dir="rtl">
+  <div class="form-header">
+    <div class="header-text">
+      <h1>{{ form.get('id')?.value ? 'تعديل بيانات المورد' : 'إضافة مورد جديد' }}</h1>
+      <p>أدخل بيانات المورد وجهات الاتصال الخاصة به</p>
+    </div>
+    <button class="btn-back" routerLink="/suppliers">
+      <lucide-angular name="arrow-left" [size]="20"></lucide-angular>
+      عودة للقائمة
+    </button>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="main-form">
+    <div class="form-section card">
+      <h3 class="section-title">
+        <lucide-angular name="building" [size]="20"></lucide-angular>
+        المعلومات الأساسية
+      </h3>
+
+      <div class="grid-2">
+        <div class="form-group">
+          <label>اسم المورد <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <lucide-angular name="user" [size]="18"></lucide-angular>
+            <input type="text" formControlName="name" placeholder="مثال: مطبعة الآفاق" [class.error]="form.get('name')?.invalid && form.get('name')?.touched">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>نوع الخدمة <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <lucide-angular name="briefcase" [size]="18"></lucide-angular>
+            <select formControlName="service_type">
+              <option value="printing">طباعة (Printing)</option>
+              <option value="logistics">شحن (Logistics)</option>
+              <option value="material">مواد خام (Material)</option>
+              <option value="freelancer">عمل حر (Freelancer)</option>
+              <option value="other">أخرى</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>البلد <span class="required">*</span></label>
+          <div class="input-wrapper">
+            <lucide-angular name="map-pin" [size]="18"></lucide-angular>
+            <input type="text" formControlName="country" placeholder="تركيا">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>الرقم الضريبي</label>
+          <div class="input-wrapper">
+            <lucide-angular name="file-text" [size]="18"></lucide-angular>
+            <input type="text" formControlName="tax_id" placeholder="اختياري">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>فترة التوريد (أيام)</label>
+          <div class="input-wrapper">
+            <lucide-angular name="clock" [size]="18"></lucide-angular>
+            <input type="number" formControlName="lead_time_days" placeholder="0">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>العملة الافتراضية</label>
+          <div class="input-wrapper">
+            <lucide-angular name="dollar-sign" [size]="18"></lucide-angular>
+            <select formControlName="default_currency">
+              <option value="USD">USD ($)</option>
+              <option value="SYP">SYP (ل.س)</option>
+              <option value="AED">AED (د.إ)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section card">
+      <div class="section-header-row">
+        <h3 class="section-title">
+          <lucide-angular name="users" [size]="20"></lucide-angular>
+          جهات الاتصال
+        </h3>
+        <button type="button" class="btn-add-contact" (click)="addContact()">
+          <lucide-angular name="plus" [size]="16"></lucide-angular>
+          إضافة شخص
+        </button>
+      </div>
+
+      <div formArrayName="contacts" class="contacts-list">
+        @for (contact of contacts.controls; track $index) {
+          <div [formGroupName]="$index" class="contact-item">
+            <button type="button" class="btn-remove" (click)="removeContact($index)" title="حذف">
+              <lucide-angular name="x" [size]="16"></lucide-angular>
+            </button>
+
+            <div class="grid-2 small-gap">
+              <div class="form-group">
+                <input type="text" formControlName="name" placeholder="اسم الشخص">
+              </div>
+              <div class="form-group">
+                <input type="text" formControlName="role" placeholder="المسمى الوظيفي (مثال: مدير مبيعات)">
+              </div>
+              <div class="form-group">
+                <input type="email" formControlName="email" placeholder="البريد الإلكتروني">
+              </div>
+              <div class="form-group">
+                <input type="text" formControlName="phone" placeholder="رقم الهاتف">
+              </div>
+            </div>
+          </div>
+        }
+        @if (contacts.length === 0) {
+          <div class="empty-contacts">
+            <p>لا توجد جهات اتصال مضافة. اضغط على زر الإضافة أعلاه.</p>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" routerLink="/suppliers">إلغاء</button>
+      <button type="submit" class="btn-submit" [disabled]="form.invalid || isSubmitting">
+        <lucide-angular *ngIf="!isSubmitting" name="save" [size]="18"></lucide-angular>
+        <span *ngIf="isSubmitting" class="spinner-small"></span>
+        {{ isSubmitting ? 'جاري الحفظ...' : 'حفظ البيانات' }}
+      </button>
+    </div>
+  </form>
+</div>

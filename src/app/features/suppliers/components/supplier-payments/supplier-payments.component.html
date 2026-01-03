@@ -1,1 +1,100 @@
-<p>supplier-payments works!</p>
+<div class="payments-container" dir="rtl">
+
+  <div class="header-actions">
+    <h3 class="section-title">سجل المدفوعات</h3>
+    <button class="btn btn-primary" (click)="showModal = true">
+      <lucide-angular name="plus" [size]="18"></lucide-angular>
+      تسجيل دفعة جديدة
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table" *ngIf="payments.length > 0; else noData">
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>المبلغ</th>
+          <th>طريقة الدفع</th>
+          <th>رقم المرجع / التحويل</th>
+          <th>ملاحظات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let payment of payments">
+          <td class="date-cell">
+            <div class="date-wrapper">
+              <lucide-angular name="calendar" [size]="14"></lucide-angular>
+              {{ payment.paid_at | date:'shortDate' }}
+            </div>
+          </td>
+          <td class="amount-cell">{{ payment.amount | currency: payment.currency }}</td>
+          <td>
+            <span class="badge badge-method">{{ payment.payment_method }}</span>
+          </td>
+          <td class="ref-cell">{{ payment.transfer_ref || '-' }}</td>
+          <td class="notes-cell">{{ payment.notes || '-' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <ng-template #noData>
+      <div class="empty-state">
+        <lucide-angular name="credit-card" [size]="48"></lucide-angular>
+        <p>لا توجد مدفوعات مسجلة لهذا المورد حتى الآن.</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showModal" (click)="showModal = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h4>تسجيل دفعة جديدة</h4>
+        <button class="close-btn" (click)="showModal = false">
+          <lucide-angular name="x" [size]="20"></lucide-angular>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>المبلغ</label>
+          <div class="input-icon-wrapper">
+            <lucide-angular name="dollar-sign" [size]="18"></lucide-angular>
+            <input type="number" [(ngModel)]="newPayment.amount" class="input" placeholder="0.00">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>العملة</label>
+            <select [(ngModel)]="newPayment.currency" class="input">
+              <option value="USD">USD</option>
+              <option value="SYP">SYP</option>
+              <option value="AED">AED</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>التاريخ</label>
+            <input type="date" [(ngModel)]="newPayment.paid_at" class="input">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>رقم الحوالة / المرجع</label>
+          <input type="text" [(ngModel)]="newPayment.transfer_ref" class="input" placeholder="Ref-123456">
+        </div>
+
+        <div class="form-group">
+          <label>ملاحظات</label>
+          <textarea [(ngModel)]="newPayment.notes" class="input" rows="3" placeholder="ملاحظات إضافية..."></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-ghost" (click)="showModal = false">إلغاء</button>
+        <button class="btn btn-save" (click)="savePayment()" [disabled]="!newPayment.amount">
+          حفظ الدفعة
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

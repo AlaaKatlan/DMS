@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
@@ -12,7 +12,7 @@ import { AuthService } from '../../../../core/services/auth.service';
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss']
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent {
   private settingsService = inject(SettingsService);
   private authService = inject(AuthService);
 
@@ -20,18 +20,19 @@ export class ProfileComponent implements OnInit {
   loading = false;
   saving = false;
 
-  ngOnInit(): void {
-    this.loadProfile();
+  constructor() {
+    // ✅ الحل: استخدام effect لمراقبة المستخدم وتشغيل التحميل فور توفره
+    effect(() => {
+      const currentUser = this.authService.currentUser;
+      if (currentUser) {
+        this.loadProfile(currentUser.id);
+      }
+    });
   }
 
-  loadProfile(): void {
-    // ✅ تصحيح: استخدام الخاصية مباشرة بدون أقواس ()
-    const currentUser = this.authService.currentUser;
-
-    if (!currentUser) return;
-
+  loadProfile(userId: string): void {
     this.loading = true;
-    this.settingsService.getProfile(currentUser.id).subscribe({
+    this.settingsService.getProfile(userId).subscribe({
       next: (data) => {
         this.user = data;
         this.loading = false;

@@ -1,0 +1,94 @@
+@use 'sass:color';
+
+$primary: #4F46E5;
+$bg-page: #F8FAFC;
+$border: #E2E8F0;
+$text-main: #1E293B;
+$text-light: #64748B;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.settings-layout {
+  display: flex;
+  min-height: calc(100vh - 64px);
+  background-color: $bg-page;
+  gap: 2rem;
+  padding: 2rem;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    padding: 1rem;
+  }
+}
+
+.settings-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: white;
+  border: 1px solid $border;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  height: fit-content;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+
+  .sidebar-header {
+    margin-bottom: 2rem;
+    h2 { margin: 0; font-size: 1.5rem; color: $text-main; font-weight: 800; }
+    p { margin: 0.5rem 0 0; color: $text-light; font-size: 0.9rem; }
+  }
+
+  .settings-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      .group-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: $text-light;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        padding-right: 0.75rem;
+      }
+
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        color: $text-main;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+
+        &:hover {
+          background-color: $bg-page;
+          color: $primary;
+        }
+
+        &.active {
+          background-color: #EEF2FF;
+          color: $primary;
+          font-weight: 700;
+        }
+      }
+    }
+  }
+}
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+}

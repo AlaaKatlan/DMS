@@ -1,45 +1,37 @@
-<div class="settings-card system-card">
+<div class="settings-card system-card" dir="rtl">
   <div class="card-header">
     <div class="icon-box warning">
       <lucide-angular name="settings" [size]="24"></lucide-angular>
     </div>
     <div class="titles">
       <h2>إعدادات النظام</h2>
-      <p>الإعدادات العامة للتطبيق والفواتير</p>
+      <p>الإعدادات العامة التي تنطبق على الفواتير والتقارير</p>
     </div>
   </div>
 
   <div class="form-grid">
-
     <div class="form-group full-width">
-      <label>اسم الشركة (يظهر في الفواتير)</label>
+      <label>اسم الشركة / الدار</label>
       <div class="input-wrapper">
         <lucide-angular name="building" [size]="18" class="input-icon"></lucide-angular>
-        <input type="text" [(ngModel)]="config.companyName" placeholder="اسم الشركة">
+        <input type="text" [(ngModel)]="config.company_name" placeholder="دار الزيبق">
       </div>
     </div>
 
     <div class="form-group">
-      <label>العملة الافتراضية</label>
+      <label>العملة الرئيسية</label>
       <div class="input-wrapper">
         <lucide-angular name="dollar-sign" [size]="18" class="input-icon"></lucide-angular>
         <select [(ngModel)]="config.currency">
-          @for (curr of currencies; track curr) {
-            <option [value]="curr">{{ curr }}</option>
-          }
+          <option value="USD">USD ($)</option>
+          <option value="SYP">SYP (ل.س)</option>
+          <option value="AED">AED (د.إ)</option>
+          <option value="SAR">SAR (ر.س)</option>
         </select>
       </div>
     </div>
 
-    <div class="form-group">
-      <label>نسبة الضريبة (%)</label>
-      <div class="input-wrapper">
-        <lucide-angular name="percent" [size]="18" class="input-icon"></lucide-angular>
-        <input type="number" [(ngModel)]="config.taxRate" min="0" max="100">
-      </div>
     </div>
-
-  </div>
 
   <div class="actions">
     <button class="btn-save" (click)="saveSettings()" [disabled]="saving">

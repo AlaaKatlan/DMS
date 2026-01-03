@@ -1,15 +1,16 @@
-// src/app/features/suppliers/components/supplier-detail/supplier-detail.component.ts
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { SuppliersService } from '../../suppliers.service';
-import { Supplier } from '../../../../core/models/base.model';
+import { SupplierExtended } from '../../models/supplier.model';
+import { PrintOrdersComponent } from '../print-orders/print-orders.component';
+import { SupplierPaymentsComponent } from '../supplier-payments/supplier-payments.component';
 
 @Component({
   selector: 'app-supplier-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule],
+  imports: [CommonModule, RouterModule, LucideAngularModule, PrintOrdersComponent, SupplierPaymentsComponent],
   templateUrl: './supplier-detail.component.html',
   styleUrls: ['./supplier-detail.component.scss']
 })
@@ -19,7 +20,7 @@ export class SupplierDetailComponent implements OnInit {
   private router = inject(Router);
   private cd = inject(ChangeDetectorRef);
 
-  supplier: Supplier | null = null;
+  supplier: SupplierExtended | null = null;
   loading = true;
   activeTab: 'overview' | 'print_orders' | 'payments' = 'overview';
   supplierId: string | null = null;
@@ -36,12 +37,10 @@ export class SupplierDetailComponent implements OnInit {
   loadSupplier(id: string): void {
     this.loading = true;
     this.suppliersService.getSupplierDetail(id).subscribe({
-      // 👇 الإصلاح هنا: قبول Supplier | null
-      next: (data: Supplier | null) => {
+      next: (data: SupplierExtended | null) => {
         if (data) {
           this.supplier = data;
         } else {
-          // في حال لم يتم العثور على المورد
           this.router.navigate(['/suppliers']);
         }
         this.loading = false;
@@ -61,17 +60,13 @@ export class SupplierDetailComponent implements OnInit {
 
   deleteSupplier(): void {
     if (!this.supplier) return;
-
     if (confirm(`هل أنت متأكد من حذف المورد ${this.supplier.name}؟`)) {
       this.suppliersService.delete(this.supplier.id).subscribe({
         next: () => {
           alert('تم الحذف بنجاح');
           this.router.navigate(['/suppliers']);
         },
-        error: (error: any) => {
-          console.error('Error deleting supplier:', error);
-          alert('حدث خطأ أثناء الحذف');
-        }
+        error: () => alert('حدث خطأ أثناء الحذف')
       });
     }
   }

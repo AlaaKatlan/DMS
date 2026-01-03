@@ -14,20 +14,27 @@ $bg-head: #F8FAFC;
   padding: 1.5rem;
 
   .card-header {
-    display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;
 
+    .header-right { display: flex; align-items: center; gap: 1rem; }
     .icon-box.info { background: #E0F2FE; color: #0284C7; padding: 0.75rem; border-radius: 0.75rem; }
+    .titles h2 { margin: 0; font-size: 1.25rem; color: $text-main; }
+    .titles p { margin: 0.25rem 0 0; color: $text-light; font-size: 0.9rem; }
 
-    .titles {
-      flex: 1;
-      h2 { margin: 0; font-size: 1.25rem; color: $text-main; }
-      p { margin: 0.25rem 0 0; color: $text-light; font-size: 0.9rem; }
-    }
+    .actions-head {
+      display: flex; gap: 0.5rem;
 
-    .btn-refresh {
-      background: white; border: 1px solid $border; padding: 0.5rem 1rem;
-      border-radius: 0.5rem; cursor: pointer; display: flex; gap: 0.5rem; color: $text-main;
-      &:hover { border-color: $primary; color: $primary; }
+      .btn-add {
+        background: $primary; color: white; border: none; padding: 0.5rem 1rem;
+        border-radius: 0.5rem; cursor: pointer; display: flex; gap: 0.5rem; align-items: center;
+        &:hover { background: color.mix(black, $primary, 10%); }
+      }
+
+      .btn-refresh {
+        background: white; border: 1px solid $border; padding: 0.5rem;
+        border-radius: 0.5rem; cursor: pointer; color: $text-main;
+        &:hover { border-color: $primary; color: $primary; }
+      }
     }
   }
 }
@@ -59,23 +66,53 @@ $bg-head: #F8FAFC;
     }
 
     .email-col { color: $text-light; font-family: sans-serif; }
-    .date-col { font-size: 0.85rem; color: $text-light; }
 
-    .role-select {
-      padding: 0.4rem 0.8rem; border-radius: 2rem; border: 1px solid $border;
-      font-size: 0.85rem; font-weight: 600; cursor: pointer; outline: none;
-      background-color: white;
-
-      &.admin { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
-      &.manager { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
-      &.accountant { background: #ECFDF5; color: #059669; border-color: #A7F3D0; }
+    .role-badge {
+      padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.8rem; font-weight: 600;
+      &.admin { background: #FEF2F2; color: #DC2626; }
+      &.manager { background: #EFF6FF; color: #2563EB; }
       &.employee { background: #F3F4F6; color: $text-main; }
     }
 
-    .btn-icon.delete {
-      background: none; border: none; color: $text-light; cursor: pointer;
-      transition: color 0.2s;
-      &:hover { color: $danger; }
+    .action-buttons {
+      display: flex; gap: 0.5rem;
+      .btn-icon {
+        background: none; border: none; cursor: pointer; transition: color 0.2s;
+        &.edit { color: $text-light; &:hover { color: $primary; } }
+        &.delete { color: $text-light; &:hover { color: $danger; } }
+      }
+    }
+  }
+}
+
+// Modal Styles
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+
+  .modal-content {
+    background: white; padding: 2rem; border-radius: 1rem; width: 450px;
+    max-width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;
+      h3 { margin: 0; }
+      .btn-close { background: none; border: none; cursor: pointer; }
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+      label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
+      input, select {
+        width: 100%; padding: 0.75rem; border: 1px solid $border; border-radius: 0.5rem;
+        &:focus { outline: none; border-color: $primary; }
+      }
+    }
+
+    .modal-footer {
+      display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;
+      .btn-cancel { background: transparent; border: 1px solid $border; padding: 0.5rem 1.5rem; border-radius: 0.5rem; cursor: pointer; }
+      .btn-save { background: $primary; color: white; border: none; padding: 0.5rem 1.5rem; border-radius: 0.5rem; cursor: pointer; }
     }
   }
 }

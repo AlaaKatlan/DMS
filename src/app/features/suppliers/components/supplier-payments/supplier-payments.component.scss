@@ -1,0 +1,238 @@
+@use "sass:color"; // 👈 إضافة هذا السطر ضروري
+
+$primary: #667eea;
+$success: #10b981;
+$gray-100: #f3f4f6;
+$gray-200: #e5e7eb;
+$gray-600: #4b5563;
+$gray-800: #1f2937;
+$white: #ffffff;
+$radius: 12px;
+
+.payments-container {
+  padding: 1rem 0;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: $gray-800;
+  }
+
+  .btn-primary {
+    background: $success;
+    color: $white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: 0.3s;
+
+    &:hover {
+      // ✅ التحديث: استخدام color.adjust بدلاً من darken
+      background: color.adjust($success, $lightness: -10%);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.table {
+  width: 100%;
+  background: $white;
+  border-radius: $radius;
+  border-collapse: collapse;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  overflow: hidden;
+
+  thead {
+    background: $gray-100;
+    th {
+      padding: 1rem;
+      text-align: right;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: $gray-600;
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid $gray-100;
+    &:last-child { border-bottom: none; }
+
+    td {
+      padding: 1rem;
+      font-size: 0.95rem;
+      color: $gray-800;
+    }
+  }
+
+  .date-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $gray-600;
+    font-size: 0.9rem;
+  }
+
+  .amount-cell {
+    font-weight: 700;
+    color: $success;
+    font-family: monospace;
+    font-size: 1rem;
+  }
+
+  .badge-method {
+    background: #e0e7ff;
+    color: #4338ca;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: $gray-600;
+
+  lucide-angular {
+    color: #cbd5e1;
+    margin-bottom: 1rem;
+  }
+}
+
+// Modal Styles
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s;
+}
+
+.modal-content {
+  background: $white;
+  width: 100%;
+  max-width: 500px;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+  overflow: hidden;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid $gray-100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    h4 { margin: 0; font-size: 1.25rem; }
+
+    .close-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: $gray-600;
+      &:hover { color: #ef4444; }
+    }
+  }
+
+  .modal-body {
+    padding: 1.5rem;
+
+    .form-group {
+      margin-bottom: 1rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid $gray-200;
+        border-radius: 8px;
+        outline: none;
+        transition: 0.2s;
+
+        &:focus { border-color: $success; box-shadow: 0 0 0 3px rgba($success, 0.1); }
+      }
+
+      .input-icon-wrapper {
+        position: relative;
+        lucide-angular {
+          position: absolute;
+          right: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: $gray-600;
+        }
+        input { padding-right: 2.5rem; }
+      }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+  }
+
+  .modal-footer {
+    padding: 1rem 1.5rem;
+    background: $gray-100;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+
+    .btn-ghost {
+      background: none;
+      border: none;
+      color: $gray-600;
+      font-weight: 600;
+      cursor: pointer;
+      &:hover { color: $gray-800; }
+    }
+
+    .btn-save {
+      background: $success;
+      color: $white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+
+      &:hover {
+        // ✅ التحديث: استخدام color.adjust
+        background: color.adjust($success, $lightness: -5%);
+      }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+  }
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

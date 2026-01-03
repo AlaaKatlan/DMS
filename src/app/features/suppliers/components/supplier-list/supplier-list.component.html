@@ -1,10 +1,8 @@
-<!-- src/app/features/suppliers/components/supplier-list/supplier-list.component.html -->
 <div class="suppliers-page" dir="rtl">
-  <!-- Header -->
   <div class="page-header">
     <div class="header-content">
-      <h1 class="page-title">إدارة خدمات خارجية</h1>
-      <p class="page-subtitle">إدارة خدمات خارجية وطلبات الطباعة</p>
+      <h1 class="page-title">إدارة الخدمات الخارجية</h1>
+      <p class="page-subtitle">إدارة الموردين والمطابع ومقدمي الخدمات</p>
     </div>
     <button routerLink="/suppliers/new" class="btn btn-primary">
       <lucide-angular name="plus" [size]="20"></lucide-angular>
@@ -12,7 +10,6 @@
     </button>
   </div>
 
-  <!-- Filters & Search -->
   <div class="filters-section">
     <div class="search-box">
       <lucide-angular name="search" [size]="20"></lucide-angular>
@@ -26,7 +23,7 @@
 
     <div class="filters">
       <select class="filter-select" [(ngModel)]="selectedType" (ngModelChange)="applyFilters()">
-        <option value="">جميع الأنواع</option>
+        <option value="all">جميع الأنواع</option>
         <option *ngFor="let type of getUniqueTypes()" [value]="type">{{ type }}</option>
       </select>
 
@@ -36,13 +33,11 @@
     </div>
   </div>
 
-  <!-- Loading -->
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
-    <p>جاري تحميل خدمات خارجية...</p>
+    <p>جاري تحميل الموردين...</p>
   </div>
 
-  <!-- Empty State -->
   <div *ngIf="!loading && filteredSuppliers.length === 0" class="empty-state">
     <lucide-angular name="handshake" [size]="64"></lucide-angular>
     <h3>لا يوجد موردين</h3>
@@ -53,7 +48,6 @@
     </button>
   </div>
 
-  <!-- Grid View -->
   <div *ngIf="!loading && filteredSuppliers.length > 0 && viewMode === 'grid'" class="suppliers-grid">
     <div *ngFor="let supplier of filteredSuppliers" class="supplier-card">
       <div class="card-header">
@@ -62,8 +56,8 @@
         </div>
         <div class="supplier-info">
           <h3 class="supplier-name">{{ supplier.name }}</h3>
-          <span class="supplier-type" *ngIf="supplier.type">
-            {{ supplier.type }}
+          <span class="supplier-type" *ngIf="supplier.service_type">
+            {{ supplier.service_type }}
           </span>
         </div>
       </div>
@@ -104,7 +98,6 @@
     </div>
   </div>
 
-  <!-- List View -->
   <div *ngIf="!loading && filteredSuppliers.length > 0 && viewMode === 'list'" class="suppliers-table">
     <table>
       <thead>
@@ -129,7 +122,7 @@
               <span class="supplier-name-text">{{ supplier.name }}</span>
             </div>
           </td>
-          <td>{{ supplier.type || '-' }}</td>
+          <td>{{ supplier.service_type || '-' }}</td>
           <td dir="ltr">{{ supplier.phone || '-' }}</td>
           <td>{{ supplier.country?.name || '-' }}</td>
           <td class="financial">{{ formatCurrency(supplier.total_due || 0) }}</td>

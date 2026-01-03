@@ -1,1 +1,171 @@
-<p>supplier-detail works!</p>
+<div class="supplier-detail-container" dir="rtl">
+
+  @if (loading) {
+    <div class="flex flex-col items-center justify-center min-h-[300px] text-gray-500">
+      <lucide-angular name="loader-2" [size]="40" class="animate-spin mb-4"></lucide-angular>
+      <p>جاري تحميل بيانات المورد...</p>
+    </div>
+  } @else if (supplier) {
+
+    <div class="header mb-6 flex justify-between items-start">
+      <div class="flex items-center gap-4">
+        <button (click)="goBack()" class="btn btn-ghost btn-circle text-gray-500 hover:bg-gray-100">
+          <lucide-angular name="arrow-right" [size]="24"></lucide-angular>
+        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            {{ supplier.name }}
+            <span class="badge badge-sm badge-outline text-xs font-normal">
+              {{ supplier.service_type || 'مورد عام' }}
+            </span>
+          </h1>
+          <div class="text-sm text-gray-500 mt-1 flex gap-4">
+            <span class="flex items-center gap-1">
+              <lucide-angular name="map-pin" [size]="14"></lucide-angular>
+              {{ supplier.country?.name || 'غير محدد' }}
+            </span>
+            @if (supplier.phone) {
+              <span class="flex items-center gap-1">
+                <lucide-angular name="phone" [size]="14"></lucide-angular>
+                {{ supplier.phone }}
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="actions flex gap-2">
+        <button class="btn btn-outline border-red-200 text-red-600 hover:bg-red-50" (click)="deleteSupplier()">
+          <lucide-angular name="trash-2" [size]="18" class="ml-2"></lucide-angular>
+          حذف المورد
+        </button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+      <div class="card p-4 bg-blue-50 border-blue-100 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-blue-600 font-medium">الرصيد المستحق</p>
+          <h3 class="text-xl font-bold text-blue-900">{{ supplier.total_due || 0 | currency:'USD' }}</h3>
+        </div>
+        <lucide-angular name="dollar-sign" class="text-blue-300" [size]="32"></lucide-angular>
+      </div>
+
+      <div class="card p-4 bg-green-50 border-green-100 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-green-600 font-medium">إجمالي المدفوعات</p>
+          <h3 class="text-xl font-bold text-green-900">{{ supplier.total_paid || 0 | currency:'USD' }}</h3>
+        </div>
+        <lucide-angular name="check-circle" class="text-green-300" [size]="32"></lucide-angular>
+      </div>
+
+      <div class="card p-4 bg-purple-50 border-purple-100 flex items-center justify-between">
+        <div>
+          <p class="text-sm text-purple-600 font-medium">فترة التوريد</p>
+          <h3 class="text-xl font-bold text-purple-900">{{ supplier.lead_time_days || 0 }} يوم</h3>
+        </div>
+        <lucide-angular name="clock" class="text-purple-300" [size]="32"></lucide-angular>
+      </div>
+    </div>
+
+    <div class="tabs border-b border-gray-200 mb-6 flex gap-6">
+      <button
+        class="pb-3 px-2 border-b-2 transition-colors font-medium text-sm flex items-center gap-2"
+        [class.border-blue-600]="activeTab === 'overview'"
+        [class.text-blue-600]="activeTab === 'overview'"
+        [class.border-transparent]="activeTab !== 'overview'"
+        [class.text-gray-500]="activeTab !== 'overview'"
+        (click)="setActiveTab('overview')">
+        <lucide-angular name="user" [size]="18"></lucide-angular>
+        نظرة عامة
+      </button>
+
+      <button
+        class="pb-3 px-2 border-b-2 transition-colors font-medium text-sm flex items-center gap-2"
+        [class.border-blue-600]="activeTab === 'print_orders'"
+        [class.text-blue-600]="activeTab === 'print_orders'"
+        [class.border-transparent]="activeTab !== 'print_orders'"
+        [class.text-gray-500]="activeTab !== 'print_orders'"
+        (click)="setActiveTab('print_orders')">
+        <lucide-angular name="printer" [size]="18"></lucide-angular>
+        أوامر الطباعة / الشراء
+      </button>
+
+      <button
+        class="pb-3 px-2 border-b-2 transition-colors font-medium text-sm flex items-center gap-2"
+        [class.border-blue-600]="activeTab === 'payments'"
+        [class.text-blue-600]="activeTab === 'payments'"
+        [class.border-transparent]="activeTab !== 'payments'"
+        [class.text-gray-500]="activeTab !== 'payments'"
+        (click)="setActiveTab('payments')">
+        <lucide-angular name="credit-card" [size]="18"></lucide-angular>
+        سجل المدفوعات
+      </button>
+    </div>
+
+    <div class="tab-content">
+
+      @if (activeTab === 'overview') {
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="card p-5">
+            <h3 class="font-bold mb-4 border-b pb-2">المعلومات الأساسية</h3>
+            <div class="space-y-3 text-sm">
+              <div class="grid grid-cols-3">
+                <span class="text-gray-500">الرقم الضريبي</span>
+                <span class="col-span-2 font-medium">{{ supplier.tax_id || '-' }}</span>
+              </div>
+              <div class="grid grid-cols-3">
+                <span class="text-gray-500">العملة الافتراضية</span>
+                <span class="col-span-2 font-medium">{{ supplier.default_currency || 'USD' }}</span>
+              </div>
+              <div class="grid grid-cols-3">
+                <span class="text-gray-500">تاريخ الإضافة</span>
+                <span class="col-span-2 font-medium">{{ supplier.created_at | date }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-5">
+            <h3 class="font-bold mb-4 border-b pb-2">جهات الاتصال</h3>
+            @if (supplier.contacts && supplier.contacts.length > 0) {
+              <div class="space-y-4">
+                @for (contact of supplier.contacts; track contact.id) {
+                  <div class="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div class="bg-white p-2 rounded-full border">
+                      <lucide-angular name="user" [size]="16" class="text-gray-400"></lucide-angular>
+                    </div>
+                    <div>
+                      <p class="font-bold text-sm text-gray-900">{{ contact.name }}</p>
+                      <p class="text-xs text-gray-500">{{ contact.role }}</p>
+                      <div class="mt-1 text-xs text-gray-600 flex flex-col gap-1">
+                        @if (contact.email) { <span>📧 {{ contact.email }}</span> }
+                        @if (contact.phone) { <span>📱 {{ contact.phone }}</span> }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="text-gray-400 text-sm text-center py-4">لا يوجد جهات اتصال مسجلة</p>
+            }
+          </div>
+        </div>
+      }
+
+      @if (activeTab === 'print_orders') {
+        <app-print-orders [supplierId]="supplier.id"></app-print-orders>
+      }
+
+      @if (activeTab === 'payments') {
+        <app-supplier-payments [supplierId]="supplier.id"></app-supplier-payments>
+      }
+
+    </div>
+
+  } @else {
+    <div class="text-center py-10">
+      <p class="text-gray-500">المورد غير موجود</p>
+      <button class="btn btn-primary mt-4" routerLink="/suppliers">عودة للقائمة</button>
+    </div>
+  }
+</div>
