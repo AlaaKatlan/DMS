@@ -5,10 +5,9 @@ import { BaseService } from '../../core/services/base.service';
 import {
   SupplierExtended,
   PurchaseOrder,
-  PurchaseOrderLine,
-  SupplierContact
+  PurchaseOrderLine
 } from './models/supplier.model';
-import { SupplierPayment } from '../../core/models/base.model';
+import { ContactPerson, SupplierPayment } from '../../core/models/base.model';
 
 @Injectable({
   providedIn: 'root'
@@ -52,9 +51,21 @@ export class SuppliersService extends BaseService<SupplierExtended> {
     );
   }
 
+  // ✅ دالة مساعدة لجلب الدول للقوائم المنسدلة
+  getCountries(): Observable<any[]> {
+    return from(
+      this.supabase.client.from('countries').select('*')
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return data || [];
+      })
+    );
+  }
+
   // ==================== الإضافة والتحقق ====================
 
-  createSupplierWithDetails(supplier: Partial<SupplierExtended>, contacts: SupplierContact[]): Observable<SupplierExtended> {
+  createSupplierWithDetails(supplier: Partial<SupplierExtended>, contacts: ContactPerson[]): Observable<SupplierExtended> {
     return from(
       (this.supabase.client.from(this.tableName) as any)
         .insert(supplier)
@@ -94,7 +105,7 @@ export class SuppliersService extends BaseService<SupplierExtended> {
     );
   }
 
-  // ==================== أوامر الشراء ====================
+  // ==================== أوامر الشراء (PO) ====================
 
   createPurchaseOrder(po: Partial<PurchaseOrder>, lines: PurchaseOrderLine[]): Observable<PurchaseOrder> {
     return from(

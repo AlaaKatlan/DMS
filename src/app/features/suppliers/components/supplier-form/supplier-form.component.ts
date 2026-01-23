@@ -1,9 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router'; // أضفت ActivatedRoute لدعم التعديل مستقبلاً
 import { LucideAngularModule } from 'lucide-angular';
 import { SuppliersService } from '../../suppliers.service';
+import { Country } from '../../../../core/models/base.model';
 
 @Component({
   selector: 'app-supplier-form',
@@ -12,22 +13,36 @@ import { SuppliersService } from '../../suppliers.service';
   templateUrl: './supplier-form.component.html',
   styleUrls: ['./supplier-form.component.scss']
 })
-export class SupplierFormComponent {
+export class SupplierFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private suppliersService = inject(SuppliersService);
   private router = inject(Router);
 
+  countries: Country[] = [];
+  isSubmitting = false;
+
   form: FormGroup = this.fb.group({
     name: ['', Validators.required],
     service_type: ['printing', Validators.required],
-    country: ['', Validators.required],
+    country_id: [null, Validators.required],
     tax_id: [''],
     lead_time_days: [0],
     default_currency: ['USD'],
+    phone: [''], // تمت إضافته لأنه موجود في الجدول الأساسي
+    notes: [''],
     contacts: this.fb.array([])
   });
 
-  isSubmitting = false;
+  ngOnInit() {
+    this.loadLookups();
+  }
+
+  loadLookups() {
+    this.suppliersService.getCountries().subscribe({
+      next: (data) => this.countries = data,
+      error: (err) => console.error('Error loading countries', err)
+    });
+  }
 
   get contacts() {
     return this.form.get('contacts') as FormArray;
@@ -49,12 +64,25 @@ export class SupplierFormComponent {
   }
 
   async onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.isSubmitting = true;
 
     const formValue = this.form.value;
-    const supplierData = { ...formValue };
-    delete supplierData.contacts;
+
+    // ✅ تجهيز البيانات لتطابق أسماء أعمدة قاعدة البيانات
+    const supplierData = {
+      name: formValue.name,
+      type: formValue.service_type, // 👈 تحويل service_type إلى type
+      country_id: formValue.country_id,
+      tax_id: formValue.tax_id,
+      lead_time_days: formValue.lead_time_days,
+      default_currency: formValue.default_currency,
+      phone: formValue.phone,
+      notes: formValue.notes
+    };
 
     // التحقق من التكرار
     const isDuplicate = await this.suppliersService.checkDuplicate(supplierData.name, supplierData.tax_id).toPromise();
@@ -65,14 +93,16 @@ export class SupplierFormComponent {
       }
     }
 
+    // إرسال البيانات
     this.suppliersService.createSupplierWithDetails(supplierData, formValue.contacts).subscribe({
       next: () => {
         alert('تم إضافة المورد بنجاح');
         this.router.navigate(['/suppliers']);
       },
       error: (err) => {
-        console.error(err);
-        alert('حدث خطأ أثناء الحفظ');
+        console.error('Save Error:', err);
+        const msg = err.error?.message || err.message || 'خطأ غير معروف';
+        alert(`حدث خطأ أثناء الحفظ: ${msg}`);
         this.isSubmitting = false;
       }
     });

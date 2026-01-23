@@ -67,6 +67,7 @@ export interface Customer extends BaseEntity {
   country?: Country;
   projects?: Project[];
   invoices?: Invoice[];
+
 }
 
 export interface CustomerType {
@@ -572,7 +573,15 @@ export interface Notification extends BaseEntity {
 
   user?: UserProfile;
 }
-
+export interface ContactPerson {
+  id?: string;
+  owner_id?: string; // supplier_id OR customer_id
+  name: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  is_primary?: boolean;
+}
 export type NotificationType =
   | 'task_assigned'
   | 'task_completed'
