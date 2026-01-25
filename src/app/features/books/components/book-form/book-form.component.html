@@ -89,7 +89,7 @@
           <div class="card-body grid-4">
             <div class="form-group">
               <label>USD ($)</label>
-              <input formControlName="price_usd" type="number" class="font-bold text-success">
+              <input formControlName="price_usd" type="number"    step="0.01" class="font-bold text-success">
             </div>
             <div class="form-group">
               <label>ليرة سورية</label>
@@ -114,15 +114,15 @@
           <div class="card-body grid-3">
             <div class="form-group">
               <label>التكلفة (USD)</label>
-              <input formControlName="cost_usd" type="number">
+              <input formControlName="cost_usd" type="number" step="0.01">
             </div>
             <div class="form-group">
               <label>التكلفة (SYP)</label>
               <input formControlName="cost_syp" type="number">
             </div>
-            <div class="form-group">
+           <div class="form-group">
               <label>الكمية المتوفرة</label>
-              <input formControlName="quantity" type="number" class="font-bold">
+              <input formControlName="stock_quantity" type="number" class="font-bold">
             </div>
           </div>
         </div>
@@ -157,6 +157,7 @@
                 <option value="hardcover">غلاف فني (Hardcover)</option>
                 <option value="paperback">غلاف عادي (Paperback)</option>
                 <option value="leather">جلد (Leather)</option>
+                <option value="cartonnage">كارتوناج (cartonnage)</option>
               </select>
             </div>
           </div>

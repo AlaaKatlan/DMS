@@ -1,11 +1,10 @@
-// src/app/features/books/components/book-form/book-form.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BooksService } from '../../books.service';
 import { LucideAngularModule } from 'lucide-angular';
-import { Country, Book } from '../../../../core/models/base.model';
+import { Country } from '../../../../core/models/base.model';
 
 @Component({
   selector: 'app-book-form',
@@ -56,13 +55,17 @@ export class BookFormComponent implements OnInit {
       category: [''],
       year: [new Date().getFullYear()],
       country_id: [null],
+      // ✅ تم التوحيد: stock_quantity
       stock_quantity: [0, [Validators.min(0)]],
+
       price_usd: [0, [Validators.min(0)]],
       price_aed: [0, [Validators.min(0)]],
       price_qr: [0, [Validators.min(0)]],
       price_syp: [0, [Validators.min(0)]],
+
       cost_usd: [0, [Validators.min(0)]],
       cost_syp: [0, [Validators.min(0)]],
+
       height_cm: [null],
       width_cm: [null],
       cover_type: [''],
@@ -96,6 +99,7 @@ export class BookFormComponent implements OnInit {
     this.booksService.getBookDetail(id).subscribe({
       next: (book) => {
         if (book) {
+          // ✅ التأكد من تعبئة الفورم بالبيانات الصحيحة
           this.bookForm.patchValue({
             ...book,
             stock_quantity: book.stock_quantity || 0
@@ -121,6 +125,11 @@ export class BookFormComponent implements OnInit {
     this.isSubmitting = true;
     const formData = this.bookForm.getRawValue();
 
+    // ✅ تجهيز البيانات قبل الإرسال (تجاهل الحقول الفارغة إذا لزم الأمر)
+    // ملاحظة: تأكد أن stock_quantity موجود في جدول books في قاعدة البيانات
+    // إذا لم يكن موجوداً، يجب إزالته من formData قبل الإرسال:
+    // delete formData.stock_quantity;
+
     const request$ = this.isEditMode && this.bookId
       ? this.booksService.updateBook(this.bookId, formData)
       : this.booksService.create(formData);
@@ -133,8 +142,14 @@ export class BookFormComponent implements OnInit {
       },
       error: (err) => {
         this.isSubmitting = false;
-        console.error(err);
-        alert('حدث خطأ أثناء الحفظ');
+        console.error('Save Error:', err);
+
+        // التعامل مع خطأ العمود غير الموجود
+        if (err.code === 'PGRST204') {
+          alert(`خطأ: الحقل '${err.hint || err.message}' غير موجود في قاعدة البيانات.`);
+        } else {
+          alert('حدث خطأ أثناء الحفظ: ' + (err.message || 'Unknown error'));
+        }
       }
     });
   }

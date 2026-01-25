@@ -1,6 +1,4 @@
-<!-- src/app/features/books/components/book-list/book-list.component.html -->
 <div class="books-page" dir="rtl">
-  <!-- Header -->
   <div class="page-header">
     <div class="header-content">
       <h1 class="page-title">إدارة الكتب</h1>
@@ -18,7 +16,6 @@
     </div>
   </div>
 
-  <!-- Filters & Search -->
   <div class="filters-section">
     <div class="search-box">
       <lucide-angular name="search" [size]="20"></lucide-angular>
@@ -31,12 +28,12 @@
     </div>
 
     <div class="filters-group">
-      <select [(ngModel)]="selectedCategory" (ngModelChange)="applyFilters()" class="filter-select">
+      <select [(ngModel)]="selectedCategory" (change)="applyFilters()" class="filter-select">
         <option value="">جميع الفئات</option>
         <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
       </select>
 
-      <select [(ngModel)]="selectedCountry" (ngModelChange)="applyFilters()" class="filter-select">
+      <select [(ngModel)]="selectedCountry" (change)="applyFilters()" class="filter-select">
         <option [ngValue]="null">جميع الدول</option>
         <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
       </select>
@@ -51,98 +48,67 @@
 
     <div class="filters">
       <div class="view-mode-toggle">
-        <button
-          (click)="viewMode = 'grid'"
-          [class.active]="viewMode === 'grid'"
-          title="عرض شبكة"
-        >
+        <button (click)="viewMode = 'grid'" [class.active]="viewMode === 'grid'" title="عرض شبكة">
           <lucide-angular name="grid" [size]="20"></lucide-angular>
         </button>
-        <button
-          (click)="viewMode = 'list'"
-          [class.active]="viewMode === 'list'"
-          title="عرض قائمة"
-        >
+        <button (click)="viewMode = 'list'" [class.active]="viewMode === 'list'" title="عرض قائمة">
           <lucide-angular name="list" [size]="20"></lucide-angular>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Results Count -->
   <div *ngIf="!loading && filteredBooks.length > 0" class="results-info">
     <span class="results-count">
       عرض {{ toEnglishNumbers(filteredBooks.length) }} من {{ toEnglishNumbers(books.length) }} كتاب
     </span>
   </div>
 
-  <!-- Loading -->
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
     <p>جاري تحميل الكتب...</p>
   </div>
 
-  <!-- Empty State -->
   <div *ngIf="!loading && filteredBooks.length === 0" class="empty-state">
     <lucide-angular name="book-open" [size]="64"></lucide-angular>
     <h3>لا توجد كتب</h3>
     <p>{{ searchQuery || selectedCategory || selectedCountry ? 'لا توجد نتائج تطابق الفلاتر المحددة' : 'ابدأ بإضافة كتاب جديد' }}</p>
-    <button *ngIf="searchQuery || selectedCategory || selectedCountry"
-            (click)="resetFilters()"
-            class="btn btn-outline">
+    <button *ngIf="searchQuery || selectedCategory || selectedCountry" (click)="resetFilters()" class="btn btn-outline">
       إعادة تعيين الفلاتر
     </button>
-    <button *ngIf="!searchQuery && !selectedCategory && !selectedCountry"
-            routerLink="/books/new"
-            class="btn btn-primary">
+    <button *ngIf="!searchQuery && !selectedCategory && !selectedCountry" routerLink="/books/new" class="btn btn-primary">
       <lucide-angular name="plus" [size]="18"></lucide-angular>
       <span>إضافة كتاب</span>
     </button>
   </div>
 
-  <!-- Grid View -->
   <div *ngIf="!loading && filteredBooks.length > 0 && viewMode === 'grid'" class="books-grid">
     <div *ngFor="let book of filteredBooks" class="book-card">
       <div class="book-cover">
-        <img alt=""
-          *ngIf="book.cover_image_url"
-          [src]="book.cover_image_url"
-          [alt]="book.title"
-        />
+        <img alt="" *ngIf="book.cover_image_url" [src]="book.cover_image_url" [alt]="book.title" loading="lazy">
         <div *ngIf="!book.cover_image_url" class="no-image">
           <lucide-angular name="book-open" [size]="48"></lucide-angular>
           <p>لا توجد صورة</p>
         </div>
+        <div class="stock-badge" [ngClass]="getStockClass(book.stock_quantity || 0)">
+          {{ getStockStatus(book.stock_quantity || 0) }}
+        </div>
       </div>
 
       <div class="book-info">
-        <h3 class="book-title" [title]="book.title">{{ book.title }}</h3>
+        <div class="info-header">
+          <h3 class="book-title" [title]="book.title">{{ book.title }}</h3>
+          <span class="category-badge" *ngIf="book.category">{{ book.category }}</span>
+        </div>
         <p class="book-author">{{ book.author || 'مؤلف غير معروف' }}</p>
 
-        <div class="book-details">
-          <div class="detail-row" *ngIf="book.publisher">
-            <lucide-angular name="building" [size]="16"></lucide-angular>
-            <span>{{ book.publisher }}</span>
-          </div>
-          <div class="detail-row" *ngIf="book.isbn">
-            <lucide-angular name="hash" [size]="16"></lucide-angular>
-            <span>{{ book.isbn }}</span>
-          </div>
-          <div class="detail-row" *ngIf="book.category">
-            <lucide-angular name="tag" [size]="16"></lucide-angular>
-            <span>{{ book.category }}</span>
-          </div>
-        </div>
-
-        <div class="book-price-dual">
-          <div class="price-item usd">
-            <span class="currency-icon">$</span>
-            <span class="amount">{{ toEnglishNumbers((book.price_usd || 0).toFixed(2)) }}</span>
-          </div>
-          <div class="price-divider">/</div>
-          <div class="price-item syp">
+        <div class="book-price-box">
+          <div class="price-main">
+            <span class="currency">ل.س</span>
             <span class="amount">{{ toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')) }}</span>
-            <span class="currency-label">SYP</span>
+          </div>
+          <div class="price-sub">
+            <span>$ {{ toEnglishNumbers((book.price_usd || 0).toFixed(2)) }}</span>
           </div>
         </div>
       </div>
@@ -164,7 +130,6 @@
     </div>
   </div>
 
-  <!-- List View -->
   <div *ngIf="!loading && filteredBooks.length > 0 && viewMode === 'list'" class="books-table">
     <table>
       <thead>
@@ -172,9 +137,9 @@
           <th>الغلاف</th>
           <th>العنوان</th>
           <th>المؤلف</th>
-          <th>ISBN</th>
           <th>الفئة</th>
-          <th>السعر (USD / SYP)</th>
+          <th>السعر (ل.س / $)</th>
+          <th>الكمية</th>
           <th>الإجراءات</th>
         </tr>
       </thead>
@@ -188,14 +153,17 @@
           </td>
           <td class="book-title-cell">{{ book.title }}</td>
           <td>{{ book.author || '-' }}</td>
-          <td>{{ book.isbn || '-' }}</td>
-          <td>{{ book.category || '-' }}</td>
+          <td><span class="category-tag">{{ book.category || '-' }}</span></td>
           <td class="book-price-cell">
-            <div class="price-dual-compact">
-              <span class="usd">${{ toEnglishNumbers((book.price_usd || 0).toFixed(2)) }}</span>
-              <span class="separator">/</span>
-              <span class="syp">{{ toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')) }} SYP</span>
+            <div class="price-dual-table">
+              <span class="syp">{{ toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')) }} ل.س</span>
+              <span class="usd">$ {{ toEnglishNumbers((book.price_usd || 0).toFixed(2)) }}</span>
             </div>
+          </td>
+          <td>
+            <span class="stock-label" [ngClass]="getStockClass(book.stock_quantity || 0)">
+              {{ toEnglishNumbers(book.stock_quantity || 0) }}
+            </span>
           </td>
           <td>
             <div class="table-actions">
