@@ -88,6 +88,7 @@ export const routes: Routes = [
         ]
       },
 
+
       // Books
       {
         path: 'books',
@@ -100,23 +101,23 @@ export const routes: Routes = [
             path: 'new',
             loadComponent: () => import('./features/books/components/book-form/book-form.component').then(m => m.BookFormComponent)
           },
+          // ✅ مسارات المبيعات - يجب أن تكون قبل :id
           {
-            path: ':id',
-            loadComponent: () => import('./features/books/components/book-detail/book-detail.component').then(m => m.BookDetailComponent)
+            path: 'sales',
+            loadComponent: () => import('./features/books/components/book-sales-list/book-sales-list.component').then(m => m.BookSalesListComponent)
           },
+          {
+            path: 'sales/new',
+            loadComponent: () => import('./features/books/components/book-sale-form/book-sale-form.component').then(m => m.BookSaleFormComponent)
+          },
+          // ✅ ثم المسارات الديناميكية
           {
             path: ':id/edit',
             loadComponent: () => import('./features/books/components/book-form/book-form.component').then(m => m.BookFormComponent)
           },
           {
-            path: 'books/sales',
-            component: BookSalesListComponent,
-            canActivate: [authGuard]
-          },
-          {
-            path: 'books/sales/new',
-            component: BookSaleFormComponent,
-            canActivate: [authGuard]
+            path: ':id',
+            loadComponent: () => import('./features/books/components/book-detail/book-detail.component').then(m => m.BookDetailComponent)
           }
         ]
       },

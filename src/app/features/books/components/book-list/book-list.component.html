@@ -6,10 +6,16 @@
       <h1 class="page-title">إدارة الكتب</h1>
       <p class="page-subtitle">إدارة الكتب والمخزون بشكل فعّال</p>
     </div>
-    <button routerLink="/books/new" class="btn btn-primary">
-      <lucide-angular name="plus" [size]="20"></lucide-angular>
-      <span>إضافة كتاب جديد</span>
-    </button>
+    <div class="header-actions">
+      <button (click)="exportCurrentView()" class="btn btn-success" title="تصدير إلى Excel">
+        <lucide-angular name="download" [size]="20"></lucide-angular>
+        <span>تصدير Excel</span>
+      </button>
+      <button routerLink="/books/new" class="btn btn-primary">
+        <lucide-angular name="plus" [size]="20"></lucide-angular>
+        <span>إضافة كتاب</span>
+      </button>
+    </div>
   </div>
 
   <!-- Filters & Search -->
@@ -22,6 +28,25 @@
         (ngModelChange)="applyFilters()"
         placeholder="ابحث عن كتاب، مؤلف، أو ISBN..."
       />
+    </div>
+
+    <div class="filters-group">
+      <select [(ngModel)]="selectedCategory" (ngModelChange)="applyFilters()" class="filter-select">
+        <option value="">جميع الفئات</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedCountry" (ngModelChange)="applyFilters()" class="filter-select">
+        <option [ngValue]="null">جميع الدول</option>
+        <option *ngFor="let country of countries" [value]="country.id">{{ country.name }}</option>
+      </select>
+
+      <button *ngIf="searchQuery || selectedCategory || selectedCountry"
+              (click)="resetFilters()"
+              class="btn-reset">
+        <lucide-angular name="x" [size]="18"></lucide-angular>
+        إعادة تعيين
+      </button>
     </div>
 
     <div class="filters">
@@ -44,6 +69,13 @@
     </div>
   </div>
 
+  <!-- Results Count -->
+  <div *ngIf="!loading && filteredBooks.length > 0" class="results-info">
+    <span class="results-count">
+      عرض {{ toEnglishNumbers(filteredBooks.length) }} من {{ toEnglishNumbers(books.length) }} كتاب
+    </span>
+  </div>
+
   <!-- Loading -->
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
@@ -54,8 +86,15 @@
   <div *ngIf="!loading && filteredBooks.length === 0" class="empty-state">
     <lucide-angular name="book-open" [size]="64"></lucide-angular>
     <h3>لا توجد كتب</h3>
-    <p>{{ searchQuery ? 'لا توجد نتائج تطابق بحثك' : 'ابدأ بإضافة كتاب جديد' }}</p>
-    <button *ngIf="!searchQuery" routerLink="/books/new" class="btn btn-primary">
+    <p>{{ searchQuery || selectedCategory || selectedCountry ? 'لا توجد نتائج تطابق الفلاتر المحددة' : 'ابدأ بإضافة كتاب جديد' }}</p>
+    <button *ngIf="searchQuery || selectedCategory || selectedCountry"
+            (click)="resetFilters()"
+            class="btn btn-outline">
+      إعادة تعيين الفلاتر
+    </button>
+    <button *ngIf="!searchQuery && !selectedCategory && !selectedCountry"
+            routerLink="/books/new"
+            class="btn btn-primary">
       <lucide-angular name="plus" [size]="18"></lucide-angular>
       <span>إضافة كتاب</span>
     </button>
@@ -64,7 +103,6 @@
   <!-- Grid View -->
   <div *ngIf="!loading && filteredBooks.length > 0 && viewMode === 'grid'" class="books-grid">
     <div *ngFor="let book of filteredBooks" class="book-card">
-      <!-- Book Cover -->
       <div class="book-cover">
         <img alt=""
           *ngIf="book.cover_image_url"
@@ -77,7 +115,6 @@
         </div>
       </div>
 
-      <!-- Book Info -->
       <div class="book-info">
         <h3 class="book-title" [title]="book.title">{{ book.title }}</h3>
         <p class="book-author">{{ book.author || 'مؤلف غير معروف' }}</p>
@@ -97,7 +134,6 @@
           </div>
         </div>
 
-        <!-- Dual Price Display -->
         <div class="book-price-dual">
           <div class="price-item usd">
             <span class="currency-icon">$</span>
@@ -111,7 +147,6 @@
         </div>
       </div>
 
-      <!-- Actions -->
       <div class="book-actions">
         <button [routerLink]="['/books', book.book_id]">
           <lucide-angular name="eye" [size]="16"></lucide-angular>

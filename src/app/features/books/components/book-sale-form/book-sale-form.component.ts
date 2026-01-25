@@ -1,12 +1,11 @@
-// src/app/features/books/components/book-sale-form/book-sale-form.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
- import { BooksService } from '../../books.service';
+import { BooksService } from '../../books.service';
 import { CustomersService } from '../../../customers/customers.service';
-import { Book, Customer } from '../../../../core/models/base.model';
+import { Book } from '../../../../core/models/base.model';
 import { BookSalesService } from '../../book-sales.service';
 
 @Component({
@@ -120,7 +119,6 @@ import { BookSalesService } from '../../book-sales.service';
             </div>
           </div>
 
-          <!-- Book Preview -->
           <div class="card" *ngIf="selectedBook">
             <div class="card-header">
               <lucide-angular name="info" [size]="20"></lucide-angular>
@@ -247,7 +245,10 @@ export class BookSaleFormComponent implements OnInit {
 
   saleForm!: FormGroup;
   books: Book[] = [];
-  customers: Customer[] = [];
+
+  // ✅ التعديل هنا: استخدام any[] بدلاً من Customer[] لأن الخدمة تعيد كائنات مبسطة
+  customers: any[] = [];
+
   selectedBook: Book | null = null;
   submitting = false;
 
@@ -273,6 +274,7 @@ export class BookSaleFormComponent implements OnInit {
 
   loadData() {
     this.booksService.getBooksWithRelations().subscribe(books => this.books = books);
+    // @ts-ignore
     this.customersService.getCustomersLite().subscribe(customers => this.customers = customers);
   }
 
@@ -326,7 +328,7 @@ export class BookSaleFormComponent implements OnInit {
         alert('تم تسجيل عملية البيع بنجاح');
         this.router.navigate(['/books/sales']);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         alert('حدث خطأ أثناء حفظ البيع');
         this.submitting = false;

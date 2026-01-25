@@ -1,0 +1,198 @@
+<!-- src/app/features/books/components/book-sales-list/book-sales-list.component.html -->
+<div class="sales-page" dir="rtl">
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">مبيعات الكتب</h1>
+      <p class="page-subtitle">إدارة ومتابعة عمليات البيع</p>
+    </div>
+    <div class="header-actions">
+      <button (click)="exportToExcel()" class="btn btn-success">
+        <lucide-angular name="download" [size]="20"></lucide-angular>
+        <span>تصدير Excel</span>
+      </button>
+      <button routerLink="/books/sales/new" class="btn btn-primary">
+        <lucide-angular name="plus" [size]="20"></lucide-angular>
+        <span>تسجيل بيع جديد</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon usd">
+        <lucide-angular name="dollar-sign" [size]="24"></lucide-angular>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">إجمالي المبيعات (USD)</span>
+        <span class="stat-value">$ {{ toEnglishNumbers(totalSalesUSD.toFixed(2)) }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon syp">
+        <lucide-angular name="banknote" [size]="24"></lucide-angular>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">إجمالي المبيعات (SYP)</span>
+        <span class="stat-value">{{ toEnglishNumbers(totalSalesSYP.toLocaleString('en-US')) }} ل.س</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon books">
+        <lucide-angular name="book-open" [size]="24"></lucide-angular>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">عدد الكتب المباعة</span>
+        <span class="stat-value">{{ toEnglishNumbers(totalBooksSold) }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon count">
+        <lucide-angular name="shopping-cart" [size]="24"></lucide-angular>
+      </div>
+      <div class="stat-info">
+        <span class="stat-label">عدد العمليات</span>
+        <span class="stat-value">{{ toEnglishNumbers(filteredSales.length) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <!-- Search -->
+    <div class="search-box">
+      <lucide-angular name="search" [size]="20"></lucide-angular>
+      <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()"
+             placeholder="ابحث بعنوان الكتاب أو اسم العميل...">
+    </div>
+
+    <!-- Date Filters -->
+    <div class="date-filters">
+      <div class="date-input">
+        <label>من تاريخ</label>
+        <input type="date" [(ngModel)]="startDate" (ngModelChange)="applyFilters()">
+      </div>
+      <div class="date-input">
+        <label>إلى تاريخ</label>
+        <input type="date" [(ngModel)]="endDate" (ngModelChange)="applyFilters()">
+      </div>
+    </div>
+
+    <!-- Additional Filters -->
+    <div class="additional-filters">
+      <select [(ngModel)]="selectedCurrency" (ngModelChange)="applyFilters()" class="filter-select">
+        <option value="all">جميع العملات</option>
+        <option value="USD">دولار (USD)</option>
+        <option value="SYP">ليرة سورية (SYP)</option>
+      </select>
+
+      <select [(ngModel)]="selectedPaymentMethod" (ngModelChange)="applyFilters()" class="filter-select">
+        <option value="all">جميع طرق الدفع</option>
+        <option value="cash">نقدي</option>
+        <option value="card">بطاقة</option>
+        <option value="transfer">تحويل</option>
+      </select>
+
+      <button (click)="resetFilters()" class="btn-reset">
+        <lucide-angular name="refresh-cw" [size]="18"></lucide-angular>
+        إعادة تعيين
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Info -->
+  <div *ngIf="!loading && filteredSales.length > 0" class="results-info">
+    <span class="results-count">
+      عرض {{ toEnglishNumbers(filteredSales.length) }} من {{ toEnglishNumbers(sales.length) }} عملية
+    </span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>جاري تحميل المبيعات...</p>
+  </div>
+
+  <!-- Sales Table -->
+  <div *ngIf="!loading && filteredSales.length > 0" class="sales-table">
+    <table>
+      <thead>
+        <tr>
+          <th>التاريخ</th>
+          <th>الكتاب</th>
+          <th>العميل</th>
+          <th>الكمية</th>
+          <th>سعر الوحدة</th>
+          <th>الإجمالي</th>
+          <th>طريقة الدفع</th>
+          <th>الإجراءات</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let sale of filteredSales">
+          <td>{{ sale.sale_date | date:'dd/MM/yyyy' }}</td>
+          <td class="book-cell">
+            <div class="book-info">
+              <img *ngIf="sale.book?.cover_image_url"
+                   [src]="sale.book.cover_image_url"
+                   alt=""
+                   class="book-thumb">
+              <div>
+                <div class="book-title">{{ sale.book?.title || 'كتاب محذوف' }}</div>
+                <div class="book-author">{{ sale.book?.author }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ sale.customer?.name || sale.customer_name || 'عميل نقدي' }}</td>
+          <td class="qty-cell">{{ toEnglishNumbers(sale.quantity) }}</td>
+          <td class="price-cell">
+            <span *ngIf="sale.currency === 'USD'" class="usd">
+              $ {{ toEnglishNumbers(sale.unit_price_usd.toFixed(2)) }}
+            </span>
+            <span *ngIf="sale.currency === 'SYP'" class="syp">
+              {{ toEnglishNumbers(sale.unit_price_syp.toLocaleString('en-US')) }} ل.س
+            </span>
+          </td>
+          <td class="total-cell">
+            <span *ngIf="sale.currency === 'USD'" class="usd">
+              $ {{ toEnglishNumbers(sale.total_usd.toFixed(2)) }}
+            </span>
+            <span *ngIf="sale.currency === 'SYP'" class="syp">
+              {{ toEnglishNumbers(sale.total_syp.toLocaleString('en-US')) }} ل.س
+            </span>
+          </td>
+          <td>
+            <span class="payment-badge" [ngClass]="sale.payment_method">
+              {{ getPaymentLabel(sale.payment_method) }}
+            </span>
+          </td>
+          <td>
+            <button class="btn-delete" (click)="deleteSale(sale.id)" title="حذف">
+              <lucide-angular name="trash-2" [size]="16"></lucide-angular>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredSales.length === 0" class="empty-state">
+    <lucide-angular name="shopping-cart" [size]="64"></lucide-angular>
+    <h3>لا توجد مبيعات</h3>
+    <p>{{ searchQuery || selectedCurrency !== 'all' || selectedPaymentMethod !== 'all' ? 'لا توجد نتائج تطابق الفلاتر' : 'ابدأ بتسجيل أول عملية بيع' }}</p>
+    <button *ngIf="searchQuery || selectedCurrency !== 'all' || selectedPaymentMethod !== 'all'"
+            (click)="resetFilters()"
+            class="btn btn-outline">
+      إعادة تعيين الفلاتر
+    </button>
+    <button *ngIf="!searchQuery && selectedCurrency === 'all' && selectedPaymentMethod === 'all'"
+            routerLink="/books/sales/new"
+            class="btn btn-primary">
+      تسجيل بيع جديد
+    </button>
+  </div>
+</div>
