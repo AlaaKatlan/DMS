@@ -6,6 +6,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { BooksService } from '../../books.service';
 import { CustomersService } from '../../../customers/customers.service';
 import { Book } from '../../../../core/models/base.model';
+// ✅ تم إضافة الاستيراد
 import { BookSalesService } from '../../book-sales.service';
 
 @Component({
@@ -136,7 +137,7 @@ import { BookSalesService } from '../../book-sales.service';
                   <div class="price-info">
                     <span class="price-usd">$ {{ selectedBook.price_usd }}</span>
                     <span class="separator">|</span>
-                    <span class="price-syp">{{ selectedBook.price_syp }} ل.س</span>
+                    <span class="price-syp">{{ selectedBook.price_syp }} SYP</span>
                   </div>
                 </div>
               </div>
@@ -245,8 +246,7 @@ export class BookSaleFormComponent implements OnInit {
 
   saleForm!: FormGroup;
   books: Book[] = [];
-
-  // ✅ التعديل هنا: استخدام any[] بدلاً من Customer[] لأن الخدمة تعيد كائنات مبسطة
+  // ✅ تغيير النوع لقبول البيانات الجزئية
   customers: any[] = [];
 
   selectedBook: Book | null = null;
@@ -328,6 +328,7 @@ export class BookSaleFormComponent implements OnInit {
         alert('تم تسجيل عملية البيع بنجاح');
         this.router.navigate(['/books/sales']);
       },
+      // ✅ تحديد نوع الخطأ
       error: (err: any) => {
         console.error(err);
         alert('حدث خطأ أثناء حفظ البيع');

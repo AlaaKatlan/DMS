@@ -35,7 +35,7 @@
       </div>
       <div class="stat-info">
         <span class="stat-label">إجمالي المبيعات (SYP)</span>
-        <span class="stat-value">{{ toEnglishNumbers(totalSalesSYP.toLocaleString('en-US')) }} ل.س</span>
+        <span class="stat-value">{{ toEnglishNumbers(totalSalesSYP.toLocaleString('en-US')) }} SYP</span>
       </div>
     </div>
 
@@ -153,7 +153,7 @@
               $ {{ toEnglishNumbers(sale.unit_price_usd.toFixed(2)) }}
             </span>
             <span *ngIf="sale.currency === 'SYP'" class="syp">
-              {{ toEnglishNumbers(sale.unit_price_syp.toLocaleString('en-US')) }} ل.س
+              {{ toEnglishNumbers(sale.unit_price_syp.toLocaleString('en-US')) }} SYP
             </span>
           </td>
           <td class="total-cell">
@@ -161,7 +161,7 @@
               $ {{ toEnglishNumbers(sale.total_usd.toFixed(2)) }}
             </span>
             <span *ngIf="sale.currency === 'SYP'" class="syp">
-              {{ toEnglishNumbers(sale.total_syp.toLocaleString('en-US')) }} ل.س
+              {{ toEnglishNumbers(sale.total_syp.toLocaleString('en-US')) }} SYP
             </span>
           </td>
           <td>

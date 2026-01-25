@@ -1,4 +1,3 @@
-// src/app/features/books/components/book-list/book-list.component.ts
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
@@ -27,7 +26,7 @@ export class BookListComponent implements OnInit {
   searchQuery = '';
   viewMode: 'grid' | 'list' = 'grid';
 
-  // فلاتر إضافية
+  // ✅ تعريف المتغيرات المفقودة
   selectedCategory: string = '';
   selectedCountry: number | null = null;
   categories: string[] = [];
@@ -35,6 +34,8 @@ export class BookListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadBooks();
+    // إذا كان لديك دالة لجلب الدول، استدعها هنا
+    // this.loadCountries();
   }
 
   loadBooks(): void {
@@ -43,37 +44,27 @@ export class BookListComponent implements OnInit {
       next: (data) => {
         this.books = data;
         this.filteredBooks = data;
-        this.extractFilters(data);
+
+        // ✅ إصلاح خطأ النوع في categories
+        this.categories = [...new Set(
+          this.books
+            .map(b => b.category)
+            .filter((c): c is string => !!c)
+        )];
+
         this.loading = false;
         this.cd.detectChanges();
       },
-      error: (error) => {
-        console.error('Error loading books:', error);
-        alert('حدث خطأ أثناء تحميل الكتب');
+      error: (err) => {
+        console.error(err);
         this.loading = false;
-        this.cd.detectChanges();
       }
     });
-  }
-
-  extractFilters(books: Book[]): void {
-    // استخراج الفئات الفريدة
-    this.categories = [...new Set(books.map(b => b.category).filter(c => c))];
-
-    // استخراج الدول الفريدة
-    const countryMap = new Map();
-    books.forEach(b => {
-      if (b.country) {
-        countryMap.set(b.country.id, b.country);
-      }
-    });
-    this.countries = Array.from(countryMap.values());
   }
 
   applyFilters(): void {
     let filtered = [...this.books];
 
-    // فلتر البحث
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase();
       filtered = filtered.filter(b =>
@@ -83,12 +74,10 @@ export class BookListComponent implements OnInit {
       );
     }
 
-    // فلتر الفئة
     if (this.selectedCategory) {
       filtered = filtered.filter(b => b.category === this.selectedCategory);
     }
 
-    // فلتر الدولة
     if (this.selectedCountry) {
       filtered = filtered.filter(b => b.country_id === this.selectedCountry);
     }
@@ -96,6 +85,7 @@ export class BookListComponent implements OnInit {
     this.filteredBooks = filtered;
   }
 
+  // ✅ إضافة الدالة المفقودة
   resetFilters(): void {
     this.searchQuery = '';
     this.selectedCategory = '';
@@ -103,43 +93,44 @@ export class BookListComponent implements OnInit {
     this.applyFilters();
   }
 
+  toggleViewMode(): void {
+    this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
+  }
+
   deleteBook(book: Book): void {
-    if (confirm(`هل أنت متأكد من حذف كتاب: ${book.title}؟`)) {
-      this.booksService.delete(book.book_id).subscribe({
+    if (confirm(`هل أنت متأكد من حذف كتاب "${book.title}"؟`)) {
+      // ✅ استخدام book_id بدلاً من id
+      // ملاحظة: book_id هو رقم، بينما delete في BaseService قد تتوقع string، لذا نقوم بالتحويل
+      const idToDelete = book.book_id ? book.book_id.toString() : book.book_id;
+
+      this.booksService.delete(idToDelete).subscribe({
         next: () => {
-          alert('تم حذف الكتاب بنجاح');
-          this.loadBooks();
+          this.books = this.books.filter(b => b.book_id !== book.book_id);
+          this.applyFilters();
+          alert('تم الحذف بنجاح');
         },
-        error: (err) => {
-          console.error('Error deleting book:', err);
-          alert('حدث خطأ أثناء حذف الكتاب');
-        }
+        error: () => alert('حدث خطأ أثناء الحذف')
       });
     }
   }
 
-  // ==================== تصدير Excel ====================
+  // ==================== Export ====================
 
-  exportToExcel(): void {
+  exportCurrentView(): void {
+    if (this.filteredBooks.length === 0) {
+      alert('لا توجد بيانات للتصدير');
+      return;
+    }
+
     const exportData = this.filteredBooks.map(book => ({
-      'رقم الكتاب': this.toEnglishNumbers(book.book_id),
       'العنوان': book.title,
       'المؤلف': book.author || '-',
       'الناشر': book.publisher || '-',
       'ISBN': book.isbn || '-',
-      'الفئة': book.category || '-',
-      'السنة': book.year ? this.toEnglishNumbers(book.year) : '-',
-      'الدولة': book.country?.name || '-',
+      'التصنيف': book.category || '-',
       'السعر (USD)': this.toEnglishNumbers((book.price_usd || 0).toFixed(2)),
       'السعر (SYP)': this.toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')),
-      'السعر (AED)': this.toEnglishNumbers((book.price_aed || 0).toFixed(2)),
-      'السعر (QR)': this.toEnglishNumbers((book.price_qr || 0).toFixed(2)),
-      'التكلفة (USD)': this.toEnglishNumbers((book.cost_usd || 0).toFixed(2)),
-      'التكلفة (SYP)': this.toEnglishNumbers((book.cost_syp || 0).toLocaleString('en-US')),
-      'الكمية المتوفرة': this.toEnglishNumbers(book.stock_quantity || 0),
-      'الطول (cm)': book.height_cm ? this.toEnglishNumbers(book.height_cm) : '-',
-      'العرض (cm)': book.width_cm ? this.toEnglishNumbers(book.width_cm) : '-',
-      'نوع الغلاف': book.cover_type || '-',
+      'الكمية': this.getStockStatus(book.stock_quantity || 0),
       'عدد الصفحات': book.pages ? this.toEnglishNumbers(book.pages) : '-',
       'تاريخ الإضافة': new Date(book.created_at).toLocaleDateString('ar-SA')
     }));
@@ -149,14 +140,6 @@ export class BookListComponent implements OnInit {
       'قائمة_الكتب',
       'الكتب'
     );
-  }
-
-  exportCurrentView(): void {
-    if (this.filteredBooks.length === 0) {
-      alert('لا توجد بيانات للتصدير');
-      return;
-    }
-    this.exportToExcel();
   }
 
   // ==================== Helpers ====================
@@ -176,18 +159,11 @@ export class BookListComponent implements OnInit {
   formatDualPrice(book: Book): string {
     const usd = book.price_usd || 0;
     const syp = book.price_syp || 0;
-    return `$${this.toEnglishNumbers(usd.toFixed(2))} / ${this.toEnglishNumbers(syp.toLocaleString('en-US'))} ل.س`;
+    return `$${this.toEnglishNumbers(usd.toFixed(2))} / ${this.toEnglishNumbers(syp.toLocaleString('en-US'))} SYP`;
   }
 
-  toEnglishNumbers(str: string | number): string {
-    const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-    const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
-    let result = str.toString();
-    arabicNumbers.forEach((arabic, index) => {
-      result = result.replace(new RegExp(arabic, 'g'), englishNumbers[index]);
-    });
-
-    return result;
+  toEnglishNumbers(str: any): string {
+    if (!str) return '0';
+    return str.toString().replace(/[٠-٩]/g, (d: string) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d).toString());
   }
 }

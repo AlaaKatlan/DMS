@@ -95,7 +95,7 @@ export class DashboardComponent implements OnInit {
       USD: '$',
       AED: 'د.إ',
       QR: 'ر.ق',
-      SYP: 'ل.س'
+      SYP: 'SYP'
     };
     return `${symbols[currency] || ''} ${amount.toLocaleString('ar-SA')}`;
   }

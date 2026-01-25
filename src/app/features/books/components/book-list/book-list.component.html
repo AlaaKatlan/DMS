@@ -142,7 +142,7 @@
           <div class="price-divider">/</div>
           <div class="price-item syp">
             <span class="amount">{{ toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')) }}</span>
-            <span class="currency-label">ل.س</span>
+            <span class="currency-label">SYP</span>
           </div>
         </div>
       </div>
@@ -194,7 +194,7 @@
             <div class="price-dual-compact">
               <span class="usd">${{ toEnglishNumbers((book.price_usd || 0).toFixed(2)) }}</span>
               <span class="separator">/</span>
-              <span class="syp">{{ toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')) }} ل.س</span>
+              <span class="syp">{{ toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')) }} SYP</span>
             </div>
           </td>
           <td>

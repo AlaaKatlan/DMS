@@ -1,5 +1,4 @@
-// src/app/features/books/components/book-sales-list/book-sales-list.component.ts
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core'; // 1. استيراد ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +16,7 @@ import { ExcelExportService } from '../../../../shared/services/excel-export.ser
 export class BookSalesListComponent implements OnInit {
   private salesService = inject(BookSalesService);
   private excelService = inject(ExcelExportService);
+  private cd = inject(ChangeDetectorRef); // 2. حقن خدمة رصد التغييرات
 
   sales: BookSale[] = [];
   filteredSales: BookSale[] = [];
@@ -54,8 +54,14 @@ export class BookSalesListComponent implements OnInit {
         this.sales = data;
         this.applyFilters();
         this.loading = false;
+
+        // 3. ✅ إجبار الواجهة على التحديث بعد وصول البيانات
+        this.cd.detectChanges();
       },
-      error: () => { this.loading = false; }
+      error: () => {
+        this.loading = false;
+        this.cd.detectChanges(); // تحديث الواجهة لإخفاء الـ spinner في حال الخطأ أيضاً
+      }
     });
   }
 
@@ -98,9 +104,9 @@ export class BookSalesListComponent implements OnInit {
   }
 
   calculateStats() {
-    this.totalSalesUSD = this.filteredSales.reduce((sum, s) => sum + s.total_usd, 0);
-    this.totalSalesSYP = this.filteredSales.reduce((sum, s) => sum + s.total_syp, 0);
-    this.totalBooksSold = this.filteredSales.reduce((sum, s) => sum + s.quantity, 0);
+    this.totalSalesUSD = this.filteredSales.reduce((sum, s) => sum + (s.total_usd || 0), 0);
+    this.totalSalesSYP = this.filteredSales.reduce((sum, s) => sum + (s.total_syp || 0), 0);
+    this.totalBooksSold = this.filteredSales.reduce((sum, s) => sum + (s.quantity || 0), 0);
   }
 
   resetFilters() {
@@ -116,14 +122,14 @@ export class BookSalesListComponent implements OnInit {
       this.salesService.deleteSale(id).subscribe({
         next: () => {
           alert('تم الحذف بنجاح');
-          this.loadSales();
+          this.sales = this.sales.filter(s => s.id !== id); // حذف محلي لتجنب طلب السيرفر مرة أخرى
+          this.applyFilters();
+          this.cd.detectChanges(); // تحديث الواجهة بعد الحذف
         },
         error: () => alert('حدث خطأ أثناء الحذف')
       });
     }
   }
-
-  // ==================== تصدير Excel ====================
 
   exportToExcel() {
     if (this.filteredSales.length === 0) {
@@ -140,19 +146,18 @@ export class BookSalesListComponent implements OnInit {
       'العملة': sale.currency,
       'سعر الوحدة': this.toEnglishNumbers(
         sale.currency === 'USD'
-          ? sale.unit_price_usd.toFixed(2)
-          : sale.unit_price_syp.toLocaleString('en-US')
+          ? (sale.unit_price_usd || 0).toFixed(2)
+          : (sale.unit_price_syp || 0).toLocaleString('en-US')
       ),
       'الإجمالي': this.toEnglishNumbers(
         sale.currency === 'USD'
-          ? sale.total_usd.toFixed(2)
-          : sale.total_syp.toLocaleString('en-US')
+          ? (sale.total_usd || 0).toFixed(2)
+          : (sale.total_syp || 0).toLocaleString('en-US')
       ),
       'طريقة الدفع': this.getPaymentLabel(sale.payment_method),
       'ملاحظات': sale.notes || '-'
     }));
 
-    // إضافة صف الإجماليات
     exportData.push({
       'التاريخ': 'الإجمالي',
       'الكتاب': '',
@@ -173,14 +178,13 @@ export class BookSalesListComponent implements OnInit {
     );
   }
 
-  // ==================== Helpers ====================
-
   getPaymentLabel(method: string): string {
     const labels: any = { cash: 'نقدي', card: 'بطاقة', transfer: 'تحويل' };
     return labels[method] || method;
   }
 
   toEnglishNumbers(str: string | number): string {
+    if (str === null || str === undefined) return '0';
     const arabicNumbers = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
     const englishNumbers = ['0','1','2','3','4','5','6','7','8','9'];
     let result = str.toString();

@@ -107,7 +107,7 @@ formatCurrency(amount: number | null | undefined, currency: string = 'USD'): str
     USD: '$',
     AED: 'د.إ',
     QR: 'ر.ق',
-    SYP: 'ل.س'
+    SYP: 'SYP'
   };
 
   return `${symbols[currency] || ''} ${safeAmount.toLocaleString('ar-SA')}`;
