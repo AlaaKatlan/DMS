@@ -3,6 +3,8 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
 import { guestGuard } from './core/guards/guest-guard';
 import { roleGuard } from './core/guards/role-guard';
+import { BookSalesListComponent } from './features/books/components/book-sales-list/book-sales-list.component';
+import { BookSaleFormComponent } from './features/books/components/book-sale-form/book-sale-form.component';
 
 export const routes: Routes = [
   // Redirect root to dashboard
@@ -105,6 +107,16 @@ export const routes: Routes = [
           {
             path: ':id/edit',
             loadComponent: () => import('./features/books/components/book-form/book-form.component').then(m => m.BookFormComponent)
+          },
+          {
+            path: 'books/sales',
+            component: BookSalesListComponent,
+            canActivate: [authGuard]
+          },
+          {
+            path: 'books/sales/new',
+            component: BookSaleFormComponent,
+            canActivate: [authGuard]
           }
         ]
       },

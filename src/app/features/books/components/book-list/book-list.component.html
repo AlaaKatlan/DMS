@@ -75,13 +75,6 @@
           <lucide-angular name="book-open" [size]="48"></lucide-angular>
           <p>لا توجد صورة</p>
         </div>
-
-        <!-- Stock Badge (optional) -->
-        <!-- <div *ngIf="bookStocks.has(book.book_id)"
-             class="stock-badge"
-             [ngClass]="getStockClass(getBookStock(book.book_id))">
-          {{ getStockStatus(getBookStock(book.book_id)) }}
-        </div> -->
       </div>
 
       <!-- Book Info -->
@@ -104,7 +97,18 @@
           </div>
         </div>
 
-        <div class="book-price">{{ formatPrice(book.price_usd, 'USD') }}</div>
+        <!-- Dual Price Display -->
+        <div class="book-price-dual">
+          <div class="price-item usd">
+            <span class="currency-icon">$</span>
+            <span class="amount">{{ toEnglishNumbers((book.price_usd || 0).toFixed(2)) }}</span>
+          </div>
+          <div class="price-divider">/</div>
+          <div class="price-item syp">
+            <span class="amount">{{ toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')) }}</span>
+            <span class="currency-label">ل.س</span>
+          </div>
+        </div>
       </div>
 
       <!-- Actions -->
@@ -135,7 +139,7 @@
           <th>المؤلف</th>
           <th>ISBN</th>
           <th>الفئة</th>
-          <th>السعر</th>
+          <th>السعر (USD / SYP)</th>
           <th>الإجراءات</th>
         </tr>
       </thead>
@@ -151,7 +155,13 @@
           <td>{{ book.author || '-' }}</td>
           <td>{{ book.isbn || '-' }}</td>
           <td>{{ book.category || '-' }}</td>
-          <td class="book-price-cell">{{ formatPrice(book.price_usd, 'USD') }}</td>
+          <td class="book-price-cell">
+            <div class="price-dual-compact">
+              <span class="usd">${{ toEnglishNumbers((book.price_usd || 0).toFixed(2)) }}</span>
+              <span class="separator">/</span>
+              <span class="syp">{{ toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')) }} ل.س</span>
+            </div>
+          </td>
           <td>
             <div class="table-actions">
               <button [routerLink]="['/books', book.book_id]" title="عرض">

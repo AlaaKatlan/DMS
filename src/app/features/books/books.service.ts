@@ -1,6 +1,6 @@
 // src/app/features/books/books.service.ts - النسخة المصلحة والمحسّنة
 import { Injectable } from '@angular/core';
-import { Observable, map, forkJoin } from 'rxjs';
+import { Observable, map, forkJoin, from } from 'rxjs';
 import { BaseService } from '../../core/services/base.service';
 import {
   Book,
@@ -473,7 +473,29 @@ updateBook(bookId: number, data: Partial<Book>): Observable<Book> {
     const { data } = await query;
     return (data?.length || 0) > 0;
   }
-
+// في BooksService
+getBooksForDropdown(): Observable<any[]> {
+  return from(
+    this.supabase.client
+      .from('books')
+      .select('book_id, title, cost_usd, cost_syp') // نجلب فقط ما نحتاج
+      .order('title')
+  ).pipe(map(({ data }) => data || []));
+}
+// ✅ الدالة التي كانت ناقصة
+  getBooks(): Observable<Book[]> {
+    return from(
+      this.supabase.client
+        .from(this.tableName)
+        .select('*')
+        .order('title')
+    ).pipe(
+      map(({ data, error }: any) => {
+        if (error) throw error;
+        return data as Book[];
+      })
+    );
+  }
   // ==================== EXPORT ====================
 
   /**

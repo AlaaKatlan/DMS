@@ -6,7 +6,6 @@ import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
 import { BooksService } from '../../books.service';
 import { Book } from '../../../../core/models/base.model';
-import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-book-list',
@@ -26,10 +25,6 @@ export class BookListComponent implements OnInit {
   searchQuery = '';
   viewMode: 'grid' | 'list' = 'grid';
 
-  // المخزون - سيتم تفعيله لاحقاً
-  bookStocks: Map<number, number> = new Map();
-  loadingStocks = false;
-
   ngOnInit(): void {
     this.loadBooks();
   }
@@ -42,9 +37,6 @@ export class BookListComponent implements OnInit {
         this.filteredBooks = data;
         this.loading = false;
         this.cd.detectChanges();
-
-        // يمكن تفعيل تحميل المخزون هنا إذا أردت
-        // this.loadBookStocks();
       },
       error: (error) => {
         console.error('Error loading books:', error);
@@ -53,42 +45,6 @@ export class BookListComponent implements OnInit {
         this.cd.detectChanges();
       }
     });
-  }
-
-  /**
-   * تحميل كميات المخزون لجميع الكتب
-   * يمكن تفعيله عند الحاجة
-   */
-  loadBookStocks(): void {
-    if (this.books.length === 0) return;
-
-    this.loadingStocks = true;
-
-    // جلب المخزون لجميع الكتب دفعة واحدة
-    const stockRequests = this.books.map(book =>
-      this.booksService.getBookStock(book.book_id)
-    );
-
-    forkJoin(stockRequests).subscribe({
-      next: (stocks) => {
-        this.books.forEach((book, index) => {
-          this.bookStocks.set(book.book_id, stocks[index]);
-        });
-        this.loadingStocks = false;
-        this.cd.detectChanges();
-      },
-      error: (error) => {
-        console.error('Error loading stocks:', error);
-        this.loadingStocks = false;
-      }
-    });
-  }
-
-  /**
-   * الحصول على كمية المخزون لكتاب معين
-   */
-  getBookStock(bookId: number): number {
-    return this.bookStocks.get(bookId) || 0;
   }
 
   applyFilters(): void {
@@ -119,7 +75,6 @@ export class BookListComponent implements OnInit {
     }
   }
 
-  // Helper methods for template
   getStockStatus(quantity: number): string {
     if (quantity <= 0) return 'نفذت الكمية';
     if (quantity < 10) return 'منخفض';
@@ -132,19 +87,24 @@ export class BookListComponent implements OnInit {
     return 'bg-green-100 text-green-800';
   }
 
-  /**
-   * تنسيق السعر
-   */
-  formatPrice(amount: number | undefined, currency: string = 'USD'): string {
-    if (!amount) return '-';
+  // عرض السعر بالدولار والليرة السورية
+  formatDualPrice(book: Book): string {
+    const usd = book.price_usd || 0;
+    const syp = book.price_syp || 0;
 
-    const symbols: Record<string, string> = {
-      USD: '$',
-      AED: 'د.إ',
-      QR: 'ر.ق',
-      SYP: 'ل.س'
-    };
+    return `$${this.toEnglishNumbers(usd.toFixed(2))} / ${this.toEnglishNumbers(syp.toLocaleString('en-US'))} ل.س`;
+  }
 
-    return `${symbols[currency] || ''} ${amount.toLocaleString('ar-SA')}`;
+  // تحويل الأرقام العربية إلى إنجليزية
+  toEnglishNumbers(str: string | number): string {
+    const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    const englishNumbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+    let result = str.toString();
+    arabicNumbers.forEach((arabic, index) => {
+      result = result.replace(new RegExp(arabic, 'g'), englishNumbers[index]);
+    });
+
+    return result;
   }
 }

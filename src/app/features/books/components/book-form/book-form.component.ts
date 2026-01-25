@@ -1,3 +1,4 @@
+// src/app/features/books/components/book-form/book-form.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -25,7 +26,6 @@ export class BookFormComponent implements OnInit {
   isLoading = false;
   isSubmitting = false;
 
-  // قائمة الدول (يفترض أن تأتي من خدمة، سأضع بيانات وهمية للتجربة)
   countries: Country[] = [
     { id: 1, name: 'سوريا', code: 'SY' },
     { id: 2, name: 'الإمارات', code: 'AE' },
@@ -35,11 +35,8 @@ export class BookFormComponent implements OnInit {
 
   ngOnInit() {
     this.initForm();
-    this.setupCurrencyLogic(); // تفعيل منطق العملات
-
-    // هنا يمكنك استدعاء خدمة الدول الحقيقية
-    // this.loadCountries();
-    this.setDefaultCountry(); // تعيين سوريا افتراضياً
+    this.setupCurrencyLogic();
+    this.setDefaultCountry();
 
     this.route.params.subscribe(params => {
       if (params['id']) {
@@ -52,56 +49,39 @@ export class BookFormComponent implements OnInit {
 
   initForm() {
     this.bookForm = this.fb.group({
-      // المعلومات الأساسية
       title: ['', [Validators.required]],
       author: [''],
-      publisher: ['دار الزيبق'], // القيمة الافتراضية
+      publisher: ['دار الزيبق'],
       isbn: [''],
       category: [''],
       year: [new Date().getFullYear()],
-      publication_year: [new Date().getFullYear()],
       country_id: [null],
-
-      // المخزون
-      quantity: [0, [Validators.min(0)]],
-
-      // الأسعار (بيع)
+      stock_quantity: [0, [Validators.min(0)]],
       price_usd: [0, [Validators.min(0)]],
       price_aed: [0, [Validators.min(0)]],
       price_qr: [0, [Validators.min(0)]],
       price_syp: [0, [Validators.min(0)]],
-
-      // الأسعار (تكلفة)
       cost_usd: [0, [Validators.min(0)]],
       cost_syp: [0, [Validators.min(0)]],
-
-      // المواصفات الفنية
       height_cm: [null],
       width_cm: [null],
-      cover_type: [''], // غلاف فني، عادي، إلخ
+      cover_type: [''],
       pages: [null],
-
-      // الملفات والصور
       cover_image_url: [''],
       cover_image_extention: ['.jpg'],
       file_url: [''],
-
-      // أخرى
       description: ['']
     });
   }
 
-  // منطق لربط السعر الإماراتي بالقطري
   setupCurrencyLogic() {
     this.bookForm.get('price_aed')?.valueChanges.subscribe(val => {
-      // إذا تم تعديل الإماراتي، انسخ القيمة للقطري
       if (val !== null) {
         this.bookForm.patchValue({ price_qr: val }, { emitEvent: false });
       }
     });
   }
 
-  // تعيين سوريا افتراضياً
   setDefaultCountry() {
     if (!this.isEditMode) {
       const syria = this.countries.find(c => c.name.includes('سوريا') || c.code === 'SY');
@@ -113,14 +93,13 @@ export class BookFormComponent implements OnInit {
 
   loadBookData(id: number) {
     this.isLoading = true;
-    this.booksService.getBookDetail(id).subscribe({ // Assuming getBookDetail takes string
+    this.booksService.getBookDetail(id).subscribe({
       next: (book) => {
         if (book) {
-          this.bookForm.patchValue(book);
-          // في حال التعديل، تأكد من تحديث الكمية إذا كانت مخزنة باسم stock_quantity
-          // if (book.stock_quantity !== undefined) {
-          //   this.bookForm.patchValue({ quantity: book.stock_quantity });
-          // }
+          this.bookForm.patchValue({
+            ...book,
+            stock_quantity: book.stock_quantity || 0
+          });
         }
         this.isLoading = false;
       },
@@ -142,15 +121,14 @@ export class BookFormComponent implements OnInit {
     this.isSubmitting = true;
     const formData = this.bookForm.getRawValue();
 
-    // التعامل مع الإضافة أو التعديل
     const request$ = this.isEditMode && this.bookId
-      ? this.booksService.update(this.bookId.toString(), formData) // Assuming update takes string ID
+      ? this.booksService.updateBook(this.bookId, formData)
       : this.booksService.create(formData);
 
     request$.subscribe({
       next: () => {
         this.isSubmitting = false;
-        alert(this.isEditMode ? 'تم تحديث الكتاب' : 'تم إضافة الكتاب');
+        alert(this.isEditMode ? 'تم تحديث الكتاب بنجاح' : 'تم إضافة الكتاب بنجاح');
         this.router.navigate(['/books']);
       },
       error: (err) => {

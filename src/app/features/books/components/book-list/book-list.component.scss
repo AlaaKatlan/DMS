@@ -618,3 +618,79 @@ $shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     }
   }
 }
+
+// Dual Price Styling for Grid View
+.book-price-dual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 12px;
+  font-family: 'Courier New', monospace;
+
+  .price-item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+
+    &.usd {
+      color: #0284c7;
+      font-weight: 800;
+      font-size: 1.25rem;
+
+      .currency-icon {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+    }
+
+    &.syp {
+      color: #059669;
+      font-weight: 700;
+      font-size: 1rem;
+
+      .currency-label {
+        font-size: 0.75rem;
+        margin-right: 0.25rem;
+      }
+    }
+  }
+
+  .price-divider {
+    color: #94a3b8;
+    font-weight: 400;
+    font-size: 1rem;
+  }
+}
+
+// Compact Dual Price for Table View
+.price-dual-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-family: 'Courier New', monospace;
+
+  .usd {
+    color: #0284c7;
+    font-weight: 800;
+    font-size: 1rem;
+  }
+
+  .separator {
+    display: none;
+  }
+
+  .syp {
+    color: #059669;
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+}
+
+// Override existing book-price style
+.book-info .book-price {
+  display: none; // Hide old single price display
+}

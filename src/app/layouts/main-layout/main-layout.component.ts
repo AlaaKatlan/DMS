@@ -52,6 +52,12 @@ export class MainLayoutComponent implements OnInit {
       label: 'الكتب',
       icon: 'book-open',
       route: '/books'
+    },// في main-layout.component.ts - menuItems
+    {
+      label: 'مبيعات الكتب',
+      icon: 'trending-up',
+      route: '/books/sales',
+      badge: undefined // أو عدد المبيعات اليوم
     },
     {
       label: 'المشاريع',
