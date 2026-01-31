@@ -1,9 +1,10 @@
 <!-- src/app/features/books/components/book-sales-list/book-sales-list.component.html -->
 <div class="sales-page" dir="rtl">
+  <!-- ==================== HEADER ==================== -->
   <div class="page-header">
     <div class="header-content">
       <h1 class="page-title">مبيعات الكتب</h1>
-      <p class="page-subtitle">إدارة ومتابعة عمليات البيع</p>
+      <p class="page-subtitle">إدارة ومتابعة الفواتير وعمليات البيع</p>
     </div>
     <div class="header-actions">
       <button (click)="exportToExcel()" class="btn btn-success">
@@ -17,7 +18,7 @@
     </div>
   </div>
 
-  <!-- Stats Cards -->
+  <!-- ==================== STATS CARDS ==================== -->
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon usd">
@@ -54,19 +55,19 @@
         <lucide-angular name="shopping-cart" [size]="24"></lucide-angular>
       </div>
       <div class="stat-info">
-        <span class="stat-label">عدد العمليات</span>
-        <span class="stat-value">{{ toEnglishNumbers(filteredSales.length) }}</span>
+        <span class="stat-label">عدد الفواتير</span>
+        <span class="stat-value">{{ toEnglishNumbers(filteredInvoices.length) }}</span>
       </div>
     </div>
   </div>
 
-  <!-- Filters Section -->
+  <!-- ==================== FILTERS SECTION ==================== -->
   <div class="filters-section">
     <!-- Search -->
     <div class="search-box">
       <lucide-angular name="search" [size]="20"></lucide-angular>
       <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()"
-             placeholder="ابحث بعنوان الكتاب أو اسم العميل...">
+        placeholder="ابحث برقم الفاتورة، العميل، أو الكتاب...">
     </div>
 
     <!-- Date Filters -->
@@ -83,12 +84,6 @@
 
     <!-- Additional Filters -->
     <div class="additional-filters">
-      <select [(ngModel)]="selectedCurrency" (ngModelChange)="applyFilters()" class="filter-select">
-        <option value="all">جميع العملات</option>
-        <option value="USD">دولار (USD)</option>
-        <option value="SYP">ليرة سورية (SYP)</option>
-      </select>
-
       <select [(ngModel)]="selectedPaymentMethod" (ngModelChange)="applyFilters()" class="filter-select">
         <option value="all">جميع طرق الدفع</option>
         <option value="cash">نقدي</option>
@@ -104,95 +99,228 @@
   </div>
 
   <!-- Results Info -->
-  <div *ngIf="!loading && filteredSales.length > 0" class="results-info">
+  <div *ngIf="!loading && filteredInvoices.length > 0" class="results-info">
     <span class="results-count">
-      عرض {{ toEnglishNumbers(filteredSales.length) }} من {{ toEnglishNumbers(sales.length) }} عملية
+      عرض {{ toEnglishNumbers(filteredInvoices.length) }} من {{ toEnglishNumbers(invoices.length) }} فاتورة
     </span>
   </div>
 
-  <!-- Loading -->
+  <!-- ==================== LOADING ==================== -->
   <div *ngIf="loading" class="loading-container">
     <div class="spinner"></div>
-    <p>جاري تحميل المبيعات...</p>
+    <p>جاري تحميل الفواتير...</p>
   </div>
 
-  <!-- Sales Table -->
-  <div *ngIf="!loading && filteredSales.length > 0" class="sales-table">
+  <!-- ==================== INVOICES TABLE (EXPANDABLE) ==================== -->
+  <div *ngIf="!loading && filteredInvoices.length > 0" class="invoices-table">
     <table>
       <thead>
         <tr>
+          <th style="width: 50px;"></th>
+          <th>رقم الفاتورة</th>
           <th>التاريخ</th>
-          <th>الكتاب</th>
           <th>العميل</th>
-          <th>الكمية</th>
-          <th>سعر الوحدة</th>
+          <th>البائع</th>
+          <th>عدد الأصناف</th>
           <th>الإجمالي</th>
           <th>طريقة الدفع</th>
           <th>الإجراءات</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let sale of filteredSales">
-          <td>{{ sale.sale_date | date:'dd/MM/yyyy' }}</td>
-          <td class="book-cell">
-            <div class="book-info">
-              <img *ngIf="sale.book?.cover_image_url"
-                   [src]="sale.book.cover_image_url"
-                   alt=""
-                   class="book-thumb">
-              <div>
-                <div class="book-title">{{ sale.book?.title || 'كتاب محذوف' }}</div>
-                <div class="book-author">{{ sale.book?.author }}</div>
+        <ng-container *ngFor="let invoice of filteredInvoices; let i = index">
+          <!-- ✅ صف الفاتورة الرئيسي -->
+          <tr class="invoice-row" [class.expanded]="expandedInvoiceId === invoice.id">
+            <td>
+              <button class="btn-expand" (click)="toggleInvoice(invoice.id); $event.stopPropagation()">
+                <lucide-angular [name]="expandedInvoiceId === invoice.id ? 'chevron-down' : 'chevron-right'"
+                  [size]="18">
+                </lucide-angular>
+              </button>
+
+            </td>
+            <td class="invoice-number">{{ invoice.invoice_number }}</td>
+            <td>{{ invoice.sale_date | date:'dd/MM/yyyy' }}</td>
+            <td>{{ invoice.customer_name || 'عميل نقدي' }}</td>
+            <td>{{ invoice.seller_name || '-' }}</td>
+            <td class="text-center">
+              <span class="items-badge">{{ invoice.items?.length || 0 }}</span>
+            </td>
+            <td class="total-cell">
+              <div class="price-display">
+                <span class="main-price">{{ toEnglishNumbers(invoice.total.toLocaleString('en-US')) }} SYP</span>
               </div>
-            </div>
-          </td>
-          <td>{{ sale.customer?.name || sale.customer_name || 'عميل نقدي' }}</td>
-          <td class="qty-cell">{{ toEnglishNumbers(sale.quantity) }}</td>
-          <td class="price-cell">
-            <span *ngIf="sale.currency === 'USD'" class="usd">
-              $ {{ toEnglishNumbers(sale.unit_price_usd.toFixed(2)) }}
-            </span>
-            <span *ngIf="sale.currency === 'SYP'" class="syp">
-              {{ toEnglishNumbers(sale.unit_price_syp.toLocaleString('en-US')) }} SYP
-            </span>
-          </td>
-          <td class="total-cell">
-            <span *ngIf="sale.currency === 'USD'" class="usd">
-              $ {{ toEnglishNumbers(sale.total_usd.toFixed(2)) }}
-            </span>
-            <span *ngIf="sale.currency === 'SYP'" class="syp">
-              {{ toEnglishNumbers(sale.total_syp.toLocaleString('en-US')) }} SYP
-            </span>
-          </td>
-          <td>
-            <span class="payment-badge" [ngClass]="sale.payment_method">
-              {{ getPaymentLabel(sale.payment_method) }}
-            </span>
-          </td>
-          <td>
-            <button class="btn-delete" (click)="deleteSale(sale.id)" title="حذف">
-              <lucide-angular name="trash-2" [size]="16"></lucide-angular>
-            </button>
-          </td>
-        </tr>
+            </td>
+            <td>
+              <span class="payment-badge" [ngClass]="invoice.payment_method">
+                {{ getPaymentLabel(invoice.payment_method) }}
+              </span>
+            </td>
+            <td>
+              <div class="table-actions">
+                <button (click)="viewInvoice(invoice)" title="عرض وطباعة">
+                  <lucide-angular name="eye" [size]="16"></lucide-angular>
+                </button>
+                <button (click)="printInvoice(invoice)" title="طباعة">
+                  <lucide-angular name="printer" [size]="16"></lucide-angular>
+                </button>
+                <button class="delete" (click)="deleteInvoice(invoice.id)" title="حذف">
+                  <lucide-angular name="trash-2" [size]="16"></lucide-angular>
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <!-- ✅ صف الأصناف المخفي (قابل للتوسيع) -->
+          <tr *ngIf="expandedInvoiceId === invoice.id" class="items-row">
+            <td colspan="9" class="items-cell">
+              <div class="items-container">
+                <h4 class="items-header">
+                  <lucide-angular name="package" [size]="18"></lucide-angular>
+                  الأصناف المباعة ({{ invoice.items?.length || 0 }})
+                </h4>
+
+                <div class="items-list" *ngIf="invoice.items && invoice.items.length > 0; else noItems">
+                  <div class="item-card" *ngFor="let sale of invoice.items">
+                    <div class="item-cover">
+                      <img *ngIf="sale.book?.cover_image_url" [src]="sale.book.cover_image_url" alt="">
+                      <div *ngIf="!sale.book?.cover_image_url" class="no-image">
+                        <lucide-angular name="book-open" [size]="24"></lucide-angular>
+                      </div>
+                    </div>
+
+                    <div class="item-details">
+                      <h5 class="item-title">{{ sale.book?.title || 'كتاب محذوف' }}</h5>
+                      <p class="item-author">{{ sale.book?.author || '-' }}</p>
+
+                      <div class="item-pricing">
+                        <div class="pricing-row">
+                          <span class="label">الكمية:</span>
+                          <span class="value">{{ toEnglishNumbers(sale.quantity) }}</span>
+                        </div>
+                        <div class="pricing-row">
+                          <span class="label">سعر الوحدة:</span>
+                          <span class="value price">
+                            {{ toEnglishNumbers(sale.unit_price_syp.toLocaleString('en-US')) }} SYP
+                          </span>
+                        </div>
+                        <div class="pricing-row total">
+                          <span class="label">الإجمالي:</span>
+                          <span class="value">
+                            {{ toEnglishNumbers(sale.total_syp.toLocaleString('en-US')) }} SYP
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="item-notes" *ngIf="sale.notes">
+                        <lucide-angular name="info" [size]="14"></lucide-angular>
+                        <span>{{ sale.notes }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <ng-template #noItems>
+                  <div class="empty-items">
+                    <lucide-angular name="package" [size]="48"></lucide-angular>
+                    <p>لا توجد أصناف في هذه الفاتورة</p>
+                  </div>
+                </ng-template>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
       </tbody>
     </table>
   </div>
 
-  <!-- Empty State -->
-  <div *ngIf="!loading && filteredSales.length === 0" class="empty-state">
+  <!-- ==================== EMPTY STATE ==================== -->
+  <div *ngIf="!loading && filteredInvoices.length === 0" class="empty-state">
     <lucide-angular name="shopping-cart" [size]="64"></lucide-angular>
-    <h3>لا توجد مبيعات</h3>
-    <p>{{ searchQuery || selectedCurrency !== 'all' || selectedPaymentMethod !== 'all' ? 'لا توجد نتائج تطابق الفلاتر' : 'ابدأ بتسجيل أول عملية بيع' }}</p>
-    <button *ngIf="searchQuery || selectedCurrency !== 'all' || selectedPaymentMethod !== 'all'"
-            (click)="resetFilters()"
-            class="btn btn-outline">
+    <h3>لا توجد فواتير</h3>
+    <p>{{ searchQuery || selectedPaymentMethod !== 'all' ? 'لا توجد نتائج تطابق الفلاتر' : 'ابدأ بتسجيل أول فاتورة بيع'
+      }}</p>
+    <button *ngIf="searchQuery || selectedPaymentMethod !== 'all'" (click)="resetFilters()" class="btn btn-outline">
       إعادة تعيين الفلاتر
     </button>
-    <button *ngIf="!searchQuery && selectedCurrency === 'all' && selectedPaymentMethod === 'all'"
-            routerLink="/books/sales/new"
-            class="btn btn-primary">
-      تسجيل بيع جديد
+    <button *ngIf="!searchQuery && selectedPaymentMethod === 'all'" routerLink="/books/sales/new"
+      class="btn btn-primary">
+      تسجيل فاتورة جديدة
     </button>
+  </div>
+</div>
+
+<!-- ==================== INVOICE PREVIEW MODAL (للطباعة) ==================== -->
+<div class="modal-overlay" *ngIf="showInvoicePreview" (click)="closeInvoicePreview()">
+  <div class="modal-container invoice-preview" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>فاتورة رقم: {{ selectedInvoice?.invoice_number }}</h3>
+      <button class="btn-close" (click)="closeInvoicePreview()">
+        <lucide-angular name="x" [size]="24"></lucide-angular>
+      </button>
+    </div>
+
+    <div class="modal-body" id="invoice-print-area" *ngIf="selectedInvoice">
+      <!-- Header -->
+      <div class="invoice-header">
+        <div class="company-info">
+          <h2>دار الزيبق للنشر والإنتاج</h2>
+          <p>سوريا - دمشق</p>
+        </div>
+        <div class="invoice-meta">
+          <p><strong>رقم الفاتورة:</strong> {{ selectedInvoice.invoice_number }}</p>
+          <p><strong>التاريخ:</strong> {{ selectedInvoice.sale_date | date:'dd/MM/yyyy' }}</p>
+        </div>
+      </div>
+
+      <!-- Customer Info -->
+      <div class="customer-section">
+        <h4>معلومات العميل</h4>
+        <p><strong>الاسم:</strong> {{ selectedInvoice.customer_name || 'عميل نقدي' }}</p>
+        <p><strong>البائع:</strong> {{ selectedInvoice.seller_name || '-' }}</p>
+      </div>
+
+      <!-- Items Table -->
+      <table class="invoice-items-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الصنف</th>
+            <th>الكمية</th>
+            <th>السعر</th>
+            <th>الإجمالي</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of selectedInvoice.items; let i = index">
+            <td>{{ i + 1 }}</td>
+            <td>{{ item.book?.title || '-' }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unit_price_syp.toLocaleString('en-US') }} SYP</td>
+            <td>{{ item.total_syp.toLocaleString('en-US') }} SYP</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4"><strong>الإجمالي:</strong></td>
+            <td><strong>{{ selectedInvoice.total.toLocaleString('en-US') }} SYP</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <!-- Payment Info -->
+      <div class="payment-info">
+        <p><strong>طريقة الدفع:</strong> {{ getPaymentLabel(selectedInvoice.payment_method) }}</p>
+        <p *ngIf="selectedInvoice.notes"><strong>ملاحظات:</strong> {{ selectedInvoice.notes }}</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button (click)="doPrintInvoice()" class="btn btn-primary">
+        <lucide-angular name="printer" [size]="18"></lucide-angular>
+        طباعة
+      </button>
+      <button (click)="closeInvoicePreview()" class="btn btn-secondary">إغلاق</button>
+    </div>
   </div>
 </div>

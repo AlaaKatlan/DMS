@@ -1,10 +1,43 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core'; // 1. استيراد ChangeDetectorRef
+// src/app/features/books/components/book-sales-list/book-sales-list.component.ts
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { LucideAngularModule } from 'lucide-angular';
-import { BookSale, BookSalesService } from '../../book-sales.service';
+import { BookSalesService } from '../../book-sales.service';
 import { ExcelExportService } from '../../../../shared/services/excel-export.service';
+
+// ✅ واجهة الفاتورة المحسّنة
+export interface SalesInvoice {
+  id: string;
+  invoice_number: string;
+  customer_id?: string;
+  customer_name?: string;
+  seller_id?: string;
+  seller_name?: string;
+  subtotal: number;
+  discount_amount: number;
+  discount_percentage: number;
+  total: number;
+  payment_method: 'cash' | 'card' | 'transfer';
+  notes?: string;
+  sale_date: string;
+  created_at: string;
+  items?: SaleItem[];
+}
+
+export interface SaleItem {
+  id: string;
+  book_id: number;
+  quantity: number;
+  unit_price_usd: number;
+  unit_price_syp: number;
+  total_usd: number;
+  total_syp: number;
+  currency: 'USD' | 'SYP';
+  notes?: string;
+  book?: any;
+}
 
 @Component({
   selector: 'app-book-sales-list',
@@ -16,17 +49,16 @@ import { ExcelExportService } from '../../../../shared/services/excel-export.ser
 export class BookSalesListComponent implements OnInit {
   private salesService = inject(BookSalesService);
   private excelService = inject(ExcelExportService);
-  private cd = inject(ChangeDetectorRef); // 2. حقن خدمة رصد التغييرات
+  private cd = inject(ChangeDetectorRef);
 
-  sales: BookSale[] = [];
-  filteredSales: BookSale[] = [];
+  invoices: SalesInvoice[] = [];
+  filteredInvoices: SalesInvoice[] = [];
   loading = false;
   searchQuery = '';
 
   // فلاتر التاريخ
   startDate: string = '';
   endDate: string = '';
-  selectedCurrency: string = 'all';
   selectedPaymentMethod: string = 'all';
 
   // إحصائيات
@@ -34,9 +66,16 @@ export class BookSalesListComponent implements OnInit {
   totalSalesSYP = 0;
   totalBooksSold = 0;
 
+  // ✅ حالة التوسيع
+  expandedInvoiceId: string | null = null;
+
+  // ✅ معاينة الفاتورة
+  showInvoicePreview = false;
+  selectedInvoice: SalesInvoice | null = null;
+
   ngOnInit() {
     this.setDefaultDates();
-    this.loadSales();
+    this.loadInvoices();
   }
 
   setDefaultDates() {
@@ -47,133 +86,251 @@ export class BookSalesListComponent implements OnInit {
     this.endDate = today.toISOString().split('T')[0];
   }
 
-  loadSales() {
+  // ✅ جلب الفواتير مع الأصناف
+  loadInvoices() {
     this.loading = true;
-    this.salesService.getSalesWithDetails().subscribe({
+    this.salesService.getSalesInvoicesWithItems().subscribe({
       next: (data) => {
-        this.sales = data;
+        this.invoices = data;
         this.applyFilters();
         this.loading = false;
-
-        // 3. ✅ إجبار الواجهة على التحديث بعد وصول البيانات
         this.cd.detectChanges();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error loading invoices:', err);
         this.loading = false;
-        this.cd.detectChanges(); // تحديث الواجهة لإخفاء الـ spinner في حال الخطأ أيضاً
+        this.cd.detectChanges();
       }
     });
   }
 
   applyFilters() {
-    let filtered = [...this.sales];
+    let filtered = [...this.invoices];
 
     // فلتر النص
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();
-      filtered = filtered.filter(s =>
-        s.book?.title?.toLowerCase().includes(q) ||
-        s.customer?.name?.toLowerCase().includes(q) ||
-        s.customer_name?.toLowerCase().includes(q)
+      filtered = filtered.filter(inv =>
+        inv.invoice_number.toLowerCase().includes(q) ||
+        inv.customer_name?.toLowerCase().includes(q) ||
+        inv.seller_name?.toLowerCase().includes(q) ||
+        inv.items?.some(item => item.book?.title?.toLowerCase().includes(q))
       );
     }
 
     // فلتر التاريخ
     if (this.startDate) {
       const start = new Date(this.startDate);
-      filtered = filtered.filter(s => new Date(s.sale_date) >= start);
+      filtered = filtered.filter(inv => new Date(inv.sale_date) >= start);
     }
     if (this.endDate) {
       const end = new Date(this.endDate);
       end.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(s => new Date(s.sale_date) <= end);
-    }
-
-    // فلتر العملة
-    if (this.selectedCurrency !== 'all') {
-      filtered = filtered.filter(s => s.currency === this.selectedCurrency);
+      filtered = filtered.filter(inv => new Date(inv.sale_date) <= end);
     }
 
     // فلتر طريقة الدفع
     if (this.selectedPaymentMethod !== 'all') {
-      filtered = filtered.filter(s => s.payment_method === this.selectedPaymentMethod);
+      filtered = filtered.filter(inv => inv.payment_method === this.selectedPaymentMethod);
     }
 
-    this.filteredSales = filtered;
+    this.filteredInvoices = filtered;
     this.calculateStats();
   }
 
   calculateStats() {
-    this.totalSalesUSD = this.filteredSales.reduce((sum, s) => sum + (s.total_usd || 0), 0);
-    this.totalSalesSYP = this.filteredSales.reduce((sum, s) => sum + (s.total_syp || 0), 0);
-    this.totalBooksSold = this.filteredSales.reduce((sum, s) => sum + (s.quantity || 0), 0);
+    this.totalSalesUSD = 0;
+    this.totalSalesSYP = 0;
+    this.totalBooksSold = 0;
+
+    this.filteredInvoices.forEach(inv => {
+      this.totalSalesSYP += inv.total || 0;
+
+      inv.items?.forEach(item => {
+        this.totalSalesUSD += item.total_usd || 0;
+        this.totalBooksSold += item.quantity || 0;
+      });
+    });
   }
 
   resetFilters() {
     this.searchQuery = '';
-    this.selectedCurrency = 'all';
     this.selectedPaymentMethod = 'all';
     this.setDefaultDates();
     this.applyFilters();
   }
 
-  deleteSale(id: string) {
-    if (confirm('هل أنت متأكد من حذف هذه العملية؟')) {
-      this.salesService.deleteSale(id).subscribe({
+  // ✅ توسيع/إخفاء الفاتورة
+  toggleInvoice(invoiceId: string) {
+    if (this.expandedInvoiceId === invoiceId) {
+      this.expandedInvoiceId = null;
+    } else {
+      this.expandedInvoiceId = invoiceId;
+    }
+    // this.showInvoicePreview = true;
+  }
+
+  // ✅ عرض الفاتورة
+  viewInvoice(invoice: SalesInvoice) {
+    this.selectedInvoice = invoice;
+    this.showInvoicePreview = true;
+  }
+
+  // ✅ طباعة الفاتورة مباشرة
+  printInvoice(invoice: SalesInvoice) {
+    this.selectedInvoice = invoice;
+    this.showInvoicePreview = true;
+    // انتظر قليلاً حتى يتم عرض المودال ثم اطبع
+    setTimeout(() => {
+      this.doPrintInvoice();
+    }, 100);
+  }
+
+  // ✅ تنفيذ الطباعة
+  doPrintInvoice() {
+    const printArea = document.getElementById('invoice-print-area');
+    if (!printArea) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html dir="rtl">
+      <head>
+        <meta charset="utf-8">
+        <title>فاتورة ${this.selectedInvoice?.invoice_number}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+            direction: rtl;
+          }
+          .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+          }
+          .company-info h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+          }
+          .customer-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+          }
+          .customer-section h4 {
+            margin-bottom: 10px;
+            font-size: 16px;
+          }
+          .customer-section p {
+            margin-bottom: 5px;
+          }
+          .invoice-items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+          }
+          .invoice-items-table th,
+          .invoice-items-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: right;
+          }
+          .invoice-items-table th {
+            background: #333;
+            color: white;
+            font-weight: bold;
+          }
+          .invoice-items-table tfoot td {
+            font-weight: bold;
+            background: #f9f9f9;
+          }
+          .payment-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+          }
+          .payment-info p {
+            margin-bottom: 8px;
+          }
+          @media print {
+            body { padding: 0; }
+            button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        ${printArea.innerHTML}
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  }
+
+  closeInvoicePreview() {
+    this.showInvoicePreview = false;
+    this.selectedInvoice = null;
+  }
+
+  // ✅ حذف فاتورة
+  deleteInvoice(id: string) {
+    if (confirm('هل أنت متأكد من حذف هذه الفاتورة وجميع أصنافها؟')) {
+      this.salesService.deleteSalesInvoice(id).subscribe({
         next: () => {
           alert('تم الحذف بنجاح');
-          this.sales = this.sales.filter(s => s.id !== id); // حذف محلي لتجنب طلب السيرفر مرة أخرى
+          this.invoices = this.invoices.filter(inv => inv.id !== id);
           this.applyFilters();
-          this.cd.detectChanges(); // تحديث الواجهة بعد الحذف
+          this.cd.detectChanges();
         },
         error: () => alert('حدث خطأ أثناء الحذف')
       });
     }
   }
 
+  // ✅ تصدير Excel
   exportToExcel() {
-    if (this.filteredSales.length === 0) {
+    if (this.filteredInvoices.length === 0) {
       alert('لا توجد بيانات للتصدير');
       return;
     }
 
-    const exportData = this.filteredSales.map(sale => ({
-      'التاريخ': new Date(sale.sale_date).toLocaleDateString('ar-SA'),
-      'الكتاب': sale.book?.title || '-',
-      'المؤلف': sale.book?.author || '-',
-      'العميل': sale.customer?.name || sale.customer_name || 'عميل نقدي',
-      'الكمية': this.toEnglishNumbers(sale.quantity),
-      'العملة': sale.currency,
-      'سعر الوحدة': this.toEnglishNumbers(
-        sale.currency === 'USD'
-          ? (sale.unit_price_usd || 0).toFixed(2)
-          : (sale.unit_price_syp || 0).toLocaleString('en-US')
-      ),
-      'الإجمالي': this.toEnglishNumbers(
-        sale.currency === 'USD'
-          ? (sale.total_usd || 0).toFixed(2)
-          : (sale.total_syp || 0).toLocaleString('en-US')
-      ),
-      'طريقة الدفع': this.getPaymentLabel(sale.payment_method),
-      'ملاحظات': sale.notes || '-'
-    }));
+    const exportData: any[] = [];
 
-    exportData.push({
-      'التاريخ': 'الإجمالي',
-      'الكتاب': '',
-      'المؤلف': '',
-      'العميل': '',
-      'الكمية': this.toEnglishNumbers(this.totalBooksSold),
-      'العملة': '',
-      'سعر الوحدة': '',
-      'الإجمالي': `USD: ${this.toEnglishNumbers(this.totalSalesUSD.toFixed(2))} / SYP: ${this.toEnglishNumbers(this.totalSalesSYP.toLocaleString('en-US'))}`,
-      'طريقة الدفع': '',
-      'ملاحظات': ''
-    } as any);
+    this.filteredInvoices.forEach(invoice => {
+      invoice.items?.forEach((item, idx) => {
+        exportData.push({
+          'رقم الفاتورة': invoice.invoice_number,
+          'التاريخ': new Date(invoice.sale_date).toLocaleDateString('ar-SA'),
+          'العميل': invoice.customer_name || 'عميل نقدي',
+          'البائع': invoice.seller_name || '-',
+          'الكتاب': item.book?.title || '-',
+          'الكمية': this.toEnglishNumbers(item.quantity),
+          'سعر الوحدة': this.toEnglishNumbers(item.unit_price_syp.toLocaleString('en-US')),
+          'الإجمالي': this.toEnglishNumbers(item.total_syp.toLocaleString('en-US')),
+          'طريقة الدفع': idx === 0 ? this.getPaymentLabel(invoice.payment_method) : '',
+          'إجمالي الفاتورة': idx === 0 ? this.toEnglishNumbers(invoice.total.toLocaleString('en-US')) : '',
+          'ملاحظات': item.notes || '-'
+        });
+      });
+    });
 
     this.excelService.exportToExcel(
       exportData,
-      'تقرير_المبيعات',
+      'تقرير_المبيعات_التفصيلي',
       'المبيعات'
     );
   }

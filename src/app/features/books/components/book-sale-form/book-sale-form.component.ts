@@ -1,339 +1,218 @@
+// src/app/features/books/components/book-sale-form/book-sale-form.component.ts
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { BooksService } from '../../books.service';
 import { CustomersService } from '../../../customers/customers.service';
-import { Book } from '../../../../core/models/base.model';
-// ✅ تم إضافة الاستيراد
 import { BookSalesService } from '../../book-sales.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-book-sale-form',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule, LucideAngularModule],
-  template: `
-    <div class="sale-form-page" dir="rtl">
-      <div class="form-container">
-        <div class="form-header">
-          <div class="header-content">
-            <button type="button" routerLink="/books/sales" class="btn-back">
-              <lucide-angular name="arrow-right" [size]="24"></lucide-angular>
-            </button>
-            <div class="title-group">
-              <h2>تسجيل عملية بيع جديدة</h2>
-              <p class="subtitle">إضافة بيع كتاب للنظام</p>
-            </div>
-          </div>
-
-          <div class="header-actions">
-            <button type="button" routerLink="/books/sales" class="btn btn-secondary">إلغاء</button>
-            <button (click)="onSubmit()" [disabled]="saleForm.invalid || submitting" class="btn btn-primary">
-              <lucide-angular *ngIf="submitting" name="loader-2" class="animate-spin" [size]="18"></lucide-angular>
-              <span>{{ submitting ? 'جاري الحفظ...' : 'تسجيل البيع' }}</span>
-            </button>
-          </div>
-        </div>
-
-        <form [formGroup]="saleForm" class="form-content">
-          <div class="card">
-            <div class="card-header">
-              <lucide-angular name="shopping-cart" [size]="20"></lucide-angular>
-              <h3>تفاصيل البيع</h3>
-            </div>
-
-            <div class="card-body grid-2">
-              <div class="form-group col-span-2">
-                <label>الكتاب <span class="required">*</span></label>
-                <select formControlName="book_id" (change)="onBookChange()">
-                  <option [ngValue]="null">اختر الكتاب</option>
-                  <option *ngFor="let book of books" [value]="book.book_id">
-                    {{ book.title }} - {{ book.author }}
-                  </option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>الكمية <span class="required">*</span></label>
-                <input type="number" formControlName="quantity" min="1" (input)="calculateTotal()">
-                <span class="hint" *ngIf="selectedBook">
-                  المتوفر: {{ selectedBook.stock_quantity || 0 }}
-                </span>
-              </div>
-
-              <div class="form-group">
-                <label>العملة <span class="required">*</span></label>
-                <select formControlName="currency" (change)="calculateTotal()">
-                  <option value="USD">دولار أمريكي (USD)</option>
-                  <option value="SYP">ليرة سورية (SYP)</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>سعر الوحدة ({{ saleForm.get('currency')?.value }})</label>
-                <input type="number" formControlName="unit_price" step="0.01" min="0" readonly class="bg-gray-50">
-              </div>
-
-              <div class="form-group">
-                <label>الإجمالي ({{ saleForm.get('currency')?.value }})</label>
-                <input type="number" formControlName="total" step="0.01" readonly class="bg-gray-50 font-bold text-green-600">
-              </div>
-
-              <div class="form-group col-span-2">
-                <label>العميل</label>
-                <div class="customer-select-group">
-                  <select formControlName="customer_id">
-                    <option [ngValue]="null">عميل نقدي (بدون تسجيل)</option>
-                    <option *ngFor="let customer of customers" [value]="customer.id">
-                      {{ customer.name }}
-                    </option>
-                  </select>
-                  <input
-                    *ngIf="!saleForm.get('customer_id')?.value"
-                    type="text"
-                    formControlName="customer_name"
-                    placeholder="اسم العميل (اختياري)"
-                    class="mt-2"
-                  >
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label>طريقة الدفع <span class="required">*</span></label>
-                <select formControlName="payment_method">
-                  <option value="cash">نقدي</option>
-                  <option value="card">بطاقة</option>
-                  <option value="transfer">تحويل بنكي</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label>تاريخ البيع <span class="required">*</span></label>
-                <input type="date" formControlName="sale_date">
-              </div>
-
-              <div class="form-group col-span-2">
-                <label>ملاحظات</label>
-                <textarea formControlName="notes" rows="2" placeholder="ملاحظات إضافية عن البيع..."></textarea>
-              </div>
-            </div>
-          </div>
-
-          <div class="card" *ngIf="selectedBook">
-            <div class="card-header">
-              <lucide-angular name="info" [size]="20"></lucide-angular>
-              <h3>معلومات الكتاب المحدد</h3>
-            </div>
-            <div class="card-body">
-              <div class="book-preview">
-                <img *ngIf="selectedBook.cover_image_url"
-                     [src]="selectedBook.cover_image_url"
-                     [alt]="selectedBook.title"
-                     class="book-thumbnail">
-                <div class="book-details">
-                  <h4>{{ selectedBook.title }}</h4>
-                  <p>المؤلف: {{ selectedBook.author || '-' }}</p>
-                  <div class="price-info">
-                    <span class="price-usd">$ {{ selectedBook.price_usd }}</span>
-                    <span class="separator">|</span>
-                    <span class="price-syp">{{ selectedBook.price_syp }} SYP</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </form>
-      </div>
-    </div>
-  `,
-  styles: [`
-    @use 'sass:color';
-    $primary: #4F46E5;
-    $bg-page: #F8FAFC;
-    $white: #FFFFFF;
-    $border: #E2E8F0;
-    $text-main: #1E293B;
-    $text-light: #64748B;
-    $danger: #EF4444;
-
-    :host { display: block; min-height: 100vh; background: $bg-page; padding: 2rem; }
-
-    .sale-form-page { max-width: 900px; margin: 0 auto; }
-
-    .form-header {
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;
-
-      .header-content {
-        display: flex; align-items: center; gap: 1rem;
-        .btn-back {
-          width: 40px; height: 40px; border-radius: 50%; background: $white;
-          border: 1px solid $border; display: flex; align-items: center;
-          justify-content: center; cursor: pointer; color: $text-light;
-          &:hover { color: $primary; border-color: $primary; }
-        }
-        .title-group {
-          h2 { margin: 0; font-size: 1.5rem; color: $text-main; }
-          .subtitle { margin: 0; color: $text-light; font-size: 0.9rem; margin-top: 2px; }
-        }
-      }
-
-      .header-actions {
-        display: flex; gap: 0.75rem;
-        .btn {
-          padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 600;
-          cursor: pointer; border: none; display: flex; align-items: center; gap: 0.5rem;
-          &-secondary { background: $white; border: 1px solid $border; color: $text-main; }
-          &-primary { background: $primary; color: white; }
-          &:disabled { opacity: 0.7; }
-        }
-      }
-    }
-
-    .card {
-      background: $white; border-radius: 1rem; border: 1px solid $border;
-      margin-bottom: 1.5rem; overflow: hidden;
-
-      .card-header {
-        padding: 1rem 1.5rem; border-bottom: 1px solid $border; background: #f8fafc;
-        display: flex; align-items: center; gap: 0.75rem;
-        h3 { margin: 0; font-size: 1rem; font-weight: 700; color: $text-main; }
-      }
-
-      .card-body { padding: 1.5rem; }
-    }
-
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .col-span-2 { grid-column: span 2; }
-
-    .form-group {
-      display: flex; flex-direction: column; gap: 0.5rem;
-      label { font-size: 0.85rem; font-weight: 600; color: $text-main;
-        .required { color: $danger; }
-      }
-      input, select, textarea {
-        padding: 0.75rem; border: 1px solid $border; border-radius: 0.5rem;
-        &:focus { outline: none; border-color: $primary; }
-      }
-      .hint { font-size: 0.75rem; color: $text-light; }
-    }
-
-    .book-preview {
-      display: flex; gap: 1.5rem; align-items: flex-start;
-      .book-thumbnail { width: 80px; height: 110px; object-fit: cover; border-radius: 8px; }
-      .book-details {
-        h4 { margin: 0 0 0.5rem; font-size: 1.125rem; color: $text-main; }
-        p { margin: 0 0 0.75rem; color: $text-light; }
-        .price-info {
-          display: flex; gap: 0.75rem; font-weight: 700;
-          .price-usd { color: #0284c7; }
-          .price-syp { color: #059669; }
-          .separator { color: $text-light; }
-        }
-      }
-    }
-
-    .animate-spin { animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  `]
+  templateUrl: './book-sale-form.component.html',
+  styleUrls: ['./book-sale-form.component.scss']
 })
 export class BookSaleFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private salesService = inject(BookSalesService);
   private booksService = inject(BooksService);
   private customersService = inject(CustomersService);
+  private authService = inject(AuthService);
   private router = inject(Router);
 
-  saleForm!: FormGroup;
-  books: Book[] = [];
-  // ✅ تغيير النوع لقبول البيانات الجزئية
+  invoiceForm!: FormGroup;
+  books: any[] = [];
   customers: any[] = [];
-
-  selectedBook: Book | null = null;
   submitting = false;
+  invoiceNumber = '';
+
+  currentUser = this.authService.currentUser;
 
   ngOnInit() {
     this.initForm();
     this.loadData();
+    this.generateInvoiceNumber();
   }
 
   initForm() {
-    this.saleForm = this.fb.group({
-      book_id: [null, Validators.required],
+    this.invoiceForm = this.fb.group({
+      invoice_number: ['', Validators.required],
       customer_id: [null],
       customer_name: [''],
-      quantity: [1, [Validators.required, Validators.min(1)]],
-      currency: ['USD', Validators.required],
-      unit_price: [0],
-      total: [0],
+      seller_id: [this.currentUser?.id],
+      seller_name: [this.currentUser?.full_name_p],
       payment_method: ['cash', Validators.required],
       sale_date: [new Date().toISOString().split('T')[0], Validators.required],
+      notes: [''],
+      items: this.fb.array([]) // ✅ مصفوفة الأصناف
+    });
+
+    // إضافة صنف افتراضي
+    this.addItem();
+
+    // حساب الإجمالي عند تغيير الأصناف
+    this.items.valueChanges.subscribe(() => {
+      this.calculateTotals();
+    });
+  }
+
+  // ✅ Getter للأصناف
+  get items(): FormArray {
+    return this.invoiceForm.get('items') as FormArray;
+  }
+
+  // ✅ إنشاء صنف جديد
+  createItemFormGroup(): FormGroup {
+    return this.fb.group({
+      book_id: [null, Validators.required],
+      quantity: [1, [Validators.required, Validators.min(1)]],
+      unit_price_syp: [0],
+      total_syp: [0],
       notes: ['']
     });
   }
 
-  loadData() {
-    this.booksService.getBooksWithRelations().subscribe(books => this.books = books);
-    // @ts-ignore
-    this.customersService.getCustomersLite().subscribe(customers => this.customers = customers);
+  // ✅ إضافة صنف
+  addItem() {
+    this.items.push(this.createItemFormGroup());
   }
 
-  onBookChange() {
-    const bookId = this.saleForm.get('book_id')?.value;
+  // ✅ حذف صنف
+  removeItem(index: number) {
+    if (this.items.length > 1) {
+      this.items.removeAt(index);
+    } else {
+      alert('يجب أن يحتوي على صنف واحد على الأقل');
+    }
+  }
+
+  // ✅ عند تغيير الكتاب
+  onBookChange(index: number) {
+    const item = this.items.at(index);
+    const bookId = item.get('book_id')?.value;
+
     if (bookId) {
-      this.selectedBook = this.books.find(b => b.book_id === +bookId) || null;
-      if (this.selectedBook) {
-        this.calculateTotal();
+      const book = this.books.find(b => b.book_id === +bookId);
+      if (book) {
+        item.patchValue({
+          unit_price_syp: book.price_syp || 0
+        }, { emitEvent: false });
+
+        this.calculateItemTotal(index);
       }
     }
   }
 
-  calculateTotal() {
-    if (!this.selectedBook) return;
+  // ✅ حساب إجمالي صنف
+  calculateItemTotal(index: number) {
+    const item = this.items.at(index);
+    const quantity = item.get('quantity')?.value || 0;
+    const unitPrice = item.get('unit_price_syp')?.value || 0;
+    const total = quantity * unitPrice;
 
-    const currency = this.saleForm.get('currency')?.value;
-    const quantity = this.saleForm.get('quantity')?.value || 0;
+    item.patchValue({ total_syp: total }, { emitEvent: false });
+    this.calculateTotals();
+  }
 
-    const unitPrice = currency === 'USD'
-      ? (this.selectedBook.price_usd || 0)
-      : (this.selectedBook.price_syp || 0);
+  // ✅ حساب الإجماليات
+  calculateTotals() {
+    const subtotal = this.items.controls.reduce((sum, item) => {
+      return sum + (item.get('total_syp')?.value || 0);
+    }, 0);
 
-    const total = unitPrice * quantity;
-
-    this.saleForm.patchValue({
-      unit_price: unitPrice,
-      total: total
+    // يمكن إضافة خصم لاحقاً
+    this.invoiceForm.patchValue({
+      subtotal: subtotal,
+      total: subtotal
     }, { emitEvent: false });
   }
 
+  loadData() {
+    this.booksService.getBooksWithRelations().subscribe(books => {
+      this.books = books;
+    });
+
+    // @ts-ignore
+    this.customersService.getCustomersLite?.().subscribe(customers => {
+      this.customers = customers;
+    });
+  }
+
+  generateInvoiceNumber() {
+    this.salesService.generateInvoiceNumber().subscribe(number => {
+      this.invoiceNumber = number;
+      this.invoiceForm.patchValue({ invoice_number: number });
+    });
+  }
+
   onSubmit() {
-    if (this.saleForm.invalid) {
-      this.saleForm.markAllAsTouched();
+    if (this.invoiceForm.invalid) {
+      this.invoiceForm.markAllAsTouched();
+      alert('يرجى تعبئة جميع الحقول المطلوبة');
+      return;
+    }
+
+    if (this.items.length === 0) {
+      alert('يجب إضافة صنف واحد على الأقل');
       return;
     }
 
     this.submitting = true;
-    const formData = this.saleForm.getRawValue();
+    const formData = this.invoiceForm.getRawValue();
 
-    const saleData = {
-      ...formData,
-      unit_price_usd: formData.currency === 'USD' ? formData.unit_price : 0,
-      unit_price_syp: formData.currency === 'SYP' ? formData.unit_price : 0,
-      total_usd: formData.currency === 'USD' ? formData.total : 0,
-      total_syp: formData.currency === 'SYP' ? formData.total : 0
+    // تحضير بيانات الفاتورة
+    const invoiceData: any = {
+      invoice_number: formData.invoice_number,
+      customer_id: formData.customer_id,
+      customer_name: formData.customer_name,
+      seller_id: formData.seller_id,
+      seller_name: formData.seller_name,
+      subtotal: formData.items.reduce((sum: number, item: any) => sum + item.total_syp, 0),
+      discount_amount: 0,
+      discount_percentage: 0,
+      total: formData.items.reduce((sum: number, item: any) => sum + item.total_syp, 0),
+      payment_method: formData.payment_method,
+      sale_date: formData.sale_date,
+      notes: formData.notes
     };
 
-    this.salesService.createSale(saleData).subscribe({
+    // تحضير الأصناف
+    const items = formData.items.map((item: any) => ({
+      book_id: item.book_id,
+      quantity: item.quantity,
+      unit_price_usd: 0,
+      unit_price_syp: item.unit_price_syp,
+      total_usd: 0,
+      total_syp: item.total_syp,
+      currency: 'SYP',
+      notes: item.notes
+    }));
+
+    this.salesService.createSalesInvoice(invoiceData, items).subscribe({
       next: () => {
-        alert('تم تسجيل عملية البيع بنجاح');
+        alert('تم تسجيل الفاتورة بنجاح');
         this.router.navigate(['/books/sales']);
       },
-      // ✅ تحديد نوع الخطأ
       error: (err: any) => {
         console.error(err);
-        alert('حدث خطأ أثناء حفظ البيع');
+        alert('حدث خطأ أثناء حفظ الفاتورة');
         this.submitting = false;
       }
     });
+  }
+
+  getBookTitle(bookId: number): string {
+    const book = this.books.find(b => b.book_id === bookId);
+    return book ? book.title : '';
+  }
+
+  getTotalAmount(): number {
+    return this.items.controls.reduce((sum, item) => {
+      return sum + (item.get('total_syp')?.value || 0);
+    }, 0);
   }
 }

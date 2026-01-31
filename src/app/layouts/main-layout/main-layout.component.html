@@ -19,6 +19,7 @@
         *ngFor="let item of menuItems"
         [routerLink]="item.route"
         routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.exact !== false }"
         class="nav-item"
         [class.hidden]="!hasRole(item.roles)"
       >

@@ -12,6 +12,7 @@ interface MenuItem {
   route: string;
   roles?: string[];
   badge?: number;
+  exact?: boolean; // ✅ جديد: للتحكم في exact matching
 }
 
 @Component({
@@ -36,60 +37,70 @@ export class MainLayoutComponent implements OnInit {
     {
       label: 'لوحة التحكم',
       icon: 'layout-dashboard',
-      route: '/dashboard'
+      route: '/dashboard',
+      exact: true // ✅ تفعيل فقط على /dashboard
     },
     {
       label: 'العملاء',
       icon: 'users',
-      route: '/customers'
+      route: '/customers',
+      exact: false
     },
     {
       label: 'خدمات خارجية',
       icon: 'briefcase',
-      route: '/suppliers'
+      route: '/suppliers',
+      exact: false
     },
     {
       label: 'الكتب',
       icon: 'book-open',
-      route: '/books'
-    },// في main-layout.component.ts - menuItems
+      route: '/books',
+      exact: true // ✅ تفعيل فقط على /books وليس /books/sales
+    },
     {
       label: 'مبيعات الكتب',
       icon: 'trending-up',
       route: '/books/sales',
-      badge: undefined // أو عدد المبيعات اليوم
+      exact: false // ✅ تفعيل على /books/sales وأي مسار فرعي
     },
     {
       label: 'المشاريع',
       icon: 'folder',
-      route: '/projects'
+      route: '/projects',
+      exact: false
     },
     {
       label: 'المهام',
       icon: 'check-square',
-      route: '/tasks'
+      route: '/tasks',
+      exact: false
     },
     {
       label: 'الفواتير',
       icon: 'file-text',
-      route: '/invoices'
+      route: '/invoices',
+      exact: false
     },
     {
       label: 'المحاسبة',
       icon: 'dollar-sign',
       route: '/accounting',
-      roles: ['admin', 'accountant']
+      roles: ['admin', 'accountant'],
+      exact: false
     },
     {
       label: 'التقويم',
       icon: 'calendar',
-      route: '/calendar'
+      route: '/calendar',
+      exact: true
     },
     {
       label: 'الإعدادات',
       icon: 'settings',
       route: '/settings',
-      roles: ['admin', 'manager']
+      roles: ['admin', 'manager'],
+      exact: false
     }
   ];
 
