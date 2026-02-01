@@ -1,9 +1,12 @@
-// src/app/features/books/components/book-sale-form/book-sale-form.component.scss
 @use 'sass:color';
 
+// Variables (Matching project style)
 $primary: #4F46E5;
-$success: #10b981;
-$danger: #ef4444;
+$secondary: #64748B;
+$success: #10B981;
+$warning: #F59E0B;
+$danger: #EF4444;
+$info: #3B82F6;
 $bg-page: #F8FAFC;
 $white: #FFFFFF;
 $border: #E2E8F0;
@@ -13,21 +16,24 @@ $text-light: #64748B;
 :host {
   display: block;
   min-height: 100vh;
-  background: $bg-page;
+  background-color: $bg-page;
   padding: 2rem;
+  @media (max-width: 768px) { padding: 1rem; }
 }
 
-.sale-form-page {
+.book-form-page {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-// ==================== HEADER ====================
+// Header Section
 .form-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 
   .header-content {
     display: flex;
@@ -35,155 +41,95 @@ $text-light: #64748B;
     gap: 1rem;
 
     .btn-back {
+      background: $white;
+      border: 1px solid $border;
       width: 40px;
       height: 40px;
       border-radius: 50%;
-      background: $white;
-      border: 1px solid $border;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
       color: $text-light;
-
-      &:hover {
-        color: $primary;
-        border-color: $primary;
-      }
+      cursor: pointer;
+      transition: all 0.2s;
+      &:hover { background: #f1f5f9; color: $primary; border-color: $primary; }
     }
 
     .title-group {
-      h2 {
-        margin: 0;
-        font-size: 1.5rem;
-        color: $text-main;
-      }
-      .subtitle {
-        margin: 0;
-        color: $text-light;
-        font-size: 0.9rem;
-        margin-top: 2px;
-      }
+      h2 { font-size: 1.5rem; font-weight: 800; color: $text-main; margin: 0; }
+      .subtitle { color: $text-light; font-size: 0.9rem; margin: 0.25rem 0 0 0; }
     }
   }
 
   .header-actions {
     display: flex;
     gap: 0.75rem;
-  }
-}
 
-// ==================== BUTTONS ====================
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.2s;
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      transition: 0.2s;
 
-  &-secondary {
-    background: $white;
-    border: 1px solid $border;
-    color: $text-main;
+      &-secondary {
+        background: $white;
+        border: 1px solid $border;
+        color: $text-main;
+        &:hover { background: #f8fafc; }
+      }
 
-    &:hover {
-      background: #f8fafc;
-    }
-  }
-
-  &-primary {
-    background: $primary;
-    color: white;
-
-    &:hover {
-      background: color.mix(black, $primary, 10%);
-    }
-
-    &:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-  }
-
-  &-success {
-    background: $success;
-    color: white;
-
-    &:hover {
-      background: color.mix(black, $success, 10%);
-    }
-  }
-
-  &-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-  }
-
-  &-delete {
-    padding: 0.5rem;
-    background: transparent;
-    border: 1px solid $border;
-    border-radius: 6px;
-    color: $text-light;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover:not(:disabled) {
-      background: #fef2f2;
-      border-color: $danger;
-      color: $danger;
-    }
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
+      &-primary {
+        background: $primary;
+        color: white;
+        box-shadow: 0 4px 6px -1px rgba($primary, 0.3);
+        &:hover { background: color.mix(black, $primary, 10%); }
+        &:disabled { opacity: 0.7; cursor: not-allowed; }
+      }
     }
   }
 }
 
-// ==================== FORM GRID ====================
+// Grid Layout
 .form-grid {
   display: grid;
+  grid-template-columns: 2fr 1fr;
   gap: 1.5rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
 }
 
-// ==================== CARDS ====================
+// Cards
 .card {
   background: $white;
   border-radius: 1rem;
   border: 1px solid $border;
+  margin-bottom: 1.5rem;
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 
   .card-header {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid $border;
-    background: #f8fafc;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    justify-content: space-between;
+    background: #f8fafc; // Light header background
 
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
+    lucide-angular { color: $primary; }
+    & h3 { margin: 0; font-size: 1rem; font-weight: 700; color: $text-main; }
 
-    lucide-angular {
-      color: $primary;
-    }
-
-    h3 {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 700;
-      color: $text-main;
-    }
+    // Text colors for icons
+    .text-success { color: $success; }
+    .text-warning { color: $warning; }
+    .text-info { color: $info; }
+    .text-primary { color: $primary; }
   }
 
   .card-body {
@@ -191,7 +137,7 @@ $text-light: #64748B;
   }
 }
 
-// ==================== FORM GROUPS ====================
+// Form Controls
 .form-group {
   display: flex;
   flex-direction: column;
@@ -202,23 +148,17 @@ $text-light: #64748B;
     font-size: 0.85rem;
     font-weight: 600;
     color: $text-main;
-
-    .required {
-      color: $danger;
-      margin-right: 2px;
-    }
+    .required { color: $danger; margin-right: 2px; }
   }
 
-  input,
-  select,
-  textarea {
+  input, select, textarea {
     padding: 0.75rem 1rem;
     border: 1px solid $border;
     border-radius: 0.5rem;
     font-size: 0.95rem;
     color: $text-main;
     width: 100%;
-    box-sizing: border-box;
+    box-sizing: border-box; // Important
     transition: border-color 0.2s;
 
     &:focus {
@@ -227,208 +167,44 @@ $text-light: #64748B;
       box-shadow: 0 0 0 3px rgba($primary, 0.1);
     }
 
-    &.readonly {
-      background-color: #f1f5f9;
-      cursor: not-allowed;
-    }
-
-    &.bold {
-      font-weight: 700;
-      color: $success;
-    }
+    &::placeholder { color: color.mix($white, $text-light, 40%); }
   }
+
+  .hint { font-size: 0.75rem; color: $text-light; }
+
+  .font-mono { font-family: monospace; }
+  .font-bold { font-weight: 700; }
+  .text-success { color: $success; }
+  .bg-readonly { background-color: #f1f5f9; cursor: not-allowed; }
 }
 
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+// Grids helpers
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.col-span-2 { grid-column: span 2; }
+
+@media (max-width: 600px) {
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .col-span-2 { grid-column: span 1; }
 }
 
-.col-span-2 {
-  grid-column: span 2;
-}
-
-.customer-select-group {
+// Image Preview
+.image-preview {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  border: 1px dashed $border;
+  border-radius: 0.5rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  justify-content: center;
 
-  .mt-2 {
-    margin-top: 0.5rem;
+  img {
+    max-height: 150px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
 }
 
-// ==================== ITEMS LIST ====================
-.items-card {
-  .card-body {
-    padding: 0;
-  }
-}
-
-.items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  max-height: 500px;
-  overflow-y: auto;
-}
-
-.item-row {
-  display: flex;
-  gap: 1rem;
-  padding: 1.25rem;
-  background: #f8fafc;
-  border: 1px solid $border;
-  border-radius: 0.75rem;
-  transition: all 0.2s;
-
-  &:hover {
-    background: $white;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  }
-
-  .item-number {
-    width: 32px;
-    height: 32px;
-    background: $primary;
-    color: $white;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 0.875rem;
-    flex-shrink: 0;
-    margin-top: 1.75rem;
-  }
-
-  .item-fields {
-    flex: 1;
-    display: grid;
-    grid-template-columns: 2fr 0.8fr 1fr 1fr 1.5fr 60px;
-    gap: 1rem;
-    align-items: end;
-
-    @media (max-width: 1024px) {
-      grid-template-columns: 1fr;
-    }
-
-    .field-group {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-
-      label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #6b7280;
-      }
-
-      input,
-      select {
-        padding: 0.625rem 0.875rem;
-        border: 1px solid $border;
-        border-radius: 0.5rem;
-        font-size: 0.875rem;
-
-        &:focus {
-          outline: none;
-          border-color: $primary;
-        }
-
-        &.readonly {
-          background: #f1f5f9;
-        }
-
-        &.bold {
-          font-weight: 700;
-          color: $success;
-        }
-      }
-
-      &.actions {
-        display: flex;
-        justify-content: center;
-        align-items: flex-end;
-      }
-    }
-  }
-}
-
-// ==================== TOTAL SUMMARY ====================
-.total-summary {
-  padding: 1.5rem;
-  border-top: 2px solid $border;
-  background: linear-gradient(to bottom, $white, #f8fafc);
-
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .label {
-      font-size: 1.125rem;
-      font-weight: 700;
-      color: $text-main;
-    }
-
-    .value {
-      font-size: 1.5rem;
-      font-weight: 800;
-      color: $success;
-      font-family: monospace;
-    }
-  }
-}
-
-// ==================== ANIMATIONS ====================
-.animate-spin {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-// ==================== RESPONSIVE ====================
-@media (max-width: 768px) {
-  :host {
-    padding: 1rem;
-  }
-
-  .form-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-
-    .header-actions {
-      width: 100%;
-      flex-direction: column;
-
-      .btn {
-        width: 100%;
-        justify-content: center;
-      }
-    }
-  }
-
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
-
-  .col-span-2 {
-    grid-column: span 1;
-  }
-
-  .item-row {
-    flex-direction: column;
-
-    .item-number {
-      margin-top: 0;
-    }
-  }
-}
+// Spinner Animation
+.animate-spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
