@@ -1,8 +1,8 @@
 // src/app/features/dashboard/dashboard.service.ts
 import { Injectable, inject } from '@angular/core';
-import { Observable, forkJoin, map } from 'rxjs';
+import { Observable, from, forkJoin, map } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
-import { DashboardStats, Expense, Invoice, InvoicePayment, Project, ProjectTask } from '../../core/models/base.model';
+import { DashboardStats } from '../../core/models/base.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,371 +11,228 @@ export class DashboardService {
   private supabase = inject(SupabaseService);
 
   /**
-   * Get all dashboard statistics
+   * جلب جميع إحصائيات لوحة التحكم دفعة واحدة
    */
   getDashboardStats(): Observable<DashboardStats> {
+    const today = new Date().toISOString().split('T')[0];
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+
     return forkJoin({
-      todayRevenue: this.getTodayRevenue(),
-      monthlyRevenue: this.getMonthlyTotalRevenue(),
-      monthlyExpenses: this.getMonthlyTotalExpenses(),
-      projects: this.getProjectStats(),
-      tasks: this.getTaskStats(),
-      invoices: this.getInvoiceStats(),
-      books: this.getBookStats()
+      // 1. إيرادات اليوم (مبيعات كتب + فواتير مشاريع مدفوعة)
+      todayBookSales: from(this.supabase.client
+        .from('sales_invoices')
+        .select('total')
+        .eq('sale_date', today)
+      ),
+
+      // 2. إيرادات الشهر (كتب + مشاريع)
+      monthlyBookSales: from(this.supabase.client
+        .from('sales_invoices')
+        .select('total, sale_date')
+        .gte('sale_date', startOfMonth)
+      ),
+      monthlyProjectInvoices: from(this.supabase.client
+        .from('invoices')
+        .select('amount_due')
+        .eq('status', 'paid')
+        .gte('issue_date', startOfMonth)
+      ),
+
+      // 3. المصاريف الشهرية
+      monthlyExpenses: from(this.supabase.client
+        .from('expenses')
+        .select('amount')
+        .gte('expense_date', startOfMonth)
+      ),
+
+      // 4. إحصائيات المشاريع
+      activeProjects: from(this.supabase.client
+        .from('projects')
+        .select('id', { count: 'exact' })
+        .eq('status', 'active')
+      ),
+
+      // 5. إحصائيات المهام
+      pendingTasks: from(this.supabase.client
+        .from('project_tasks')
+        .select('id', { count: 'exact' })
+        .neq('status', 'completed')
+      ),
+
+      // 6. الكتب منخفضة المخزون
+      lowStockBooks: from(this.supabase.client
+        .from('books')
+        .select('book_id', { count: 'exact' })
+        .lt('stock_quantity', 10)
+      ),
+
+      // 7. الفواتير المعلقة والمتأخرة (لحل مشكلة الـ Type Error)
+      pendingInvoices: from(this.supabase.client
+        .from('invoices')
+        .select('id', { count: 'exact' })
+        .eq('status', 'unpaid')
+      ),
+      overdueInvoices: from(this.supabase.client
+        .from('invoices')
+        .select('id', { count: 'exact' })
+        .eq('status', 'overdue') // أو استخدام شرط التاريخ < اليوم
+      )
+
     }).pipe(
-      map(data => ({
-        todayRevenue: data.todayRevenue,
-        monthlyRevenue: data.monthlyRevenue,
-        monthlyExpenses: data.monthlyExpenses,
-        monthlyProfit: data.monthlyRevenue - data.monthlyExpenses,
-        activeProjects: data.projects.active,
-        overdueProjects: data.projects.overdue,
-        pendingTasks: data.tasks.pending,
-        overdueTasks: data.tasks.overdue,
-        lowStockBooks: data.books.lowStock,
-        pendingInvoices: data.invoices.pending,
-        overdueInvoices: data.invoices.overdue
-      }))
+      map(results => {
+        // --- تصحيح الأخطاء باستخدام (as any[]) ---
+
+        // إيرادات اليوم
+        const todayBookData = (results.todayBookSales.data as any[]) || [];
+        const todayRevenue = todayBookData.reduce((sum, item) => sum + (item.total || 0), 0);
+
+        // إيرادات الشهر
+        const monthlyBookData = (results.monthlyBookSales.data as any[]) || [];
+        const monthlyProjData = (results.monthlyProjectInvoices.data as any[]) || [];
+
+        const monthlyBookRev = monthlyBookData.reduce((sum, item) => sum + (item.total || 0), 0);
+        const monthlyProjRev = monthlyProjData.reduce((sum, item) => sum + (item.amount_due || 0), 0);
+        const totalMonthlyRevenue = monthlyBookRev + monthlyProjRev;
+
+        // المصاريف
+        const expensesData = (results.monthlyExpenses.data as any[]) || [];
+        const totalExpenses = expensesData.reduce((sum, item) => sum + (item.amount || 0), 0);
+
+        // بناء الكائن النهائي مع كافة الحقول المطلوبة
+        return {
+          todayRevenue: todayRevenue,
+          monthlyRevenue: totalMonthlyRevenue,
+          monthlyExpenses: totalExpenses,
+          monthlyProfit: totalMonthlyRevenue - totalExpenses,
+          activeProjects: results.activeProjects.count || 0,
+          overdueProjects: 0,
+          pendingTasks: results.pendingTasks.count || 0,
+          overdueTasks: 0,
+          lowStockBooks: results.lowStockBooks.count || 0,
+          customerCount: 0,
+          // إضافة الحقول الناقصة
+          pendingInvoices: results.pendingInvoices.count || 0,
+          overdueInvoices: results.overdueInvoices.count || 0
+        } as DashboardStats;
+      })
     );
   }
 
   /**
-   * Today's revenue from invoice payments
+   * جلب بيانات الرسم البياني للإيرادات
    */
-private getTodayRevenue(): Observable<number> {
-  const today = new Date().toISOString().split('T')[0];
+  getMonthlyRevenue(): Observable<any[]> {
+    const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 
-  return new Observable(observer => {
-    this.supabase.client
-      .from('invoice_payments')
-      .select('*')                         // ✔️ هون منجيب كل الحقول
-      .gte('paid_at', today)
-      .returns<InvoicePayment[]>()         // ✔️ وهون منحكي للـ TS شو النوع الصحيح
-      .then(({ data, error }) => {
-        if (error) {
-          observer.error(error);
-        } else {
-          const total =
-            data?.reduce((sum, p) => sum + (p.amount ?? 0), 0) ?? 0;
+    return from(this.supabase.client
+      .from('sales_invoices')
+      .select('sale_date, total')
+      .gte('sale_date', startOfMonth)
+      .order('sale_date')
+    ).pipe(
+      map(response => {
+        const data = (response.data as any[]) || [];
 
-          observer.next(total);
-          observer.complete();
-        }
-      });
-  });
-}
+        // تجميع البيانات حسب التاريخ
+        const grouped = data.reduce((acc: any, curr) => {
+          const date = curr.sale_date;
+          if (!acc[date]) acc[date] = 0;
+          acc[date] += curr.total;
+          return acc;
+        }, {});
 
-
-  /**
-   * Monthly revenue
-   */
- private getMonthlyTotalRevenue(): Observable<number> {
-  const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-    .toISOString().split('T')[0];
-
-  return new Observable(observer => {
-    this.supabase.client
-      .from('invoice_payments')
-      .select('*')                        // ✔️ لازم يكون String فقط — بدون Generics
-      .gte('paid_at', firstDay)
-      .returns<InvoicePayment[]>()        // ✔️ هنا يتم تحديد نوع البيانات
-      .then(({ data, error }) => {
-        if (error) {
-          observer.error(error);
-        } else {
-          const total =
-            data?.reduce((sum, p) => sum + (p.amount ?? 0), 0) ?? 0;
-
-          observer.next(total);
-          observer.complete();
-        }
-      });
-  });
-}
-
-
-  /**
-   * Monthly expenses
-   */
-private getMonthlyTotalExpenses(): Observable<number> {
-  const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-    .toISOString().split('T')[0];
-
-  return new Observable(observer => {
-    this.supabase.client
-      .from('expenses')
-      .select('*')                           // ✔️ Supabase V2 requires string only
-      .eq('approved', true)
-      .gte('expense_date', firstDay)
-      .returns<Expense[]>()                  // ✔️ TypeScript now knows each item is Expense
-      .then(({ data, error }) => {
-        if (error) {
-          observer.error(error);
-        } else {
-          const total =
-            data?.reduce((sum, e) => sum + (e.amount ?? 0), 0) ?? 0;
-
-          observer.next(total);
-          observer.complete();
-        }
-      });
-  });
-}
-
-  /**
-   * Project statistics
-   */
-private getProjectStats(): Observable<{ active: number; overdue: number }> {
-  const today = new Date().toISOString().split('T')[0];
-
-  return new Observable(observer => {
-    this.supabase.client
-      .from('projects')
-      .select('*')
-      .returns<Project[]>()
-      .then(({ data, error }) => {
-        if (error) {
-          observer.error(error);
-          return;
-        }
-
-        const projects = data ?? [];
-
-        const active = projects.filter(p => p.status === 'active').length;
-
-        const overdue = projects.filter(p =>
-          p.status === 'active' &&
-          p.due_date &&
-          p.due_date < today
-        ).length;
-
-        observer.next({ active, overdue });
-        observer.complete();
-      });
-  });
-}
-
-
-  /**
-   * Task statistics
-   */
- private getTaskStats(): Observable<{ pending: number; overdue: number }> {
-  const today = new Date().toISOString().split('T')[0];
-
-  return new Observable(observer => {
-    this.supabase.client
-      .from('project_tasks')
-      .select('*')                        // ✔️ Supabase V2 correct usage
-      .returns<ProjectTask[]>()           // ✔️ Proper typing
-      .then(({ data, error }) => {
-        if (error) {
-          observer.error(error);
-          return;
-        }
-
-        const tasks = data ?? [];
-
-        const pending =
-          tasks.filter(t =>
-            t.status === 'todo' || t.status === 'in_progress'
-          ).length;
-
-        const overdue =
-          tasks.filter(t =>
-            (t.status === 'todo' || t.status === 'in_progress') &&
-            t.due_date &&
-            t.due_date < today
-          ).length;
-
-        observer.next({ pending, overdue });
-        observer.complete();
-      });
-  });
-}
-
-
-  /**
-   * Invoice statistics
-   */
-private getInvoiceStats(): Observable<{ pending: number; overdue: number }> {
-  const today = new Date().toISOString().split('T')[0];
-
-  return new Observable(observer => {
-    this.supabase.client
-      .from('invoices')
-      .select('*')                        // ✔️ Supabase V2 correct usage
-      .returns<Invoice[]>()               // ✔️ Typed result for TS
-      .then(({ data, error }) => {
-        if (error) {
-          observer.error(error);
-          return;
-        }
-
-        const invoices = data ?? [];
-
-        const pending =
-          invoices.filter(i =>
-            i.status === 'unpaid' || i.status === 'partially_paid'
-          ).length;
-
-        const overdue =
-          invoices.filter(i =>
-            (i.status === 'unpaid' || i.status === 'partially_paid') &&
-            i.due_date &&
-            i.due_date < today
-          ).length;
-
-        observer.next({ pending, overdue });
-        observer.complete();
-      });
-  });
-}
-
-
-  /**
-   * Book statistics
-   */
-  private getBookStats(): Observable<{ lowStock: number }> {
-    return new Observable(observer => {
-      // يحتاج دالة RPC أو حساب المخزون
-      // مؤقتاً نرجع 0
-      observer.next({ lowStock: 0 });
-      observer.complete();
-    });
+        return Object.keys(grouped).map(date => ({
+          name: new Date(date).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' }),
+          value: grouped[date]
+        }));
+      })
+    );
   }
 
   /**
-   * Monthly revenue data for chart (last 12 months)
-   */
-  getMonthlyRevenue(): Observable<{ month: string; amount: number }[]> {
-    return this.supabase.rpc('get_monthly_revenue_chart', {});
-  }
-
-  /**
-   * Top selling books
+   * جلب الكتب الأكثر مبيعاً
    */
   getTopBooks(limit: number = 5): Observable<any[]> {
-    return this.supabase.rpc('get_top_books', { limit_count: limit });
-  }
-
-  /**
-   * Recent activities
-   */
-getRecentActivities(limit: number = 10): Observable<{
-  description: string;
-  time: string;
-  type: string;
-  icon: string;
-}[]> {
-  return new Observable(observer => {
-    this.supabase.client
-      .from('activity_log')
+    return from(this.supabase.client
+      .from('book_sales')
       .select(`
-        *,
-        actor:profiles(full_name)
+        quantity,
+        total_syp,
+        books ( title, author )
       `)
-      .order('created_at', { ascending: false })
-      .limit(limit)
-      .returns<any[]>()  // 👈 تحديد نوع البيانات لتجنب TS errors
-      .then(({ data, error }) => {
-        if (error) {
-          observer.error(error);
-          return;
-        }
+      .order('quantity', { ascending: false })
+      .limit(50)
+    ).pipe(
+      map(res => {
+        const sales = (res.data as any[]) || [];
+        const bookStats: any = {};
 
-        const activities = data?.map(log => ({
-          description: this.formatActivity(log),
-          time: this.formatTime(log.created_at),
-          type: this.getActivityType(log.action),
-          icon: this.getActivityIcon(log.action),
-        })) || [];
+        sales.forEach((sale: any) => {
+          // التعامل الآمن مع البيانات المتداخلة
+          const bookInfo = Array.isArray(sale.books) ? sale.books[0] : sale.books;
+          const title = bookInfo?.title || 'غير معروف';
 
-        observer.next(activities);
-        observer.complete();
-      });
-  });
-}
+          if (!bookStats[title]) {
+            bookStats[title] = { name: title, value: 0, author: bookInfo?.author };
+          }
+          bookStats[title].value += sale.quantity;
+        });
 
-
-  /**
-   * Format activity description
-   */
-  private formatActivity(log: any): string {
-    const actor = log.actor?.full_name || 'مستخدم';
-    const action = this.getActionText(log.action);
-    const table = this.getTableName(log.table_name);
-
-    return `${actor} ${action} ${table}`;
+        return Object.values(bookStats)
+          .sort((a: any, b: any) => b.value - a.value)
+          .slice(0, limit);
+      })
+    );
   }
 
   /**
-   * Get action text in Arabic
+   * جلب النشاطات الأخيرة
    */
-  private getActionText(action: string): string {
-    const actions: any = {
-      'created': 'أنشأ',
-      'updated': 'عدّل',
-      'deleted': 'حذف'
-    };
-    return actions[action] || action;
-  }
+  getRecentActivities(limit: number = 10): Observable<any[]> {
+    return forkJoin({
+      invoices: from(this.supabase.client
+        .from('sales_invoices')
+        .select('invoice_number, created_at, customer_name, total')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+      ),
+      projects: from(this.supabase.client
+        .from('projects')
+        .select('title, created_at, status')
+        .order('created_at', { ascending: false })
+        .limit(limit)
+      )
+    }).pipe(
+      map(results => {
+        const activities: any[] = [];
+        const invoices = (results.invoices.data as any[]) || [];
+        const projects = (results.projects.data as any[]) || [];
 
-  /**
-   * Get table name in Arabic
-   */
-  private getTableName(table: string): string {
-    const tables: any = {
-      'customers': 'عميل',
-      'projects': 'مشروع',
-      'invoices': 'فاتورة',
-      'books': 'كتاب',
-      'tasks': 'مهمة'
-    };
-    return tables[table] || table;
-  }
+        invoices.forEach(inv => {
+          activities.push({
+            id: inv.invoice_number,
+            type: 'invoice',
+            title: `فاتورة جديدة #${inv.invoice_number}`,
+            description: `للعميل ${inv.customer_name || 'نقدي'}`,
+            time: inv.created_at,
+            amount: inv.total
+          });
+        });
 
-  /**
-   * Format time (relative)
-   */
-  private formatTime(dateString: string): string {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+        projects.forEach(proj => {
+          activities.push({
+            id: proj.title,
+            type: 'project',
+            title: `مشروع جديد: ${proj.title}`,
+            description: `الحالة: ${proj.status}`,
+            time: proj.created_at
+          });
+        });
 
-    if (diffMins < 1) return 'الآن';
-    if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
-
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `منذ ${diffHours} ساعة`;
-
-    const diffDays = Math.floor(diffHours / 24);
-    if (diffDays < 7) return `منذ ${diffDays} يوم`;
-
-    return date.toLocaleDateString('ar-SA');
-  }
-
-  /**
-   * Get activity type for styling
-   */
-  private getActivityType(action: string): string {
-    const types: any = {
-      'created': 'success',
-      'updated': 'info',
-      'deleted': 'warning'
-    };
-    return types[action] || 'info';
-  }
-
-  /**
-   * Get activity icon
-   */
-  private getActivityIcon(action: string): string {
-    const icons: any = {
-      'created': 'plus',
-      'updated': 'edit',
-      'deleted': 'trash'
-    };
-    return icons[action] || 'activity';
+        return activities
+          .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+          .slice(0, limit);
+      })
+    );
   }
 }

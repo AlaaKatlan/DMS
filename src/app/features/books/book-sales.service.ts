@@ -1,9 +1,8 @@
 // src/app/features/books/book-sales.service.ts
 import { Injectable, inject } from '@angular/core';
-import { Observable, from, map, forkJoin } from 'rxjs';
+import { Observable, from, map } from 'rxjs';
 import { SupabaseService } from '../../core/services/supabase.service';
 
-// ✅ واجهات محسّنة
 export interface SalesInvoice {
   id: string;
   invoice_number: string;
@@ -40,8 +39,6 @@ export interface BookSale {
   created_at: string;
   seller_name?: string;
   seller_id?: string;
-
-  // Relations
   book?: any;
   customer?: any;
 }
@@ -52,63 +49,91 @@ export interface BookSale {
 export class BookSalesService {
   private supabase = inject(SupabaseService);
 
-  // ==================== INVOICES ====================
-
-  /**
-   * جلب جميع فواتير المبيعات مع الأصناف
-   */
   getSalesInvoicesWithItems(): Observable<SalesInvoice[]> {
     return new Observable(observer => {
-      // 1️⃣ جلب الفواتير
+      console.log('🔄 Fetching sales_invoices...');
+
+      // الخطوة 1: جلب الفواتير
       this.supabase.client
         .from('sales_invoices')
-        .select(`
-          *,
-          customer:customers(id, name, phone),
-          seller:profiles(id, full_name, full_name_p)
-        `)
+        .select('*')
         .order('sale_date', { ascending: false })
         .then(({ data: invoices, error: invoicesError }: any) => {
+
           if (invoicesError) {
+            console.error('❌ sales_invoices error:', invoicesError);
             observer.error(invoicesError);
             return;
           }
 
           if (!invoices || invoices.length === 0) {
+            console.warn('⚠️ No invoices found');
             observer.next([]);
             observer.complete();
             return;
           }
 
-          // 2️⃣ جلب الأصناف لكل فاتورة
-          const invoiceIds = invoices.map((inv: any) => inv.id);
+          console.log('✅ Invoices found:', invoices.length);
 
+          // الخطوة 2: جلب كل book_sales مع معرفة هل invoice_id موجود
           this.supabase.client
             .from('book_sales')
             .select(`
-              *,
+              id,
+              invoice_id,
+              book_id,
+              quantity,
+              unit_price_usd,
+              unit_price_syp,
+              total_usd,
+              total_syp,
+              currency,
+              notes,
+              sale_date,
+              created_at,
+              seller_name,
+              seller_id,
+              customer_id,
+              customer_name,
+              payment_method,
               book:books(book_id, title, author, cover_image_url, price_syp, price_usd)
             `)
-            .in('invoice_id', invoiceIds)
-            .then(({ data: sales, error: salesError }: any) => {
+            .order('created_at', { ascending: false })
+            .then(({ data: allSales, error: salesError }: any) => {
+
+              // ✅ Log تشخيصي مهم جداً
+              console.log('📦 All book_sales:', {
+                total: allSales?.length,
+                error: salesError,
+                withInvoiceId: allSales?.filter((s: any) => s.invoice_id !== null).length,
+                withoutInvoiceId: allSales?.filter((s: any) => s.invoice_id === null).length,
+                sample: allSales?.slice(0, 3)?.map((s: any) => ({
+                  id: s.id,
+                  invoice_id: s.invoice_id,
+                  book_id: s.book_id,
+                  book_title: s.book?.title
+                }))
+              });
+
               if (salesError) {
-                observer.error(salesError);
-                return;
+                console.error('❌ book_sales error:', salesError);
               }
 
-              // 3️⃣ ربط الأصناف بالفواتير
+              // الخطوة 3: ربط الأصناف بالفواتير
               const result: SalesInvoice[] = invoices.map((invoice: any) => {
-                const invoiceItems = (sales || []).filter(
+                const invoiceItems = (allSales || []).filter(
                   (sale: any) => sale.invoice_id === invoice.id
                 );
+
+                console.log(`📎 Invoice ${invoice.invoice_number} (${invoice.id}): ${invoiceItems.length} items`);
 
                 return {
                   id: invoice.id,
                   invoice_number: invoice.invoice_number,
                   customer_id: invoice.customer_id,
-                  customer_name: invoice.customer_name || invoice.customer?.name,
+                  customer_name: invoice.customer_name,
                   seller_id: invoice.seller_id,
-                  seller_name: invoice.seller_name || invoice.seller?.full_name_p,
+                  seller_name: invoice.seller_name,
                   subtotal: invoice.subtotal || 0,
                   discount_amount: invoice.discount_amount || 0,
                   discount_percentage: invoice.discount_percentage || 0,
@@ -128,15 +153,11 @@ export class BookSalesService {
     });
   }
 
-  /**
-   * إنشاء فاتورة بيع جديدة مع الأصناف
-   */
   createSalesInvoice(
     invoiceData: Partial<SalesInvoice>,
     items: Partial<BookSale>[]
   ): Observable<SalesInvoice> {
     return new Observable(observer => {
-      // 1️⃣ إنشاء الفاتورة
       this.supabase.client
         .from('sales_invoices')
         .insert({
@@ -151,7 +172,7 @@ export class BookSalesService {
           total: invoiceData.total || 0,
           payment_method: invoiceData.payment_method,
           notes: invoiceData.notes,
-          sale_date: invoiceData.sale_date || new Date().toISOString()
+          sale_date: invoiceData.sale_date || new Date().toISOString().split('T')[0]
         } as any)
         .select()
         .single()
@@ -161,7 +182,6 @@ export class BookSalesService {
             return;
           }
 
-          // 2️⃣ إنشاء الأصناف
           const salesItems = items.map(item => ({
             invoice_id: invoice.id,
             book_id: item.book_id,
@@ -174,7 +194,7 @@ export class BookSalesService {
             total_syp: item.total_syp || 0,
             currency: item.currency || 'SYP',
             payment_method: invoiceData.payment_method,
-            sale_date: invoiceData.sale_date || new Date().toISOString(),
+            sale_date: invoiceData.sale_date || new Date().toISOString().split('T')[0],
             notes: item.notes,
             seller_id: invoiceData.seller_id,
             seller_name: invoiceData.seller_name
@@ -189,25 +209,15 @@ export class BookSalesService {
                 observer.error(salesError);
                 return;
               }
-
-              const result: SalesInvoice = {
-                ...invoice,
-                items: createdSales
-              };
-
-              observer.next(result);
+              observer.next({ ...invoice, items: createdSales });
               observer.complete();
             });
         });
     });
   }
 
-  /**
-   * حذف فاتورة بيع مع جميع أصنافها
-   */
   deleteSalesInvoice(invoiceId: string): Observable<void> {
     return new Observable(observer => {
-      // 1️⃣ حذف الأصناف أولاً
       this.supabase.client
         .from('book_sales')
         .delete()
@@ -217,8 +227,6 @@ export class BookSalesService {
             observer.error(salesError);
             return;
           }
-
-          // 2️⃣ حذف الفاتورة
           this.supabase.client
             .from('sales_invoices')
             .delete()
@@ -235,11 +243,6 @@ export class BookSalesService {
     });
   }
 
-  // ==================== OLD METHODS (للتوافق) ====================
-
-  /**
-   * إنشاء عملية بيع فردية (قديم - للتوافق)
-   */
   createSale(saleData: Partial<BookSale>): Observable<BookSale> {
     return from(
       (this.supabase.client.from('book_sales') as any)
@@ -267,9 +270,6 @@ export class BookSalesService {
     );
   }
 
-  /**
-   * جلب جميع المبيعات مع التفاصيل (قديم)
-   */
   getSalesWithDetails(): Observable<BookSale[]> {
     return from(
       this.supabase.client
@@ -288,9 +288,6 @@ export class BookSalesService {
     );
   }
 
-  /**
-   * حذف عملية بيع (قديم)
-   */
   deleteSale(saleId: string): Observable<void> {
     return from(
       this.supabase.client
@@ -304,11 +301,6 @@ export class BookSalesService {
     );
   }
 
-  // ==================== UTILITIES ====================
-
-  /**
-   * توليد رقم فاتورة تلقائي
-   */
   generateInvoiceNumber(): Observable<string> {
     return new Observable(observer => {
       this.supabase.client
@@ -321,7 +313,6 @@ export class BookSalesService {
             observer.error(error);
             return;
           }
-
           let nextNumber = 1;
           if (data && data.length > 0) {
             const lastNumber = data[0].invoice_number;
@@ -330,9 +321,7 @@ export class BookSalesService {
               nextNumber = parseInt(match[1]) + 1;
             }
           }
-
-          const invoiceNumber = `INV-${String(nextNumber).padStart(6, '0')}`;
-          observer.next(invoiceNumber);
+          observer.next(`INV-${String(nextNumber).padStart(6, '0')}`);
           observer.complete();
         });
     });

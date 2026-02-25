@@ -7,7 +7,6 @@ import { LucideAngularModule } from 'lucide-angular';
 import { BookSalesService } from '../../book-sales.service';
 import { ExcelExportService } from '../../../../shared/services/excel-export.service';
 
-// ✅ واجهة الفاتورة المحسّنة
 export interface SalesInvoice {
   id: string;
   invoice_number: string;
@@ -32,6 +31,8 @@ export interface SaleItem {
   quantity: number;
   unit_price_usd: number;
   unit_price_syp: number;
+  unit_price_after_discount_syp?: number;
+  discount_percentage?: number;
   total_usd: number;
   total_syp: number;
   currency: 'USD' | 'SYP';
@@ -56,39 +57,27 @@ export class BookSalesListComponent implements OnInit {
   loading = false;
   searchQuery = '';
 
-  // فلاتر التاريخ
   startDate: string = '';
   endDate: string = '';
   selectedPaymentMethod: string = 'all';
 
-  // إحصائيات
   totalSalesUSD = 0;
   totalSalesSYP = 0;
   totalBooksSold = 0;
 
-  // ✅ حالة التوسيع
   expandedInvoiceId: string | null = null;
-
-  // ✅ معاينة الفاتورة
   showInvoicePreview = false;
   selectedInvoice: SalesInvoice | null = null;
+  errorMessage: string = '';
 
   ngOnInit() {
-    this.setDefaultDates();
     this.loadInvoices();
   }
 
-  setDefaultDates() {
-    const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-    this.startDate = firstDayOfMonth.toISOString().split('T')[0];
-    this.endDate = today.toISOString().split('T')[0];
-  }
-
-  // ✅ جلب الفواتير مع الأصناف
   loadInvoices() {
     this.loading = true;
+    this.errorMessage = '';
+
     this.salesService.getSalesInvoicesWithItems().subscribe({
       next: (data) => {
         this.invoices = data;
@@ -97,7 +86,7 @@ export class BookSalesListComponent implements OnInit {
         this.cd.detectChanges();
       },
       error: (err) => {
-        console.error('Error loading invoices:', err);
+        this.errorMessage = err?.message || 'حدث خطأ أثناء تحميل الفواتير';
         this.loading = false;
         this.cd.detectChanges();
       }
@@ -107,7 +96,6 @@ export class BookSalesListComponent implements OnInit {
   applyFilters() {
     let filtered = [...this.invoices];
 
-    // فلتر النص
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();
       filtered = filtered.filter(inv =>
@@ -118,18 +106,12 @@ export class BookSalesListComponent implements OnInit {
       );
     }
 
-    // فلتر التاريخ
     if (this.startDate) {
-      const start = new Date(this.startDate);
-      filtered = filtered.filter(inv => new Date(inv.sale_date) >= start);
+      filtered = filtered.filter(inv => inv.sale_date?.substring(0, 10) >= this.startDate);
     }
     if (this.endDate) {
-      const end = new Date(this.endDate);
-      end.setHours(23, 59, 59, 999);
-      filtered = filtered.filter(inv => new Date(inv.sale_date) <= end);
+      filtered = filtered.filter(inv => inv.sale_date?.substring(0, 10) <= this.endDate);
     }
-
-    // فلتر طريقة الدفع
     if (this.selectedPaymentMethod !== 'all') {
       filtered = filtered.filter(inv => inv.payment_method === this.selectedPaymentMethod);
     }
@@ -145,7 +127,6 @@ export class BookSalesListComponent implements OnInit {
 
     this.filteredInvoices.forEach(inv => {
       this.totalSalesSYP += inv.total || 0;
-
       inv.items?.forEach(item => {
         this.totalSalesUSD += item.total_usd || 0;
         this.totalBooksSold += item.quantity || 0;
@@ -156,129 +137,277 @@ export class BookSalesListComponent implements OnInit {
   resetFilters() {
     this.searchQuery = '';
     this.selectedPaymentMethod = 'all';
-    this.setDefaultDates();
+    this.startDate = '';
+    this.endDate = '';
     this.applyFilters();
   }
 
-  // ✅ توسيع/إخفاء الفاتورة
   toggleInvoice(invoiceId: string) {
-    if (this.expandedInvoiceId === invoiceId) {
-      this.expandedInvoiceId = null;
-    } else {
-      this.expandedInvoiceId = invoiceId;
-    }
-    // this.showInvoicePreview = true;
+    this.expandedInvoiceId = this.expandedInvoiceId === invoiceId ? null : invoiceId;
   }
 
-  // ✅ عرض الفاتورة
   viewInvoice(invoice: SalesInvoice) {
     this.selectedInvoice = invoice;
     this.showInvoicePreview = true;
   }
 
-  // ✅ طباعة الفاتورة مباشرة
   printInvoice(invoice: SalesInvoice) {
     this.selectedInvoice = invoice;
     this.showInvoicePreview = true;
-    // انتظر قليلاً حتى يتم عرض المودال ثم اطبع
-    setTimeout(() => {
-      this.doPrintInvoice();
-    }, 100);
+    setTimeout(() => this.doPrintInvoice(), 300);
   }
 
-  // ✅ تنفيذ الطباعة
   doPrintInvoice() {
-    const printArea = document.getElementById('invoice-print-area');
-    if (!printArea) return;
+    if (!this.selectedInvoice) return;
+    const inv = this.selectedInvoice;
+
+    // ---- حساب الأرقام ----
+    const subtotal     = inv.subtotal || 0;
+    const discountAmt  = inv.discount_amount || 0;
+    const discountPct  = inv.discount_percentage || 0;
+    const total        = inv.total || 0;
+    const hasDiscount  = discountAmt > 0 || discountPct > 0;
+
+    // مسار اللوغو - تأكد من أن الصورة موجودة في مجلد الأصول assets
+    const logoSrc = 'assets/images/logo.png';
+
+    // ---- بناء صفوف الأصناف ----
+    const itemsRows = (inv.items || []).map((item, i) => {
+      const itemDiscPct  = (item as any).discount_percentage || 0;
+      const unitOriginal = item.unit_price_syp || 0;
+      const unitAfterDisc = (item as any).unit_price_after_discount_syp
+        ?? (itemDiscPct > 0
+            ? Math.round(unitOriginal * (1 - itemDiscPct / 100))
+            : unitOriginal);
+      const rowTotal = item.total_syp || 0;
+
+      return `
+        <tr>
+          <td>${i + 1}</td>
+          <td class="book-col">
+            <strong>${item.book?.title || 'كتاب'}</strong>
+            ${item.book?.author ? `<br><small>${item.book.author}</small>` : ''}
+          </td>
+          <td class="center">${item.quantity}</td>
+          <td class="num">${unitOriginal.toLocaleString('en-US')}</td>
+          ${itemDiscPct > 0
+            ? `<td class="center disc-cell">${itemDiscPct}%</td>
+               <td class="num disc-cell">${unitAfterDisc.toLocaleString('en-US')}</td>`
+            : `<td class="center">—</td><td class="num">—</td>`
+          }
+          <td class="num total-col">${rowTotal.toLocaleString('en-US')}</td>
+        </tr>`;
+    }).join('');
+
+    // ---- بناء ملخص الإجمالي (خارج الجدول ليظهر في النهاية فقط) ----
+    const summaryBlock = `
+      <div class="summary-section">
+        <div class="summary-row">
+          <span class="label">المجموع قبل الحسم</span>
+          <span class="value">${subtotal.toLocaleString('en-US')}</span>
+        </div>
+        ${hasDiscount ? `
+        <div class="summary-row disc-row">
+          <span class="label">قيمة الحسم (${discountPct}%)</span>
+          <span class="value">− ${discountAmt.toLocaleString('en-US')}</span>
+        </div>` : ''}
+        <div class="summary-row total-row">
+          <span class="label">الإجمالي النهائي</span>
+          <span class="value">${total.toLocaleString('en-US')} <small>ل.س</small></span>
+        </div>
+      </div>`;
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
     printWindow.document.write(`
-      <!DOCTYPE html>
-      <html dir="rtl">
-      <head>
-        <meta charset="utf-8">
-        <title>فاتورة ${this.selectedInvoice?.invoice_number}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: 'Arial', sans-serif;
-            padding: 20px;
-            direction: rtl;
-          }
-          .invoice-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 15px;
-          }
-          .company-info h2 {
-            font-size: 24px;
-            margin-bottom: 5px;
-          }
-          .customer-section {
-            margin: 20px 0;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 8px;
-          }
-          .customer-section h4 {
-            margin-bottom: 10px;
-            font-size: 16px;
-          }
-          .customer-section p {
-            margin-bottom: 5px;
-          }
-          .invoice-items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-          }
-          .invoice-items-table th,
-          .invoice-items-table td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: right;
-          }
-          .invoice-items-table th {
-            background: #333;
-            color: white;
-            font-weight: bold;
-          }
-          .invoice-items-table tfoot td {
-            font-weight: bold;
-            background: #f9f9f9;
-          }
-          .payment-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f5f5f5;
-            border-radius: 8px;
-          }
-          .payment-info p {
-            margin-bottom: 8px;
-          }
-          @media print {
-            body { padding: 0; }
-            button { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        ${printArea.innerHTML}
-      </body>
-      </html>
-    `);
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="utf-8">
+  <title>فاتورة ${inv.invoice_number}</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+
+    :root {
+       /* ألوان الهوية البصرية - تم ضبطها لتناسب اللوغو الأخضر */
+       --primary-color: #1a6b3c;
+       --secondary-color: #2d9e5f;
+       --accent-color: #f8fdf9;
+       --border-color: #c8ecd8;
+       --text-color: #1a1a2e;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Cairo', sans-serif; background: #fff; color: var(--text-color); direction: rtl; -webkit-print-color-adjust: exact; }
+
+    /* Header Styling */
+    .inv-header {
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid var(--primary-color);
+      margin-bottom: 20px;
+    }
+
+    .logo-section { display: flex; align-items: center; gap: 15px; }
+    .logo-img { max-height: 80px; width: auto; object-fit: contain; }
+    .company-info h1 { font-size: 24px; color: var(--primary-color); font-weight: 900; margin-bottom: 5px; }
+    .company-info p { font-size: 12px; color: #666; font-weight: 600; }
+
+    .invoice-meta { text-align: left; }
+    .invoice-title { font-size: 18px; font-weight: 700; color: var(--secondary-color); text-transform: uppercase; letter-spacing: 1px; }
+    .invoice-number { font-size: 22px; font-weight: 900; color: #000; margin: 5px 0; }
+    .invoice-date { font-size: 13px; color: #555; }
+
+    /* Info Cards */
+    .info-container { display: flex; gap: 20px; margin: 0 40px 25px; }
+    .info-box { flex: 1; background: var(--accent-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; }
+    .info-box h3 { font-size: 12px; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px dashed var(--border-color); padding-bottom: 5px; }
+    .info-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; }
+    .info-label { color: #666; }
+    .info-val { font-weight: 700; }
+
+    /* Table Styling */
+    .table-container { margin: 0 40px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+
+    thead th {
+        background: var(--primary-color);
+        color: white;
+        padding: 12px;
+        text-align: right;
+        font-weight: 700;
+        border: 1px solid var(--primary-color);
+    }
+
+    tbody td { padding: 10px 12px; border: 1px solid #eee; vertical-align: middle; }
+    tbody tr:nth-child(even) { background-color: #fcfcfc; }
+
+    .center { text-align: center; }
+    .num { text-align: left; font-family: monospace; font-size: 13px; font-weight: 600; }
+    .total-col { font-weight: 700; color: var(--primary-color); background: rgba(26, 107, 60, 0.05); }
+    .disc-cell { color: #c0392b; }
+
+    /* Summary Section (New Design) */
+    .summary-section {
+        margin: 20px 40px 0 auto; /* محاذاة لليسار */
+        width: 40%;
+        background: #f9f9f9;
+        border-radius: 8px;
+        padding: 15px;
+        page-break-inside: avoid; /* يمنع انقسام الصندوق بين صفحتين */
+        border: 1px solid #eee;
+    }
+
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed #ddd; }
+    .summary-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .summary-row .label { font-weight: 600; color: #555; }
+    .summary-row .value { font-weight: 700; font-family: monospace; font-size: 14px; }
+
+    .summary-row.total-row {
+        background: var(--primary-color);
+        color: white;
+        padding: 12px;
+        border-radius: 6px;
+        margin-top: 10px;
+        border: none;
+    }
+    .summary-row.total-row .label, .summary-row.total-row .value { color: white; font-size: 16px; font-weight: 900; }
+    .summary-row.disc-row .value { color: #c0392b; }
+
+    /* Footer Styling */
+    .footer {
+        margin-top: 40px;
+        padding: 20px 40px;
+        border-top: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        font-size: 12px;
+        page-break-inside: avoid;
+    }
+    .notes { width: 60%; color: #555; background: #fffbe6; padding: 12px; border: 1px solid #ffe58f; border-radius: 4px; line-height: 1.5; }
+    .signature { width: 30%; text-align: center; margin-top: 10px; }
+    .sign-line { border-bottom: 1px solid #ccc; margin-top: 50px; width: 80%; margin-left: auto; margin-right: auto; }
+
+    @media print {
+        body { margin: 0; }
+        .summary-section { box-shadow: none; border: 1px solid #ccc; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; }
+
+        /* إجبار الخلفيات والألوان على الظهور في الطباعة */
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="inv-header">
+    <div class="logo-section">
+      <img src="${logoSrc}" class="logo-img" alt="Logo" onerror="this.style.display='none'">
+      <div class="company-info">
+        <h1>دار الزيبق</h1>
+        <p>للنشر والإنتاج - سوريا، دمشق</p>
+      </div>
+    </div>
+    <div class="invoice-meta">
+      <div class="invoice-title">فاتورة مبيعات</div>
+      <div class="invoice-number">#${inv.invoice_number}</div>
+      <div class="invoice-date">${new Date(inv.sale_date).toLocaleDateString('ar-SA')}</div>
+    </div>
+  </div>
+
+  <div class="info-container">
+    <div class="info-box">
+      <h3>معلومات العميل</h3>
+      <div class="info-row"><span class="info-label">الاسم:</span> <span class="info-val">${inv.customer_name || 'نقدي'}</span></div>
+      ${inv.seller_name ? `<div class="info-row"><span class="info-label">البائع:</span> <span class="info-val">${inv.seller_name}</span></div>` : ''}
+    </div>
+    <div class="info-box">
+       <h3>تفاصيل الفاتورة</h3>
+       <div class="info-row"><span class="info-label">طريقة الدفع:</span> <span class="info-val">${this.getPaymentLabel(inv.payment_method)}</span></div>
+       <div class="info-row"><span class="info-label">عدد المواد:</span> <span class="info-val">${inv.items?.length || 0}</span></div>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 40px;">#</th>
+          <th>الكتاب</th>
+          <th class="center" style="width: 70px;">الكمية</th>
+          <th class="num" style="width: 100px;">السعر</th>
+          <th class="center" style="width: 70px;">حسم %</th>
+          <th class="num" style="width: 100px;">الصافي</th>
+          <th class="num" style="width: 120px;">الإجمالي</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${itemsRows}
+      </tbody>
+    </table>
+  </div>
+
+  ${summaryBlock}
+
+  <div class="footer">
+    ${inv.notes ? `<div class="notes"><strong>ملاحظات:</strong><br>${inv.notes}</div>` : '<div style="width:60%"></div>'}
+    <div class="signature">
+      التوقيع / المستلم
+      <div class="sign-line"></div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() { window.print(); };
+  </script>
+</body>
+</html>`);
 
     printWindow.document.close();
-    printWindow.focus();
-
-    setTimeout(() => {
-      printWindow.print();
-      printWindow.close();
-    }, 250);
   }
 
   closeInvoicePreview() {
@@ -286,7 +415,6 @@ export class BookSalesListComponent implements OnInit {
     this.selectedInvoice = null;
   }
 
-  // ✅ حذف فاتورة
   deleteInvoice(id: string) {
     if (confirm('هل أنت متأكد من حذف هذه الفاتورة وجميع أصنافها؟')) {
       this.salesService.deleteSalesInvoice(id).subscribe({
@@ -301,7 +429,6 @@ export class BookSalesListComponent implements OnInit {
     }
   }
 
-  // ✅ تصدير Excel
   exportToExcel() {
     if (this.filteredInvoices.length === 0) {
       alert('لا توجد بيانات للتصدير');
@@ -311,28 +438,40 @@ export class BookSalesListComponent implements OnInit {
     const exportData: any[] = [];
 
     this.filteredInvoices.forEach(invoice => {
-      invoice.items?.forEach((item, idx) => {
+      if (invoice.items && invoice.items.length > 0) {
+        invoice.items.forEach((item, idx) => {
+          exportData.push({
+            'رقم الفاتورة': invoice.invoice_number,
+            'التاريخ': new Date(invoice.sale_date).toLocaleDateString('ar-SA'),
+            'العميل': invoice.customer_name || 'عميل نقدي',
+            'البائع': invoice.seller_name || '-',
+            'الكتاب': item.book?.title || '-',
+            'الكمية': item.quantity,
+            'سعر الوحدة': item.unit_price_syp,
+            'الحسم %': (item as any).discount_percentage || 0,
+            'الإجمالي': item.total_syp,
+            'طريقة الدفع': idx === 0 ? this.getPaymentLabel(invoice.payment_method) : '',
+            'مبلغ الحسم': idx === 0 ? (invoice.discount_amount || 0) : '',
+            'إجمالي الفاتورة': idx === 0 ? invoice.total : '',
+          });
+        });
+      } else {
         exportData.push({
           'رقم الفاتورة': invoice.invoice_number,
           'التاريخ': new Date(invoice.sale_date).toLocaleDateString('ar-SA'),
           'العميل': invoice.customer_name || 'عميل نقدي',
           'البائع': invoice.seller_name || '-',
-          'الكتاب': item.book?.title || '-',
-          'الكمية': this.toEnglishNumbers(item.quantity),
-          'سعر الوحدة': this.toEnglishNumbers(item.unit_price_syp.toLocaleString('en-US')),
-          'الإجمالي': this.toEnglishNumbers(item.total_syp.toLocaleString('en-US')),
-          'طريقة الدفع': idx === 0 ? this.getPaymentLabel(invoice.payment_method) : '',
-          'إجمالي الفاتورة': idx === 0 ? this.toEnglishNumbers(invoice.total.toLocaleString('en-US')) : '',
-          'ملاحظات': item.notes || '-'
+          'الكتاب': '-', 'الكمية': '-', 'سعر الوحدة': '-',
+          'الحسم %': invoice.discount_percentage || 0,
+          'الإجمالي': '-',
+          'طريقة الدفع': this.getPaymentLabel(invoice.payment_method),
+          'مبلغ الحسم': invoice.discount_amount || 0,
+          'إجمالي الفاتورة': invoice.total,
         });
-      });
+      }
     });
 
-    this.excelService.exportToExcel(
-      exportData,
-      'تقرير_المبيعات_التفصيلي',
-      'المبيعات'
-    );
+    this.excelService.exportToExcel(exportData, 'تقرير_المبيعات_التفصيلي', 'المبيعات');
   }
 
   getPaymentLabel(method: string): string {
@@ -342,12 +481,10 @@ export class BookSalesListComponent implements OnInit {
 
   toEnglishNumbers(str: string | number): string {
     if (str === null || str === undefined) return '0';
-    const arabicNumbers = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
-    const englishNumbers = ['0','1','2','3','4','5','6','7','8','9'];
+    const ar = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+    const en = ['0','1','2','3','4','5','6','7','8','9'];
     let result = str.toString();
-    arabicNumbers.forEach((arabic, index) => {
-      result = result.replace(new RegExp(arabic, 'g'), englishNumbers[index]);
-    });
+    ar.forEach((a, i) => { result = result.replace(new RegExp(a, 'g'), en[i]); });
     return result;
   }
 }

@@ -1,11 +1,11 @@
 // src/app/features/dashboard/dashboard.component.ts
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core'; // 1. استيراد ChangeDetectorRef
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import { DashboardService } from './dashboard.service';
 import { AuthService, UserProfile } from '../../core/services/auth.service';
 import { DashboardStats } from '../../core/models/base.model';
-import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,6 +14,7 @@ import { LucideAngularModule } from 'lucide-angular';
     CommonModule,
     RouterModule,
     LucideAngularModule,
+    // NgxChartsModule (إذا كنت تستخدم مكتبة رسوم بيانية)
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -21,7 +22,7 @@ import { LucideAngularModule } from 'lucide-angular';
 export class DashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
   private authService = inject(AuthService);
-  private cd = inject(ChangeDetectorRef); // 2. حقن الخدمة
+  private cd = inject(ChangeDetectorRef);
 
   stats: DashboardStats | null = null;
   loading = true;
@@ -32,25 +33,30 @@ export class DashboardComponent implements OnInit {
   recentActivities: any[] = [];
 
   ngOnInit(): void {
+    // التأكد من وجود مستخدم قبل التحميل
+    this.currentUser = this.authService.currentUser;
     this.loadDashboardData();
   }
 
   loadDashboardData(): void {
     this.loading = true;
 
+    // 1. جلب الإحصائيات الرئيسية
     this.dashboardService.getDashboardStats().subscribe({
-      next: (stats) => {
-        this.stats = stats;
+      next: (data) => {
+        console.log('Dashboard Stats:', data);
+        this.stats = data;
         this.loading = false;
-        this.cd.detectChanges(); // 3. تحديث الواجهة فوراً
+        this.cd.detectChanges();
       },
       error: (error) => {
-        console.error('Error loading dashboard:', error);
+        console.error('Error loading stats:', error);
         this.loading = false;
-        this.cd.detectChanges(); // وتحديث الواجهة في حالة الخطأ أيضاً
+        this.cd.detectChanges();
       }
     });
 
+    // 2. جلب باقي البيانات بالتوازي
     this.loadRevenueChart();
     this.loadTopBooks();
     this.loadRecentActivities();
@@ -60,25 +66,25 @@ export class DashboardComponent implements OnInit {
     this.dashboardService.getMonthlyRevenue().subscribe({
       next: (data) => {
         this.revenueChartData = data;
-        this.cd.detectChanges(); // تحديث عند وصول بيانات المخطط
+        this.cd.detectChanges();
       }
     });
   }
 
   loadTopBooks(): void {
-    this.dashboardService.getTopBooks(5).subscribe({
-      next: (books) => {
-        this.topBooks = books;
-        this.cd.detectChanges(); // تحديث عند وصول الكتب
+    this.dashboardService.getTopBooks().subscribe({
+      next: (data) => {
+        this.topBooks = data;
+        this.cd.detectChanges();
       }
     });
   }
 
   loadRecentActivities(): void {
-    this.dashboardService.getRecentActivities(10).subscribe({
-      next: (activities) => {
-        this.recentActivities = activities;
-        this.cd.detectChanges(); // تحديث عند وصول النشاطات
+    this.dashboardService.getRecentActivities().subscribe({
+      next: (data) => {
+        this.recentActivities = data;
+        this.cd.detectChanges();
       }
     });
   }
@@ -90,13 +96,20 @@ export class DashboardComponent implements OnInit {
     return 'مساء الخير';
   }
 
-  formatCurrency(amount: number, currency: string = 'USD'): string {
-    const symbols: Record<string, string> = {
-      USD: '$',
-      AED: 'د.إ',
-      QR: 'ر.ق',
-      SYP: 'SYP'
-    };
-    return `${symbols[currency] || ''} ${amount.toLocaleString('ar-SA')}`;
+  // دالة مساعدة لتنسيق الوقت النسبي
+  getTimeAgo(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'الآن';
+    if (diffMins < 60) return `منذ ${diffMins} دقيقة`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `منذ ${diffHours} ساعة`;
+
+    const diffDays = Math.floor(diffHours / 24);
+    return `منذ ${diffDays} يوم`;
   }
 }
