@@ -66,7 +66,7 @@ export class InvoiceFormComponent implements OnInit {
       notes: [''],
       // حقول الدفع
       initial_payment_amount: [0],
-      payment_method_id: [null],
+      // payment_method_id: [null],
       items: this.fb.array([])
     });
 
@@ -137,12 +137,23 @@ export class InvoiceFormComponent implements OnInit {
       error: () => { this.loading = false; this.router.navigate(['/invoices']); }
     });
   }
+private findInvalidControls() {
+  const invalid = [];
+  const controls = this.invoiceForm.controls;
+  for (const name in controls) {
+    if (controls[name].invalid) invalid.push(name);
+  }
+  return invalid;
+}
+onSubmit(): void {
+  console.log('Form Status:', this.invoiceForm.status);
+  console.log('Form Values:', this.invoiceForm.value);
 
-  onSubmit(): void {
-    if (this.invoiceForm.invalid) {
-      this.invoiceForm.markAllAsTouched();
-      return;
-    }
+  if (this.invoiceForm.invalid) {
+    console.log('Invalid Controls:', this.findInvalidControls()); // دالة مساعدة
+    this.invoiceForm.markAllAsTouched();
+    return;
+  }
     if (this.items.length === 0) { alert('أضف بنداً واحداً على الأقل'); return; }
 
     this.submitting = true;
