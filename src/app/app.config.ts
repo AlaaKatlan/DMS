@@ -18,7 +18,7 @@ import {
   UserPlus, Phone, Tag, CheckCircle, Flag, Handshake, TrendingDown, Image, XCircle, CircleX, Pen, ShoppingCart,
   User, Sliders, Download,Percent,RefreshCw,ChevronDown,
   LogOut,Save,Shield,RotateCw,
-  Info
+  Info,ArrowUp,PieChart,BarChart2,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -57,7 +57,7 @@ export const appConfig: ApplicationConfig = {
       LogIn, Trash2, Edit, Filter, Columns2, Tag,Banknote,ChevronDown,
       User, X,Shield,RotateCw,
       LogOut,Save,Percent,RefreshCw,
-      Info
+      Info,ArrowUp,PieChart,BarChart2,
     })),
 
     // استخدام اللغة العربية (التي عدلناها لتقبل تنسيق الأرقام الإنجليزي)

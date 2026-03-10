@@ -1,157 +1,361 @@
-<div class="dashboard-container">
+<div class="dashboard" dir="rtl">
 
-  <header class="dashboard-header">
-    <div class="welcome-text">
-      <h1>{{ getGreeting() }}، {{ currentUser?.full_name || 'مدير النظام' }} 👋</h1>
-      <p>إليك نظرة عامة على أداء دار الزيبق اليوم</p>
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="header-eyebrow">
+        <span class="live-dot"></span>
+        {{ currentDate | date:'EEEE، d MMMM y' }}
+      </div>
+      <h1>{{ getGreeting() }}، <span class="name-highlight">{{ currentUser?.full_name_p || 'مدير النظام' }}</span></h1>
+      <p class="header-sub">إليك نظرة شاملة على أداء دار الزيبق</p>
     </div>
     <div class="header-actions">
-      <button class="btn-action" routerLink="/invoices/new">
-        <lucide-angular name="plus" [size]="18"></lucide-angular>
-        <span>فاتورة جديدة</span>
+      <button class="action-btn secondary" routerLink="/projects/new">
+        <lucide-angular name="folder" [size]="16"></lucide-angular>
+        مشروع جديد
       </button>
-      <button class="btn-action outline" routerLink="/projects/new">
-        <lucide-angular name="folder-plus" [size]="18"></lucide-angular>
-        <span>مشروع جديد</span>
+      <button class="action-btn primary" routerLink="/books/sales/new">
+        <lucide-angular name="plus" [size]="16"></lucide-angular>
+        فاتورة بيع
       </button>
     </div>
-  </header>
+  </div>
 
+  <!-- LOADING SKELETON -->
   <div *ngIf="loading" class="loading-state">
-    <div class="spinner"></div>
-    <p>جاري تحميل الإحصائيات...</p>
+    <div class="skeleton-row">
+      <div class="skeleton-kpi" *ngFor="let x of [1,2,3,4,5]"></div>
+    </div>
+    <div class="skeleton-panels">
+      <div class="skeleton-panel tall"></div>
+      <div class="skeleton-panel short"></div>
+    </div>
   </div>
 
-  <div *ngIf="!loading && stats" class="dashboard-content fade-in">
+  <div *ngIf="!loading && stats" class="dashboard-body">
 
-    <div class="stats-grid">
-      <div class="stat-card primary">
-        <div class="stat-icon">
-          <lucide-angular name="trending-up" [size]="24"></lucide-angular>
+    <!-- KPI ROW -->
+    <div class="kpi-row">
+
+      <!-- Revenue -->
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">إيرادات الشهر</span>
+          <div class="kpi-icon green-icon">
+            <lucide-angular name="trending-up" [size]="16"></lucide-angular>
+          </div>
         </div>
-        <div class="stat-info">
-          <span class="label">إيرادات الشهر</span>
-          <span class="value">{{ stats.monthlyRevenue | number }} <small>ل.س</small></span>
-          <span class="sub-label">اليوم: {{ stats.todayRevenue | number }} ل.س</span>
+        <div class="kpi-val">{{ formatNumber(stats.monthlyRevenue) }}<span class="kpi-unit">ل.س</span></div>
+        <div><span class="kpi-tag tag-g">
+          <lucide-angular name="arrow-up" [size]="10"></lucide-angular>
+          اليوم: {{ formatNumber(stats.todayRevenue) }}
+        </span></div>
+        <svg class="kpi-spark" viewBox="0 0 100 36" preserveAspectRatio="none">
+          <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#22c55e" stop-opacity=".18"/>
+            <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
+          </linearGradient></defs>
+          <path d="M0,28 L12,21 L25,25 L38,10 L52,17 L65,8 L78,13 L100,3 L100,36 L0,36Z" fill="url(#sg)"/>
+          <polyline points="0,28 12,21 25,25 38,10 52,17 65,8 78,13 100,3"
+            fill="none" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- Expenses -->
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">المصاريف</span>
+          <div class="kpi-icon red-icon">
+            <lucide-angular name="credit-card" [size]="16"></lucide-angular>
+          </div>
+        </div>
+        <div class="kpi-val">{{ formatNumber(stats.monthlyExpenses) }}<span class="kpi-unit">ل.س</span></div>
+        <div><span class="kpi-tag tag-n">
+          صافي: {{ formatNumber(stats.monthlyProfit) }}
+        </span></div>
+        <svg class="kpi-spark" viewBox="0 0 100 36" preserveAspectRatio="none">
+          <defs><linearGradient id="sr" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#f43f5e" stop-opacity=".15"/>
+            <stop offset="100%" stop-color="#f43f5e" stop-opacity="0"/>
+          </linearGradient></defs>
+          <path d="M0,5 L15,13 L28,8 L42,20 L55,14 L70,24 L85,18 L100,28 L100,36 L0,36Z" fill="url(#sr)"/>
+          <polyline points="0,5 15,13 28,8 42,20 55,14 70,24 85,18 100,28"
+            fill="none" stroke="#f43f5e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- Projects -->
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">المشاريع النشطة</span>
+          <div class="kpi-icon blue-icon">
+            <lucide-angular name="briefcase" [size]="16"></lucide-angular>
+          </div>
+        </div>
+        <div class="kpi-val">{{ stats.activeProjects }}<span class="kpi-unit">مشروع</span></div>
+        <div><span class="kpi-tag tag-b">
+          <lucide-angular name="check-square" [size]="10"></lucide-angular>
+          {{ stats.pendingTasks }} مهمة جارية
+        </span></div>
+        <div class="kpi-bar-track">
+          <div class="kpi-bar-fill fill-b" [style.width.%]="mathMin(stats.activeProjects * 10, 100)"></div>
         </div>
       </div>
 
-      <div class="stat-card danger">
-        <div class="stat-icon">
-          <lucide-angular name="arrow-down-circle" [size]="24"></lucide-angular>
+      <!-- Invoices -->
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">الفواتير المعلقة</span>
+          <div class="kpi-icon amber-icon">
+            <lucide-angular name="file-text" [size]="16"></lucide-angular>
+          </div>
         </div>
-        <div class="stat-info">
-          <span class="label">مصاريف الشهر</span>
-          <span class="value">{{ stats.monthlyExpenses | number }} <small>ل.س</small></span>
-          <span class="sub-label">صافي الربح: {{ stats.monthlyProfit | number }}</span>
+        <div class="kpi-val">{{ stats.pendingInvoices }}<span class="kpi-unit">فاتورة</span></div>
+        <div>
+          <span class="kpi-tag tag-a" *ngIf="stats.overdueInvoices > 0">
+            <lucide-angular name="alert-circle" [size]="10"></lucide-angular>
+            {{ stats.overdueInvoices }} متأخرة
+          </span>
+          <span class="kpi-tag tag-ok" *ngIf="stats.overdueInvoices === 0">
+            <lucide-angular name="check" [size]="10"></lucide-angular>
+            لا تأخير
+          </span>
         </div>
-      </div>
-
-      <div class="stat-card info">
-        <div class="stat-icon">
-          <lucide-angular name="briefcase" [size]="24"></lucide-angular>
-        </div>
-        <div class="stat-info">
-          <span class="label">مشاريع نشطة</span>
-          <span class="value">{{ stats.activeProjects }}</span>
-          <span class="sub-label">{{ stats.pendingTasks }} مهمة قيد التنفيذ</span>
-        </div>
-      </div>
-
-      <div class="stat-card warning">
-        <div class="stat-icon">
-          <lucide-angular name="book-open" [size]="24"></lucide-angular>
-        </div>
-        <div class="stat-info">
-          <span class="label">تنبيهات المخزون</span>
-          <span class="value">{{ stats.lowStockBooks }}</span>
-          <span class="sub-label">كتب قاربت على النفاد</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="charts-section">
-      <div class="card chart-card">
-        <div class="card-header">
-          <h3><lucide-angular name="bar-chart-2" [size]="20"></lucide-angular> حركة الإيرادات (آخر 30 يوم)</h3>
-        </div>
-        <div class="card-body">
-          <div class="simple-bar-chart">
-            <div *ngFor="let item of revenueChartData" class="bar-item" [title]="item.name + ': ' + (item.value | number)">
-              <div class="bar" [style.height.px]="(item.value / 100000) * 20 + 20"></div> <span class="bar-label">{{ item.name }}</span>
-            </div>
-            <div *ngIf="revenueChartData.length === 0" class="empty-chart">لا توجد بيانات كافية للرسم البياني</div>
+        <div class="kpi-bar-track">
+          <div class="kpi-bar-fill fill-a"
+            [style.width.%]="stats.pendingInvoices ? mathMin((stats.overdueInvoices / stats.pendingInvoices) * 100, 100) : 0">
           </div>
         </div>
       </div>
 
-      <div class="card top-books-card">
-        <div class="card-header">
-          <h3><lucide-angular name="star" [size]="20"></lucide-angular> الكتب الأكثر مبيعاً</h3>
+      <!-- Stock -->
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">تنبيهات المخزون</span>
+          <div class="kpi-icon purple-icon">
+            <lucide-angular name="package" [size]="16"></lucide-angular>
+          </div>
         </div>
-        <div class="card-body">
-          <ul class="top-list">
-            <li *ngFor="let book of topBooks; let i = index">
-              <span class="rank">#{{ i + 1 }}</span>
-              <div class="book-details">
-                <span class="book-title">{{ book.name }}</span>
-                <span class="book-author">{{ book.author }}</span>
-              </div>
-              <span class="book-sales">{{ book.value }} نسخة</span>
-            </li>
-            <li *ngIf="topBooks.length === 0" class="empty-list">لا توجد مبيعات مسجلة</li>
-          </ul>
+        <div class="kpi-val">{{ stats.lowStockBooks }}<span class="kpi-unit">كتاب</span></div>
+        <div>
+          <span class="kpi-tag tag-a" *ngIf="stats.lowStockBooks > 0">
+            <lucide-angular name="alert-circle" [size]="10"></lucide-angular>
+            تحت الحد الأدنى
+          </span>
+          <span class="kpi-tag tag-ok" *ngIf="stats.lowStockBooks === 0">
+            <lucide-angular name="check" [size]="10"></lucide-angular>
+            المخزون جيد
+          </span>
+        </div>
+        <div class="kpi-bar-track">
+          <div class="kpi-bar-fill fill-p" [style.width.%]="mathMin(stats.lowStockBooks * 8, 100)"></div>
         </div>
       </div>
-    </div>
 
-    <div class="bottom-section">
-      <div class="card activities-card">
-        <div class="card-header">
-          <h3><lucide-angular name="activity" [size]="20"></lucide-angular> آخر النشاطات</h3>
-          <a routerLink="/invoices" class="view-all">عرض الكل</a>
-        </div>
-        <div class="card-body">
-          <div class="activity-list">
-            <div *ngFor="let activity of recentActivities" class="activity-item">
-              <div class="activity-icon-wrapper" [ngClass]="activity.type">
-                <lucide-angular [name]="activity.type === 'invoice' ? 'file-text' : 'folder'" [size]="18"></lucide-angular>
+    </div>
+    <!-- END KPI ROW -->
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+
+      <!-- LEFT COLUMN -->
+      <div class="col-left">
+
+        <!-- Revenue Chart -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <div class="card-icon green"><lucide-angular name="bar-chart-2" [size]="16"></lucide-angular></div>
+              <div><h3>إيرادات الشهر الجاري</h3><p>حركة المبيعات اليومية</p></div>
+            </div>
+            <span class="legend-pill">
+              <span class="legend-dot green-dot"></span>المبيعات
+            </span>
+          </div>
+          <div class="chart-wrap">
+            <div class="bar-chart" *ngIf="revenueChartData.length > 0; else emptyChart">
+              <div class="y-axis">
+                <span>{{ formatNumber(getMaxRevenue()) }}</span>
+                <span>{{ formatNumber(getMaxRevenue() / 2) }}</span>
+                <span>0</span>
               </div>
-              <div class="activity-content">
-                <div class="act-top">
-                  <span class="act-title">{{ activity.title }}</span>
-                  <span class="act-time">{{ getTimeAgo(activity.time) }}</span>
+              <div class="bars-zone">
+                <div *ngFor="let item of revenueChartData; let i = index"
+                     class="b-col"
+                     [title]="item.name + ': ' + (item.value | number) + ' ل.س'">
+                  <div class="b-wrap">
+                    <div class="b-fill"
+                         [style.height.%]="getBarHeight(item.value)"
+                         [style.animation-delay]="(i * 0.04) + 's'">
+                      <div class="b-tip">{{ formatNumber(item.value) }}</div>
+                    </div>
+                  </div>
+                  <span class="b-label">{{ item.name }}</span>
                 </div>
-                <p class="act-desc">{{ activity.description }}</p>
-              </div>
-              <div *ngIf="activity.amount" class="act-amount">
-                +{{ activity.amount | number }}
               </div>
             </div>
-            <div *ngIf="recentActivities.length === 0" class="empty-state">لا توجد نشاطات حديثة</div>
+            <ng-template #emptyChart>
+              <div class="empty-state">
+                <lucide-angular name="bar-chart-2" [size]="38"></lucide-angular>
+                <p>لا توجد بيانات بعد</p>
+              </div>
+            </ng-template>
           </div>
         </div>
-      </div>
 
-      <div class="quick-links-grid">
-        <a routerLink="/books" class="quick-link-card">
-          <lucide-angular name="library" [size]="32"></lucide-angular>
-          <span>إدارة الكتب</span>
-        </a>
-        <a routerLink="/customers" class="quick-link-card">
-          <lucide-angular name="users" [size]="32"></lucide-angular>
-          <span>العملاء</span>
-        </a>
-        <a routerLink="/accounting/expenses" class="quick-link-card">
-          <lucide-angular name="receipt" [size]="32"></lucide-angular>
-          <span>المصاريف</span>
-        </a>
-        <a routerLink="/settings" class="quick-link-card">
-          <lucide-angular name="settings" [size]="32"></lucide-angular>
-          <span>الإعدادات</span>
-        </a>
+        <!-- Top Books -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <div class="card-icon amber"><lucide-angular name="book-open" [size]="16"></lucide-angular></div>
+              <div><h3>الكتب الأكثر مبيعاً</h3><p>إجمالي النسخ المباعة هذا الشهر</p></div>
+            </div>
+            <a routerLink="/books/sales" class="more-link">
+              عرض الكل <lucide-angular name="arrow-left" [size]="13"></lucide-angular>
+            </a>
+          </div>
+          <div class="books-list">
+            <div *ngFor="let book of topBooks; let i = index"
+                 class="book-row"
+                 [style.animation-delay]="(i * 0.07) + 's'">
+              <span class="rank-badge" [ngClass]="getRankClass(i)">{{ i + 1 }}</span>
+              <div class="book-info">
+                <span class="book-name-text">{{ book.name }}</span>
+                <span class="book-author-text" *ngIf="book.author">{{ book.author }}</span>
+              </div>
+              <div class="book-bar-track">
+                <div class="book-bar-fill" [style.width.%]="getBookBarWidth(book.value, topBooks)"></div>
+              </div>
+              <div class="book-count">
+                <b>{{ book.value }}</b><small>نسخة</small>
+              </div>
+            </div>
+            <div *ngIf="topBooks.length === 0" class="empty-state">
+              <lucide-angular name="book-open" [size]="32"></lucide-angular>
+              <p>لا توجد مبيعات</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- END LEFT -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-right">
+
+        <!-- Finance Donut -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <div class="card-icon purple"><lucide-angular name="pie-chart" [size]="16"></lucide-angular></div>
+              <div><h3>ملخص مالي</h3><p>الشهر الجاري</p></div>
+            </div>
+          </div>
+          <div class="fin-body">
+            <div class="donut-wrap">
+              <svg viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#f1f5f9" stroke-width="14"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#22c55e" stroke-width="14"
+                  [attr.stroke-dasharray]="getProfitArc() + ' 289'"
+                  stroke-linecap="round" transform="rotate(-90 60 60)" class="arc-anim"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#f43f5e" stroke-width="14"
+                  [attr.stroke-dasharray]="getExpenseArc() + ' 289'"
+                  [attr.stroke-dashoffset]="-(getProfitArc())"
+                  stroke-linecap="round" transform="rotate(-90 60 60)" class="arc-anim"/>
+              </svg>
+              <div class="donut-center">
+                <span class="donut-pct">{{ getProfitMargin() }}%</span>
+                <span class="donut-sub">هامش الربح</span>
+              </div>
+            </div>
+            <div class="fin-rows">
+              <div class="fin-row">
+                <span class="fin-dot" style="background:#22c55e"></span>
+                <span class="fin-label">الإيرادات</span>
+                <span class="fin-val fv-green">{{ formatNumber(stats.monthlyRevenue) }} <small>ل.س</small></span>
+              </div>
+              <div class="fin-row">
+                <span class="fin-dot" style="background:#f43f5e"></span>
+                <span class="fin-label">المصاريف</span>
+                <span class="fin-val fv-red">{{ formatNumber(stats.monthlyExpenses) }} <small>ل.س</small></span>
+              </div>
+              <div class="fin-sep"></div>
+              <div class="fin-row">
+                <span class="fin-dot" style="background:#2563eb"></span>
+                <span class="fin-label">صافي الربح</span>
+                <span class="fin-val">{{ formatNumber(stats.monthlyProfit) }} <small>ل.س</small></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Feed -->
+        <div class="card activity-card">
+          <div class="card-head">
+            <div class="card-title">
+              <div class="card-icon blue"><lucide-angular name="activity" [size]="16"></lucide-angular></div>
+              <div><h3>آخر النشاطات</h3><p>الأحداث الأخيرة</p></div>
+            </div>
+            <a routerLink="/invoices" class="more-link">
+              الكل <lucide-angular name="arrow-left" [size]="13"></lucide-angular>
+            </a>
+          </div>
+          <div class="feed">
+            <div *ngFor="let act of recentActivities; let i = index"
+                 class="feed-row"
+                 [style.animation-delay]="(i * 0.06) + 's'">
+              <div class="feed-icon" [ngClass]="'fi-' + act.type">
+                <lucide-angular
+                  [name]="act.type === 'invoice' ? 'file-text' : 'folder'"
+                  [size]="13">
+                </lucide-angular>
+              </div>
+              <div class="feed-body">
+                <div class="feed-top">
+                  <span class="feed-title">{{ act.title }}</span>
+                  <span class="feed-time">{{ getTimeAgo(act.time) }}</span>
+                </div>
+                <p class="feed-desc">{{ act.description }}</p>
+                <span *ngIf="act.amount" class="feed-amount">+ {{ formatNumber(act.amount) }} ل.س</span>
+              </div>
+            </div>
+            <div *ngIf="recentActivities.length === 0" class="empty-state">
+              <lucide-angular name="activity" [size]="32"></lucide-angular>
+              <p>لا توجد نشاطات</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- END RIGHT -->
+
+    </div>
+    <!-- END MAIN GRID -->
+
+    <!-- QUICK ACCESS -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          <div class="card-icon gray"><lucide-angular name="grid" [size]="16"></lucide-angular></div>
+          <div><h3>وصول سريع</h3><p>الأقسام الأكثر استخداماً</p></div>
+        </div>
+      </div>
+      <div class="quick-links">
+        <a routerLink="/books"                class="ql"><div class="ql-icon ql-green"><lucide-angular name="book-open"    [size]="20"></lucide-angular></div><span>إدارة الكتب</span></a>
+        <a routerLink="/books/sales/new"      class="ql"><div class="ql-icon ql-emerald"><lucide-angular name="shopping-cart" [size]="20"></lucide-angular></div><span>تسجيل بيع</span></a>
+        <a routerLink="/customers"            class="ql"><div class="ql-icon ql-blue"><lucide-angular name="users"        [size]="20"></lucide-angular></div><span>العملاء</span></a>
+        <a routerLink="/invoices/new"         class="ql"><div class="ql-icon ql-sky"><lucide-angular name="file-text"    [size]="20"></lucide-angular></div><span>فاتورة جديدة</span></a>
+        <a routerLink="/tasks"                class="ql"><div class="ql-icon ql-amber"><lucide-angular name="check-square" [size]="20"></lucide-angular></div><span>المهام</span></a>
+        <a routerLink="/suppliers"            class="ql"><div class="ql-icon ql-orange"><lucide-angular name="truck"       [size]="20"></lucide-angular></div><span>الموردون</span></a>
+        <a routerLink="/projects"             class="ql"><div class="ql-icon ql-purple"><lucide-angular name="briefcase"   [size]="20"></lucide-angular></div><span>المشاريع</span></a>
+        <a routerLink="/accounting/expenses"  class="ql"><div class="ql-icon ql-rose"><lucide-angular name="credit-card"  [size]="20"></lucide-angular></div><span>المصاريف</span></a>
+        <a routerLink="/accounting/reports"   class="ql"><div class="ql-icon ql-teal"><lucide-angular name="bar-chart-2"  [size]="20"></lucide-angular></div><span>التقارير</span></a>
+        <a routerLink="/calendar"             class="ql"><div class="ql-icon ql-cyan"><lucide-angular name="calendar"     [size]="20"></lucide-angular></div><span>التقويم</span></a>
+        <a routerLink="/settings"             class="ql"><div class="ql-icon ql-slate"><lucide-angular name="settings"    [size]="20"></lucide-angular></div><span>الإعدادات</span></a>
       </div>
     </div>
 
   </div>
+
 </div>
