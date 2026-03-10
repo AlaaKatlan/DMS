@@ -4,37 +4,43 @@
       <h1 class="page-title">إدارة المشاريع</h1>
       <p class="page-subtitle">قائمة بجميع المشاريع وحالات الإنجاز</p>
     </div>
-   <div class="header-actions" style="display: flex; gap: 10px;"> <button class="btn btn-outline" routerLink="/projects/board" style="display: flex; align-items: center; gap: 5px; padding: 0.75rem 1rem; border: 1px solid #E2E8F0; background: white; border-radius: 0.75rem; cursor: pointer;">
-      <lucide-angular name="kanban" [size]="20"></lucide-angular>
-      <span>لوحة المهام</span>
-    </button>
-    <button class="btn btn-primary" routerLink="/projects/new">
-      <lucide-angular name="plus-circle" [size]="20"></lucide-angular>
-      <span>مشروع جديد</span>
-    </button>
-  </div>
+    <div class="header-actions" style="display: flex; gap: 10px;"> <button class="btn btn-outline"
+        routerLink="/projects/board"
+        style="display: flex; align-items: center; gap: 5px; padding: 0.75rem 1rem; border: 1px solid #E2E8F0; background: white; border-radius: 0.75rem; cursor: pointer;">
+        <lucide-angular name="kanban" [size]="20"></lucide-angular>
+        <span>لوحة المهام</span>
+      </button>
+      <button class="btn btn-primary" routerLink="/projects/new">
+        <lucide-angular name="plus-circle" [size]="20"></lucide-angular>
+        <span>مشروع جديد</span>
+      </button>
+    </div>
   </div>
 
   <div class="filters-section">
     <div class="search-box">
       <lucide-angular name="search" [size]="20"></lucide-angular>
-      <input
-        type="text"
-        placeholder="ابحث عن مشروع أو عميل..."
-        [(ngModel)]="searchQuery"
-        (ngModelChange)="applyFilters()"
-      >
+      <input type="text" placeholder="ابحث عن مشروع أو عميل..." [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()">
     </div>
 
     <div class="filters-group">
       <div class="status-tabs">
-        <button
-          *ngFor="let status of ['all', 'active', 'completed', 'on_hold']"
-          (click)="setStatusFilter(status)"
-          class="tab-btn"
-          [class.active]="statusFilter === status"
-        >
+        <button *ngFor="let status of ['all', 'active', 'completed', 'on_hold']" (click)="setStatusFilter(status)"
+          class="tab-btn" [class.active]="statusFilter === status">
           {{ status === 'all' ? 'الكل' : getStatusLabel(status) }}
+        </button>
+      </div>
+
+      <!-- Multi-select project type filter -->
+      <div class="type-chips" *ngIf="getProjectTypes().length > 0">
+        <span class="chips-label">نوع المشروع:</span>
+        <button *ngFor="let type of getProjectTypes()" class="chip" [class.active]="isTypeSelected(type)"
+          (click)="toggleTypeFilter(type)">
+          {{ type }}
+        </button>
+        <button class="chip clear" *ngIf="selectedTypes.length > 0" (click)="selectedTypes = []; applyFilters()">
+          <lucide-angular name="x" [size]="12"></lucide-angular> مسح
         </button>
       </div>
 

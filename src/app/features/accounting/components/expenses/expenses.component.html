@@ -1,1 +1,169 @@
-<p>expenses works!</p>
+<div class="expenses-page">
+    <!-- Header -->
+    <div class="page-header">
+        <div class="title-section">
+            <h1>المصروفات والمشتريات العامة</h1>
+            <p>إدارة كافة المصروفات الإدارية والمشتريات لدار النشر غير المرتبطة بمشروع محدد.</p>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" (click)="toggleForm()">
+                <lucide-angular [name]="showForm ? 'x' : 'plus'" [size]="20"></lucide-angular>
+                {{ showForm ? 'إلغاء' : 'إضافة مصروف جديد' }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <div class="form-card" *ngIf="showForm">
+        <div class="card-header">
+            <h2>إضافة مصروف جديد</h2>
+        </div>
+
+        <form [formGroup]="expenseForm" (ngSubmit)="onSubmit()" class="expense-form">
+            <div class="form-grid">
+                <!-- Title -->
+                <div class="form-group">
+                    <label>عنوان المصروف</label>
+                    <input type="text" formControlName="title" class="form-control"
+                        placeholder="مثال: أدوات مكتبية، فواتير كهرباء...">
+                    <div class="error-msg"
+                        *ngIf="expenseForm.get('title')?.touched && expenseForm.get('title')?.invalid">
+                        مطلوب
+                    </div>
+                </div>
+
+                <!-- Category -->
+                <div class="form-group">
+                    <label>الفئة</label>
+                    <select formControlName="category" class="form-control">
+                        <option value="office">مكتبية</option>
+                        <option value="marketing">تسويق</option>
+                        <option value="salary">رواتب</option>
+                        <option value="maintenance">صيانة</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                </div>
+
+                <!-- Amount -->
+                <div class="form-group">
+                    <label>المبلغ</label>
+                    <div class="input-with-icon">
+                        <input type="number" formControlName="amount" class="form-control" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <!-- Currency -->
+                <div class="form-group">
+                    <label>العملة</label>
+                    <select formControlName="currency" class="form-control">
+                        <option value="USD">دولار أمريكي (USD)</option>
+                        <option value="AED">درهم إماراتي (AED)</option>
+                        <option value="QAR">ريال قطري (QAR)</option>
+                        <option value="SYP">ليرة سورية (SYP)</option>
+                    </select>
+                </div>
+
+                <!-- Date -->
+                <div class="form-group">
+                    <label>تاريخ المصروف</label>
+                    <input type="date" formControlName="expense_date" class="form-control">
+                </div>
+
+                <!-- Payment Method -->
+                <div class="form-group">
+                    <label>طريقة الدفع</label>
+                    <select formControlName="payment_method" class="form-control">
+                        <option value="cash">نقدي</option>
+                        <option value="bank_transfer">حوالة بنكية</option>
+                        <option value="credit_card">بطاقة ائتمان</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group full-width">
+                <label>ملاحظات إضافية</label>
+                <textarea formControlName="notes" class="form-control" rows="3"
+                    placeholder="أية تفاصيل إضافية عن المصروف..."></textarea>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-outline" (click)="toggleForm()">إلغاء</button>
+                <button type="submit" class="btn btn-primary" [disabled]="expenseForm.invalid || saving">
+                    <lucide-angular name="save" [size]="18" *ngIf="!saving"></lucide-angular>
+                    <span class="spinner" *ngIf="saving"></span>
+                    {{ saving ? 'جاري الحفظ...' : 'حفظ المصروف' }}
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Expenses List -->
+    <div class="content-card">
+        <div class="card-header">
+            <h2>سجل المصروفات العامة</h2>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="isLoading$ | async">
+            <div class="spinner"></div>
+            <p>جاري تحميل البيانات...</p>
+        </div>
+
+        <!-- Data Table -->
+        <div class="table-container" *ngIf="(isLoading$ | async) === false">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>التاريخ</th>
+                        <th>العنوان والفئة</th>
+                        <th>المبلغ</th>
+                        <th>مُدخل بواسطة</th>
+                        <th>حالة الاعتماد</th>
+                        <th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Only show non-project expenses if desired, else show all -->
+                    <tr *ngFor="let expense of expenses$ | async">
+                        <td>{{ expense.expense_date | date:'yyyy-MM-dd' }}</td>
+                        <td>
+                            <div class="expense-title-cell">
+                                <span class="title">{{ expense.title }}</span>
+                                <span class="category-badge">{{ expense.category }}</span>
+                                <span class="project-badge" *ngIf="expense.project_id">مشروع: {{ expense.project?.title
+                                    }}</span>
+                            </div>
+                        </td>
+                        <td class="amount-cell">
+                            <strong>{{ expense.amount | number:'1.2-2' }}</strong>
+                            <span class="currency">{{ expense.currency }}</span>
+                        </td>
+                        <td>{{ expense.entered_by_user?.full_name || 'غير محدد' }}</td>
+                        <td>
+                            <span class="status-badge" [ngClass]="expense.approved ? 'success' : 'warning'">
+                                {{ expense.approved ? 'معتمد' : 'بانتظار الاعتماد' }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn-icon delete" (click)="deleteExpense(expense.id)" title="حذف">
+                                    <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <!-- Empty state -->
+                    <tr *ngIf="(expenses$ | async)?.length === 0">
+                        <td colspan="6" class="text-center empty-state">
+                            لا توجد مصروفات مسجلة حالياً
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

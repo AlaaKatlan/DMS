@@ -1,0 +1,302 @@
+// ========== Local Variables ==========
+$primary-color: #4F46E5;
+$text-dark: #1E293B;
+$text-main: #374151;
+$text-light: #64748B;
+$bg-light: #F8FAFC;
+$border-light: #E2E8F0;
+$border-color: #D1D5DB;
+$success-color: #10B981;
+$warning-color: #F59E0B;
+$danger-color: #EF4444;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-xxl: 3rem;
+$radius-md: 0.5rem;
+$radius-full: 9999px;
+$breakpoint-md: 768px;
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin card {
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid $border-light;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+// ======================================
+
+.expenses-page {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .title-section {
+      h1 {
+        margin: 0;
+        color: $text-dark;
+        font-size: 1.8rem;
+      }
+      p {
+        margin: $spacing-sm 0 0;
+        color: $text-light;
+      }
+    }
+
+    .actions {
+      display: flex;
+      gap: $spacing-md;
+
+      .btn {
+        @include flex-center;
+        gap: $spacing-sm;
+      }
+    }
+
+    @media (max-width: $breakpoint-md) {
+      flex-direction: column;
+      gap: $spacing-md;
+      
+      .actions {
+        width: 100%;
+        .btn { flex: 1; justify-content: center; }
+      }
+    }
+  }
+
+  .form-card, .content-card {
+    @include card;
+    
+    .card-header {
+      padding: $spacing-lg;
+      border-bottom: 1px solid $border-light;
+      
+      h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: $text-dark;
+      }
+    }
+  }
+
+  .expense-form {
+    padding: $spacing-lg;
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: $spacing-lg;
+      margin-bottom: $spacing-lg;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-sm;
+
+      &.full-width {
+        grid-column: 1 / -1;
+      }
+
+      label {
+        font-weight: 500;
+        color: $text-main;
+      }
+
+      .form-control {
+        padding: $spacing-sm $spacing-md;
+        border: 1px solid $border-color;
+        border-radius: $radius-md;
+        font-family: inherit;
+        
+        &:focus {
+          outline: none;
+          border-color: $primary-color;
+          box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+        }
+      }
+
+      .input-with-icon {
+        position: relative;
+        .form-control { width: 100%; }
+      }
+
+      .error-msg {
+        color: $danger-color;
+        font-size: 0.85rem;
+      }
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: $spacing-md;
+      margin-top: $spacing-xl;
+      padding-top: $spacing-lg;
+      border-top: 1px solid $border-light;
+
+      .btn {
+        @include flex-center;
+        gap: $spacing-sm;
+        min-width: 120px;
+        
+        &:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+
+  .loading-state {
+    padding: $spacing-xxl;
+    text-align: center;
+    color: $text-light;
+    
+    .spinner {
+      margin-bottom: $spacing-md;
+    }
+  }
+
+  .table-container {
+    overflow-x: auto;
+    padding: $spacing-md $spacing-lg;
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      
+      th, td {
+        padding: $spacing-md;
+        text-align: right;
+        border-bottom: 1px solid $border-light;
+      }
+
+      th {
+        color: $text-light;
+        font-weight: 600;
+        background-color: rgba($bg-light, 0.5);
+      }
+
+      td {
+        color: $text-main;
+        vertical-align: middle;
+      }
+
+      .expense-title-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+
+        .title {
+          font-weight: 500;
+          color: $text-dark;
+        }
+
+        .category-badge, .project-badge {
+          display: inline-block;
+          font-size: 0.75rem;
+          padding: 0.15rem 0.5rem;
+          border-radius: $radius-full;
+          background-color: $bg-light;
+          color: $text-light;
+          width: fit-content;
+        }
+
+        .project-badge {
+          background-color: rgba($primary-color, 0.1);
+          color: $primary-color;
+        }
+      }
+
+      .amount-cell {
+        strong {
+          font-size: 1.1rem;
+          color: $text-dark;
+          margin-left: 0.25rem;
+        }
+        .currency {
+          color: $text-light;
+          font-size: 0.85rem;
+        }
+      }
+
+      .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: $radius-full;
+        font-size: 0.85rem;
+        font-weight: 500;
+        
+        &.success {
+          background-color: rgba($success-color, 0.1);
+          color: $success-color;
+        }
+        
+        &.warning {
+          background-color: rgba($warning-color, 0.1);
+          color: $warning-color;
+        }
+      }
+
+      .actions-cell {
+        display: flex;
+        gap: 0.5rem;
+        
+        .btn-icon {
+          background: none;
+          border: none;
+          padding: 0.5rem;
+          border-radius: $radius-md;
+          cursor: pointer;
+          color: $text-light;
+          transition: all 0.2s;
+          
+          &:hover {
+            background-color: $bg-light;
+            color: $text-dark;
+          }
+          
+          &.delete:hover {
+            color: $danger-color;
+            background-color: rgba($danger-color, 0.1);
+          }
+        }
+      }
+
+      .empty-state {
+        padding: $spacing-xxl;
+        color: $text-light;
+      }
+    }
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba($primary-color, 0.2);
+  border-radius: 50%;
+  border-top-color: $primary-color;
+  animation: spin 1s linear infinite;
+  
+  &.white {
+    border-color: rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

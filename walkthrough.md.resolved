@@ -1,0 +1,21 @@
+# Walkthrough: Database Schema Fix (project_tasks)
+
+I have resolved the "column does not exist" error that was occurring when loading project details. The issue was due to the code referencing a `notes` column in the `project_tasks` table, while the actual column name in the database is `description`.
+
+## Changes Made
+
+### 1. Projects Service
+- Updated [getProjectDetail](file:///d:/Dar%20Alzaibak%20-%20Managment%20System/DMS/src/app/features/projects/projects.service.ts#50-88) in [projects.service.ts](file:///d:/Dar%20Alzaibak%20-%20Managment%20System/DMS/src/app/features/projects/projects.service.ts) to select the `description` column instead of `notes`.
+
+### 2. Project Form Component
+- Updated [project-form.component.ts](file:///d:/Dar%20Alzaibak%20-%20Managment%20System/DMS/src/app/features/projects/components/project-form/project-form.component.ts) to map the `description` field from the database to the form and vice-versa.
+- Updated [project-form.component.html](file:///d:/Dar%20Alzaibak%20-%20Managment%20System/DMS/src/app/features/projects/components/project-form/project-form.component.html) to use `formControlName="description"` for project item notes.
+
+### 3. Project Detail Component
+- Updated [project-detail.component.html](file:///d:/Dar%20Alzaibak%20-%20Managment%20System/DMS/src/app/features/projects/components/project-detail/project-detail.component.html) to correctly display `task.description`.
+
+## Verification Results
+
+- **Build Status**: ✅ `ng build` completed successfully.
+- **Database Query**: The query `tasks:project_tasks(..., description, ...)` now matches the database schema, resolving the error reported.
+- **Data Persistence**: Project items (tasks) will now correctly save their notes to the `description` column.

@@ -80,7 +80,9 @@
         <span class="value" [class.negative]="projectStats.profit < 0">
           {{ formatCurrency(projectStats.profit || 0, project.currency) }}
         </span>
-        <span class="sub-text">إيراد: {{ formatCurrency(projectStats.totalRevenue || 0) }}</span>
+        <span class="sub-text">إيراد: {{ formatCurrency(projectStats.totalRevenue || 0, project.currency) }}</span>
+        <span class="sub-text text-danger" *ngIf="projectStats.freelancerCost">تكلفة مستقلين: {{
+          formatCurrency(projectStats.freelancerCost || 0, project.currency) }}</span>
       </div>
     </div>
   </div>
@@ -178,18 +180,30 @@
             <span class="status-dot" [ngClass]="getStatusColor(task.status)"></span>
             <div class="task-text">
               <h4>{{ task.title }}</h4>
-              @if (task.assignee) {
-              <span class="assignee">
-                <lucide-angular name="user" [size]="12"></lucide-angular>
-                {{ task.assignee.full_name }}
-              </span>
+              <div class="task-details-row">
+                @if (task.assignee) {
+                <span class="assignee">
+                  <lucide-angular name="user" [size]="12"></lucide-angular>
+                  {{ task.assignee.full_name }}
+                  @if (task.assignee.role === 'freelancer') {
+                  <span class="role-badge">مستقل</span>
+                  }
+                </span>
+                }
+                @if (task.quantity && task.unit_price) {
+                <span class="price-info">
+                  <lucide-angular name="tag" [size]="12"></lucide-angular>
+                  {{ task.quantity }} × {{ task.unit_price }} = <strong>{{ formatCurrency(task.quantity *
+                    task.unit_price, project.currency) }}</strong>
+                </span>
+                }
+              </div>
+              @if (task.description) {
+              <p class="task-notes"><lucide-angular name="info" [size]="12"></lucide-angular> {{ task.description }}</p>
               }
             </div>
           </div>
           <div class="task-meta">
-            <span class="priority-badge" [ngClass]="getPriorityColor(task.priority || 'medium')">
-              {{ getPriorityLabel(task.priority || 'medium') }}
-            </span>
             <span class="date">{{ formatDate(task.due_date || '') }}</span>
           </div>
         </div>

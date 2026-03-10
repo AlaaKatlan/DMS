@@ -124,6 +124,52 @@ $text-main: #1E293B;
         &.active { background: $white; color: $primary; }
       }
     }
+
+    .type-chips {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+      .chips-label {
+        font-size: 0.8rem;
+        color: $secondary;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 99px;
+        font-size: 0.8rem;
+        border: 1.5px solid $border;
+        background: $white;
+        color: $secondary;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+
+        &:hover {
+          border-color: $primary;
+          color: $primary;
+        }
+
+        &.active {
+          background: $primary;
+          border-color: $primary;
+          color: $white;
+        }
+
+        &.clear {
+          color: #EF4444;
+          border-color: #FCA5A5;
+          &:hover { background: #FEE2E2; }
+        }
+      }
+    }
   }
 }
 

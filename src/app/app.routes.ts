@@ -82,6 +82,10 @@ export const routes: Routes = [
             loadComponent: () => import('./features/suppliers/components/supplier-form/supplier-form.component').then(m => m.SupplierFormComponent)
           },
           {
+            path: ':id/edit',
+            loadComponent: () => import('./features/suppliers/components/supplier-form/supplier-form.component').then(m => m.SupplierFormComponent)
+          },
+          {
             path: ':id',
             loadComponent: () => import('./features/suppliers/components/supplier-detail/supplier-detail.component').then(m => m.SupplierDetailComponent)
           }

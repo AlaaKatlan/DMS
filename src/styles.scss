@@ -1,7 +1,7 @@
 /* src/styles.scss */
 
 // ==================== IMPORT FONTS ====================
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
 
 // ==================== CSS RESET ====================
 *, *::before, *::after {
@@ -26,8 +26,9 @@ body {
   overflow-x: hidden;
 
   /* الإضافة المطلوبة للأرقام الإنجليزية */
-  font-feature-settings: "ss01" 0;
-  font-variant-numeric: tabular-nums;
+  font-feature-settings: "ss01" online, "cv01" online;
+  font-variant-numeric: tabular-nums lining-nums;
+  -webkit-font-feature-settings: "ss01", "cv01";
 }
 
 // ==================== SCROLLBAR STYLING ====================
@@ -110,6 +111,25 @@ input, textarea, select {
 .p-2 { padding: 1rem; }
 .p-3 { padding: 1.5rem; }
 .p-4 { padding: 2rem; }
+
+// Force LTR direction for phone numbers
+.phone-number,
+[data-phone] {
+  direction: ltr !important;
+  text-align: left !important;
+  display: inline-block;
+  unicode-bidi: embed;
+}
+
+// Force English (Western) numeral display
+.en-num,
+[en-num],
+.number-font {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-variant-numeric: lining-nums !important;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
 
 // ==================== ANIMATIONS ====================
 @keyframes fadeIn {

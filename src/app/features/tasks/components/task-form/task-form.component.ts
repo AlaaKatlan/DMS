@@ -37,6 +37,7 @@ export class TaskFormComponent implements OnInit, OnDestroy {
   // القوائم
   projects: Project[] = [];
   users: any[] = [];
+  freelancers: any[] = [];
 
   statuses: TaskStatus[] = ['todo', 'in_progress', 'completed', 'blocked', 'cancelled'];
   priorities: TaskPriority[] = ['low', 'medium', 'high', 'urgent'];
@@ -55,10 +56,10 @@ export class TaskFormComponent implements OnInit, OnDestroy {
       } else {
         this.isEditMode = false;
         this.taskForm.reset({
-            status: 'todo',
-            priority: 'medium',
-            quantity: 1,
-            task_type: 'parallel'
+          status: 'todo',
+          priority: 'medium',
+          quantity: 1,
+          task_type: 'parallel'
         });
       }
     });
@@ -96,9 +97,12 @@ export class TaskFormComponent implements OnInit, OnDestroy {
       error: (err) => console.error('Error loading projects', err)
     });
 
+    // Load all users to assign as employees
     this.settingsService.getUsersList().subscribe({
       next: (data) => {
-        this.users = data;
+        // split freelancers from staff
+        this.freelancers = data.filter((u: any) => u.role === 'freelancer');
+        this.users = data.filter((u: any) => u.role !== 'freelancer');
         this.cd.detectChanges();
       },
       error: (err) => console.error('Error loading users', err)

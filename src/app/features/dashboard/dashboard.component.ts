@@ -15,8 +15,8 @@ import { DashboardStats } from '../../core/models/base.model';
 })
 export class DashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
-  private authService      = inject(AuthService);
-  private cd               = inject(ChangeDetectorRef);
+  private authService = inject(AuthService);
+  private cd = inject(ChangeDetectorRef);
 
   stats: DashboardStats | null = null;
   loading = true;
@@ -62,8 +62,7 @@ export class DashboardComponent implements OnInit {
   // ── Number formatting ─────────────────────────
   formatNumber(value: number): string {
     if (!value && value !== 0) return '0';
-    if (value >= 1_000_000) return (value / 1_000_000).toFixed(1) + 'م';
-    if (value >= 1_000)     return (value / 1_000).toFixed(0) + 'ك';
+    // Show full number with commas
     return value.toLocaleString('en-US');
   }
 
@@ -111,12 +110,12 @@ export class DashboardComponent implements OnInit {
   getTimeAgo(dateString: string): string {
     const diff = Date.now() - new Date(dateString).getTime();
     const m = Math.floor(diff / 60000);
-    if (m < 1)  return 'الآن';
+    if (m < 1) return 'الآن';
     if (m < 60) return `منذ ${m} د`;
     const h = Math.floor(m / 60);
     if (h < 24) return `منذ ${h} س`;
     const d = Math.floor(h / 24);
-    if (d < 7)  return `منذ ${d} يوم`;
-    return new Date(dateString).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+    if (d < 7) return `منذ ${d} يوم`;
+    return new Date(dateString).toLocaleDateString('ar-EG-u-nu-latn', { day: 'numeric', month: 'short' });
   }
 }

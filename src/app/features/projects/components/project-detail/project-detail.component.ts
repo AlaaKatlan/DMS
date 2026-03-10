@@ -10,7 +10,7 @@ import { MilestonesComponent } from '../milestones/milestones.component';
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule,MilestonesComponent],
+  imports: [CommonModule, RouterModule, LucideAngularModule, MilestonesComponent],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.scss']
 })
@@ -59,12 +59,34 @@ export class ProjectDetailComponent implements OnInit {
   }
 
   loadStats(id: string): void {
+    // 1. جلب الإحصائيات الأساسية
     this.projectsService.getProjectStats(id).subscribe({
       next: (data) => {
-        setTimeout(() => {
-          this.projectStats = data;
-          this.cd.detectChanges(); // تحديث الأرقام فور وصولها
-        }, 0);
+        // 2. جلب تكلفة المستقلين الإضافية
+        this.projectsService.calculateFreelancerCost(id).subscribe({
+          next: (freelancerCost) => {
+            setTimeout(() => {
+              this.projectStats = data || {};
+              // إعادة حساب الربح بناءً على إيرادات المشروع (الفواتير) ناقص التكاليف المدفوعة للمستقلين والمصاريف العامة
+              const revenue = this.projectStats.totalRevenue || 0;
+              const generalExpenses = this.projectStats.totalExpenses || 0;
+
+              // صافي الربح = الإيرادات - (تكلفة المستقلين + المصاريف العامة)
+              this.projectStats.profit = revenue - (freelancerCost + generalExpenses);
+              this.projectStats.freelancerCost = freelancerCost; // نحتفظ بها لعرضها لو أردنا
+
+              this.cd.detectChanges(); // تحديث الأرقام فور وصولها
+            }, 0);
+          },
+          error: (fError) => {
+            console.error('Error loading freelancer cost:', fError);
+            // إذا فشل جلب التكلفة، اعتمد على الإحصائيات القديمة
+            setTimeout(() => {
+              this.projectStats = data;
+              this.cd.detectChanges();
+            }, 0);
+          }
+        });
       },
       error: (error) => {
         console.error('Error loading stats:', error);
@@ -76,11 +98,11 @@ export class ProjectDetailComponent implements OnInit {
     this.activeTab = tab;
   }
 
-editProject(): void {
-  if (this.projectId) {
-    this.router.navigate(['/projects', this.projectId, 'edit']);
+  editProject(): void {
+    if (this.projectId) {
+      this.router.navigate(['/projects', this.projectId, 'edit']);
+    }
   }
-}
 
   deleteProject(): void {
     if (!this.project) return;
@@ -103,17 +125,17 @@ editProject(): void {
     this.router.navigate(['/projects']);
   }
 
-calculateProgress(): number {
-  // 1. إذا كان المشروع مكتمل يدوياً، أرجع 100%
-  if (this.project?.status === 'completed') return 100;
+  calculateProgress(): number {
+    // 1. إذا كان المشروع مكتمل يدوياً، أرجع 100%
+    if (this.project?.status === 'completed') return 100;
 
-  // 2. إذا لم يكن هناك مهام، النسبة 0
-  if (!this.project?.tasks || this.project.tasks.length === 0) return 0;
+    // 2. إذا لم يكن هناك مهام، النسبة 0
+    if (!this.project?.tasks || this.project.tasks.length === 0) return 0;
 
-  // 3. الحساب التقليدي
-  const completed = this.project.tasks.filter(t => t.status === 'completed').length;
-  return Math.round((completed / this.project.tasks.length) * 100);
-}
+    // 3. الحساب التقليدي
+    const completed = this.project.tasks.filter(t => t.status === 'completed').length;
+    return Math.round((completed / this.project.tasks.length) * 100);
+  }
 
   getTasksByStatus(status: string): ProjectTask[] {
     if (!this.project?.tasks) return [];

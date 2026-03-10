@@ -1,13 +1,18 @@
 <div class="form-container" dir="rtl">
   <div class="form-header">
     <div class="header-text">
-      <h1>{{ form.get('id')?.value ? 'تعديل بيانات المورد' : 'إضافة مورد جديد' }}</h1>
+      <h1>{{ isEditMode ? 'تعديل بيانات المورد' : 'إضافة مورد جديد' }}</h1>
       <p>أدخل بيانات المورد وجهات الاتصال الخاصة به</p>
     </div>
     <button class="btn-back" routerLink="/suppliers">
       <lucide-angular name="arrow-right" [size]="20"></lucide-angular>
       عودة للقائمة
     </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>جاري تحميل بيانات المورد...</p>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" class="main-form">
@@ -22,7 +27,8 @@
         <div class="form-group">
           <label>اسم المورد <span class="required">*</span></label>
           <div class="input-wrapper">
-            <input type="text" formControlName="name" placeholder="مثال: مطبعة الألوان" [class.error]="form.get('name')?.invalid && form.get('name')?.touched">
+            <input type="text" formControlName="name" placeholder="مثال: مطبعة الألوان"
+              [class.error]="form.get('name')?.invalid && form.get('name')?.touched">
           </div>
         </div>
 
@@ -43,10 +49,11 @@
         <div class="form-group">
           <label>البلد <span class="required">*</span></label>
           <div class="input-wrapper">
-            <select formControlName="country_id" [class.error]="form.get('country_id')?.invalid && form.get('country_id')?.touched">
+            <select formControlName="country_id"
+              [class.error]="form.get('country_id')?.invalid && form.get('country_id')?.touched">
               <option [ngValue]="null">اختر الدولة...</option>
               @for (country of countries; track country.id) {
-                <option [value]="country.id">{{ country.name }}</option>
+              <option [value]="country.id">{{ country.name }}</option>
               }
             </select>
           </div>
@@ -93,45 +100,45 @@
 
       <div formArrayName="contacts" class="contacts-container">
         @for (contact of contacts.controls; track $index) {
-          <div [formGroupName]="$index" class="contact-card">
-            <div class="contact-header">
-              <span class="contact-title">
-                <lucide-angular name="user" [size]="16" class="text-gray-400"></lucide-angular>
-                شخص للتواصل #{{ $index + 1 }}
-              </span>
-              <button type="button" class="btn-delete-contact" (click)="removeContact($index)" title="حذف">
-                <lucide-angular name="trash-2" [size]="16"></lucide-angular>
-                حذف
-              </button>
-            </div>
+        <div [formGroupName]="$index" class="contact-card">
+          <div class="contact-header">
+            <span class="contact-title">
+              <lucide-angular name="user" [size]="16" class="text-gray-400"></lucide-angular>
+              شخص للتواصل #{{ $index + 1 }}
+            </span>
+            <button type="button" class="btn-delete-contact" (click)="removeContact($index)" title="حذف">
+              <lucide-angular name="trash-2" [size]="16"></lucide-angular>
+              حذف
+            </button>
+          </div>
 
-            <div class="contact-body grid-2 small-gap">
-              <div class="form-group">
-                <label>الاسم</label>
-                <input type="text" formControlName="name" placeholder="الاسم الكريم">
-              </div>
-              <div class="form-group">
-                <label>الصفة / المسمى</label>
-                <input type="text" formControlName="role" placeholder="مثال: مدير المبيعات">
-              </div>
-              <div class="form-group">
-                <label>البريد الإلكتروني</label>
-                <input type="email" formControlName="email" placeholder="example@mail.com">
-              </div>
-              <div class="form-group">
-                <label>رقم الهاتف</label>
-                <input type="text" formControlName="phone" placeholder="09xxxxxxxx">
-              </div>
+          <div class="contact-body grid-2 small-gap">
+            <div class="form-group">
+              <label>الاسم</label>
+              <input type="text" formControlName="name" placeholder="الاسم الكريم">
+            </div>
+            <div class="form-group">
+              <label>الصفة / المسمى</label>
+              <input type="text" formControlName="role" placeholder="مثال: مدير المبيعات">
+            </div>
+            <div class="form-group">
+              <label>البريد الإلكتروني</label>
+              <input type="email" formControlName="email" placeholder="example@mail.com">
+            </div>
+            <div class="form-group">
+              <label>رقم الهاتف</label>
+              <input type="text" formControlName="phone" placeholder="09xxxxxxxx">
             </div>
           </div>
+        </div>
         }
 
         @if (contacts.length === 0) {
-          <div class="empty-contacts">
-            <lucide-angular name="user-plus" [size]="32"></lucide-angular>
-            <p>لا يوجد جهات اتصال مضافة.</p>
-            <button type="button" (click)="addContact()">أضف أول جهة اتصال</button>
-          </div>
+        <div class="empty-contacts">
+          <lucide-angular name="user-plus" [size]="32"></lucide-angular>
+          <p>لا يوجد جهات اتصال مضافة.</p>
+          <button type="button" (click)="addContact()">أضف أول جهة اتصال</button>
+        </div>
         }
       </div>
     </div>

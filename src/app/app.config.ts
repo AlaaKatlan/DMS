@@ -11,14 +11,15 @@ import {
   DollarSign, TrendingUp, ArrowDown, Activity, Users, FileX,
   Folder, CheckSquare, FileText, AlertCircle, Package, Menu, Search, PlusCircle, Book,
   Bell, LayoutDashboard, Truck, BookOpen, Calendar, Settings, ChevronRight, MoreVertical, Mail,
-  Lock, Grid, Plus, FileQuestion, Edit3, CircleCheck, PenLine,Banknote,
+  Lock, Grid, Plus, FileQuestion, Edit3, CircleCheck, PenLine, Banknote,
   Eye, Trash2, Edit, Filter, X, Check, Map, Hash, CreditCard, ArrowRight, Loader2, LoaderCircle,
   EyeOff, List, Building, Trash, ChartBar, ChartColumn, Briefcase, Workflow, Printer,
   LogIn, MapPin, ChevronLeft, ArrowLeft, CircleAlert, Columns, Columns2, Ruler, Kanban, Clock,
   UserPlus, Phone, Tag, CheckCircle, Flag, Handshake, TrendingDown, Image, XCircle, CircleX, Pen, ShoppingCart,
-  User, Sliders, Download,Percent,RefreshCw,ChevronDown,
-  LogOut,Save,Shield,RotateCw,
-  Info,ArrowUp,PieChart,BarChart2,
+  User, Sliders, Download, Percent, RefreshCw, ChevronDown,
+  LogOut, Save, Shield, RotateCw, Scissors,
+  Info, ArrowUp, PieChart, BarChart2,
+  ClipboardList,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -54,10 +55,10 @@ export const appConfig: ApplicationConfig = {
       Lock, List, Check, Map, Building, Trash, Hash, CreditCard, ArrowRight, Edit3, CircleCheck,
       Eye, Phone, Plus, ArrowLeft, CircleAlert, Book, Ruler, Image, PenLine, Kanban, CircleX,
       EyeOff, UserPlus, ChartBar, ChartColumn, TrendingDown, Clock, XCircle,
-      LogIn, Trash2, Edit, Filter, Columns2, Tag,Banknote,ChevronDown,
-      User, X,Shield,RotateCw,
-      LogOut,Save,Percent,RefreshCw,
-      Info,ArrowUp,PieChart,BarChart2,
+      LogIn, Trash2, Edit, Filter, Columns2, Tag, Banknote, ChevronDown,
+      User, X, Shield, RotateCw,
+      LogOut, Save, Percent, RefreshCw, Scissors, ClipboardList,
+      Info, ArrowUp, PieChart, BarChart2,
     })),
 
     // استخدام اللغة العربية (التي عدلناها لتقبل تنسيق الأرقام الإنجليزي)

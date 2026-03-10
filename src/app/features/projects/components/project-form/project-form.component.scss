@@ -223,6 +223,105 @@ $shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
       font-weight: 600;
     }
   }
+
+  // --- أنماط عناصر المشروع (FormArray) ---
+  .items-header {
+    justify-content: space-between !important;
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .btn-outline-primary {
+      background: transparent;
+      border: 1px solid $primary;
+      color: $primary;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.3s;
+      
+      &:hover {
+        background: rgba($primary, 0.1);
+      }
+    }
+  }
+
+  .empty-itemstext {
+    text-align: center;
+    padding: 2rem;
+    color: $gray-500;
+    background: $gray-50;
+    border-radius: 12px;
+    border: 1px dashed $gray-200;
+  }
+
+  .item-row {
+    background: $gray-50;
+    border: 1px solid $gray-200;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .item-grid {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      flex-wrap: wrap;
+
+      .form-group {
+        flex: 1;
+        min-width: 150px;
+        
+        &.small-input {
+          flex: 0 0 100px;
+          min-width: 100px;
+        }
+
+        &.flex-grow {
+          flex: 2;
+          min-width: 200px;
+        }
+
+        &.action-col {
+          flex: 0 0 40px;
+          min-width: 40px;
+          align-items: center;
+        }
+      }
+
+      .btn-icon {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        border: none;
+        background: rgba($danger, 0.1);
+        color: $danger;
+        cursor: pointer;
+        transition: all 0.2s;
+        
+        &:hover {
+          background: $danger;
+          color: $white;
+        }
+      }
+
+      .invisible {
+        visibility: hidden;
+      }
+    }
+  }
 }
 
 .form-actions {

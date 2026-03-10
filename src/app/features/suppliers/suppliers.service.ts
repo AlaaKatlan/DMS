@@ -50,6 +50,27 @@ export class SuppliersService extends BaseService<SupplierExtended> {
     );
   }
 
+  updateSupplierWithDetails(id: string, supplier: any, contacts: ContactPerson[]): Observable<SupplierExtended> {
+    return from(
+      (this.supabase.client.from(this.tableName) as any).update(supplier).eq('id', id).select().single()
+    ).pipe(
+      switchMap(({ data: updatedSupplier, error }: any) => {
+        if (error) throw error;
+        // Delete old contacts and re-insert
+        return from((this.supabase.client.from('supplier_contacts') as any).delete().eq('supplier_id', id)).pipe(
+          switchMap(() => {
+            if (contacts && contacts.length > 0) {
+              const contactsWithId = contacts.map(c => ({ ...c, supplier_id: id }));
+              return from((this.supabase.client.from('supplier_contacts') as any).insert(contactsWithId))
+                .pipe(map(() => updatedSupplier));
+            }
+            return of(updatedSupplier);
+          })
+        );
+      })
+    );
+  }
+
   checkDuplicate(name: string, taxId?: string): Observable<boolean> {
     let query = this.supabase.client.from(this.tableName).select('id');
     if (taxId) query = query.or(`name.eq.${name},tax_id.eq.${taxId}`);

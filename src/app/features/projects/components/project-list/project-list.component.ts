@@ -24,10 +24,11 @@ export class ProjectListComponent implements OnInit {
 
   // Filters
   searchQuery = '';
-  statusFilter: string = 'all'; // جعلناها string لتجنب خطأ القالب
+  statusFilter: string = 'all';
+  selectedTypes: string[] = [];
   viewMode: 'list' | 'grid' = 'grid';
 
-  // Pagination (الإضافة الجديدة لحل المشكلة)
+  // Pagination
   currentPage = 1;
   itemsPerPage = 12;
   totalPages = 1;
@@ -70,11 +71,39 @@ export class ProjectListComponent implements OnInit {
       filtered = filtered.filter(p => p.status === this.statusFilter);
     }
 
+    // Project Type Multi-select Filter
+    if (this.selectedTypes.length > 0) {
+      filtered = filtered.filter(p => p.project_type && this.selectedTypes.includes(p.project_type));
+    }
+
     this.filteredProjects = filtered;
 
     // إعادة حساب الصفحات
     this.totalPages = Math.ceil(this.filteredProjects.length / this.itemsPerPage) || 1;
     this.currentPage = 1;
+  }
+
+  toggleTypeFilter(type: string): void {
+    if (this.selectedTypes.includes(type)) {
+      this.selectedTypes = this.selectedTypes.filter(t => t !== type);
+    } else {
+      this.selectedTypes.push(type);
+    }
+    this.applyFilters();
+  }
+
+  isTypeSelected(type: string): boolean {
+    return this.selectedTypes.includes(type);
+  }
+
+  getProjectTypes(): string[] {
+    const types = [...new Set(this.projects.map(p => p.project_type).filter(Boolean))] as string[];
+    return types;
+  }
+
+  // Ensure numbers are displayed in Western (English) numerals
+  toEnglish(val: number | string): string {
+    return String(val).replace(/[٠-٩]/g, d => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
   }
 
   // دالة لتعيين الفلتر وحل مشكلة الأنواع

@@ -1,5 +1,4 @@
 <div class="tasks-page" dir="rtl">
-<div class="tasks-page" dir="rtl">
   <div class="page-header">
     <div class="header-content">
       <h1 class="page-title">إدارة المهام</h1>
@@ -7,7 +6,8 @@
     </div>
 
     <div class="header-actions">
-      <button routerLink="/tasks/board" class="btn btn-outline"> <lucide-angular name="kanban" [size]="20"></lucide-angular>
+      <button routerLink="/tasks/board" class="btn btn-outline"> <lucide-angular name="kanban"
+          [size]="20"></lucide-angular>
         <span>لوحة المهام</span>
       </button>
       <button routerLink="/tasks/new" class="btn btn-primary">
@@ -19,22 +19,14 @@
   <div class="filters-section">
     <div class="search-box">
       <lucide-angular name="search" [size]="20"></lucide-angular>
-      <input
-        type="text"
-        placeholder="ابحث باسم المهمة، المشروع، أو الوصف..."
-        [(ngModel)]="searchQuery"
-        (ngModelChange)="applyFilters()"
-      >
+      <input type="text" placeholder="ابحث باسم المهمة، المشروع، أو الوصف..." [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()">
     </div>
 
     <div class="filters-group">
       <div class="status-tabs">
-        <button
-          *ngFor="let status of ['all', 'todo', 'in_progress', 'completed']"
-          (click)="statusFilter = status; applyFilters()"
-          class="tab-btn"
-          [class.active]="statusFilter === status"
-        >
+        <button *ngFor="let status of ['all', 'todo', 'in_progress', 'completed']"
+          (click)="statusFilter = status; applyFilters()" class="tab-btn" [class.active]="statusFilter === status">
           {{ status === 'all' ? 'الكل' : getStatusLabel(status) }}
         </button>
       </div>
@@ -89,11 +81,7 @@
           <td class="text-secondary font-medium">{{ task.project?.title || '-' }}</td>
           <td>
             <div class="assignee-wrapper" *ngIf="task.assignee">
-              <img alt=""
-                *ngIf="task.assignee.avatar_url"
-                [src]="task.assignee.avatar_url"
-                class="assignee-avatar-img"
-              >
+              <img alt="" *ngIf="task.assignee.avatar_url" [src]="task.assignee.avatar_url" class="assignee-avatar-img">
               <div *ngIf="!task.assignee.avatar_url" class="assignee-avatar-initial">
                 {{ task.assignee.full_name.charAt(0) || 'U' }}
               </div>
@@ -135,7 +123,8 @@
   <div *ngIf="!loading && filteredTasks.length > 0 && viewMode === 'grid'" class="tasks-grid">
     <div *ngFor="let task of filteredTasks" class="task-card">
       <div class="card-header">
-        <div class="priority-dot" [style.background-color]="getPriorityColor(task.priority)" [title]="'أولوية: ' + getPriorityLabel(task.priority)"></div>
+        <div class="priority-dot" [style.background-color]="getPriorityColor(task.priority)"
+          [title]="'أولوية: ' + getPriorityLabel(task.priority)"></div>
         <span class="status-pill-small" [ngClass]="getStatusClass(task.status)">
           {{ getStatusLabel(task.status) }}
         </span>

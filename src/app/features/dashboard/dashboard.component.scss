@@ -36,7 +36,11 @@
   padding: 2rem 2.25rem 4rem;
   max-width: 1520px;
   margin: 0 auto;
-  font-family: 'IBM Plex Sans Arabic', sans-serif;
+  font-family: 'Cairo', 'IBM Plex Sans Arabic', sans-serif;
+
+  // Forcing English Numbers globally for this page
+  font-feature-settings: "ss01" 0;
+  font-variant-numeric: lining-nums;
 
   @media (max-width: 768px) { padding: 1.25rem 1rem 2.5rem; }
 }
@@ -225,13 +229,15 @@
 }
 
 .kpi-val {
-  font-size: 2rem;
-  font-weight: 900;
+  font-size: 2.1rem;
+  font-weight: 800;
   color: var(--text-1);
   line-height: 1;
   display: flex;
   align-items: baseline;
   gap: .35rem;
+  font-family: 'Inter', -apple-system, sans-serif;
+  letter-spacing: -0.5px;
 }
 
 .kpi-unit {
@@ -596,8 +602,10 @@
 }
 
 .fin-val {
-  font-size: .9375rem; font-weight: 800;
-  small { font-size: .7rem; font-weight: 600; color: var(--text-3); }
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  small { font-size: .7rem; font-weight: 600; color: var(--text-3); font-family: 'Cairo', sans-serif; }
 
   &.fv-green { color: #15803d; }
   &.fv-red   { color: #be123c; }

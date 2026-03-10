@@ -3,7 +3,7 @@
   <!-- PAGE HEADER -->
   <div class="page-header">
     <div>
-      <div class="header-eyebrow">
+      <div class="header-eyebrow en-num">
         <span class="live-dot"></span>
         {{ currentDate | date:'EEEE، d MMMM y' }}
       </div>
@@ -48,17 +48,19 @@
         </div>
         <div class="kpi-val">{{ formatNumber(stats.monthlyRevenue) }}<span class="kpi-unit">ل.س</span></div>
         <div><span class="kpi-tag tag-g">
-          <lucide-angular name="arrow-up" [size]="10"></lucide-angular>
-          اليوم: {{ formatNumber(stats.todayRevenue) }}
-        </span></div>
+            <lucide-angular name="arrow-up" [size]="10"></lucide-angular>
+            اليوم: {{ formatNumber(stats.todayRevenue) }}
+          </span></div>
         <svg class="kpi-spark" viewBox="0 0 100 36" preserveAspectRatio="none">
-          <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#22c55e" stop-opacity=".18"/>
-            <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
-          </linearGradient></defs>
-          <path d="M0,28 L12,21 L25,25 L38,10 L52,17 L65,8 L78,13 L100,3 L100,36 L0,36Z" fill="url(#sg)"/>
-          <polyline points="0,28 12,21 25,25 38,10 52,17 65,8 78,13 100,3"
-            fill="none" stroke="#22c55e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#22c55e" stop-opacity=".18" />
+              <stop offset="100%" stop-color="#22c55e" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M0,28 L12,21 L25,25 L38,10 L52,17 L65,8 L78,13 L100,3 L100,36 L0,36Z" fill="url(#sg)" />
+          <polyline points="0,28 12,21 25,25 38,10 52,17 65,8 78,13 100,3" fill="none" stroke="#22c55e"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </div>
 
@@ -72,16 +74,18 @@
         </div>
         <div class="kpi-val">{{ formatNumber(stats.monthlyExpenses) }}<span class="kpi-unit">ل.س</span></div>
         <div><span class="kpi-tag tag-n">
-          صافي: {{ formatNumber(stats.monthlyProfit) }}
-        </span></div>
+            صافي: {{ formatNumber(stats.monthlyProfit) }}
+          </span></div>
         <svg class="kpi-spark" viewBox="0 0 100 36" preserveAspectRatio="none">
-          <defs><linearGradient id="sr" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#f43f5e" stop-opacity=".15"/>
-            <stop offset="100%" stop-color="#f43f5e" stop-opacity="0"/>
-          </linearGradient></defs>
-          <path d="M0,5 L15,13 L28,8 L42,20 L55,14 L70,24 L85,18 L100,28 L100,36 L0,36Z" fill="url(#sr)"/>
-          <polyline points="0,5 15,13 28,8 42,20 55,14 70,24 85,18 100,28"
-            fill="none" stroke="#f43f5e" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="sr" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f43f5e" stop-opacity=".15" />
+              <stop offset="100%" stop-color="#f43f5e" stop-opacity="0" />
+            </linearGradient>
+          </defs>
+          <path d="M0,5 L15,13 L28,8 L42,20 L55,14 L70,24 L85,18 L100,28 L100,36 L0,36Z" fill="url(#sr)" />
+          <polyline points="0,5 15,13 28,8 42,20 55,14 70,24 85,18 100,28" fill="none" stroke="#f43f5e"
+            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
       </div>
 
@@ -95,9 +99,9 @@
         </div>
         <div class="kpi-val">{{ stats.activeProjects }}<span class="kpi-unit">مشروع</span></div>
         <div><span class="kpi-tag tag-b">
-          <lucide-angular name="check-square" [size]="10"></lucide-angular>
-          {{ stats.pendingTasks }} مهمة جارية
-        </span></div>
+            <lucide-angular name="check-square" [size]="10"></lucide-angular>
+            {{ stats.pendingTasks }} مهمة جارية
+          </span></div>
         <div class="kpi-bar-track">
           <div class="kpi-bar-fill fill-b" [style.width.%]="mathMin(stats.activeProjects * 10, 100)"></div>
         </div>
@@ -167,7 +171,10 @@
           <div class="card-head">
             <div class="card-title">
               <div class="card-icon green"><lucide-angular name="bar-chart-2" [size]="16"></lucide-angular></div>
-              <div><h3>إيرادات الشهر الجاري</h3><p>حركة المبيعات اليومية</p></div>
+              <div>
+                <h3>إيرادات الشهر الجاري</h3>
+                <p>حركة المبيعات اليومية</p>
+              </div>
             </div>
             <span class="legend-pill">
               <span class="legend-dot green-dot"></span>المبيعات
@@ -181,14 +188,12 @@
                 <span>0</span>
               </div>
               <div class="bars-zone">
-                <div *ngFor="let item of revenueChartData; let i = index"
-                     class="b-col"
-                     [title]="item.name + ': ' + (item.value | number) + ' ل.س'">
+                <div *ngFor="let item of revenueChartData; let i = index" class="b-col"
+                  [title]="item.name + ': ' + (item.value | number) + ' ل.س'">
                   <div class="b-wrap">
-                    <div class="b-fill"
-                         [style.height.%]="getBarHeight(item.value)"
-                         [style.animation-delay]="(i * 0.04) + 's'">
-                      <div class="b-tip">{{ formatNumber(item.value) }}</div>
+                    <div class="b-fill" [style.height.%]="getBarHeight(item.value)"
+                      [style.animation-delay]="(i * 0.04) + 's'">
+                      <div class="b-tip en-num">{{ formatNumber(item.value) }}</div>
                     </div>
                   </div>
                   <span class="b-label">{{ item.name }}</span>
@@ -209,16 +214,18 @@
           <div class="card-head">
             <div class="card-title">
               <div class="card-icon amber"><lucide-angular name="book-open" [size]="16"></lucide-angular></div>
-              <div><h3>الكتب الأكثر مبيعاً</h3><p>إجمالي النسخ المباعة هذا الشهر</p></div>
+              <div>
+                <h3>الكتب الأكثر مبيعاً</h3>
+                <p>إجمالي النسخ المباعة هذا الشهر</p>
+              </div>
             </div>
             <a routerLink="/books/sales" class="more-link">
               عرض الكل <lucide-angular name="arrow-left" [size]="13"></lucide-angular>
             </a>
           </div>
           <div class="books-list">
-            <div *ngFor="let book of topBooks; let i = index"
-                 class="book-row"
-                 [style.animation-delay]="(i * 0.07) + 's'">
+            <div *ngFor="let book of topBooks; let i = index" class="book-row"
+              [style.animation-delay]="(i * 0.07) + 's'">
               <span class="rank-badge" [ngClass]="getRankClass(i)">{{ i + 1 }}</span>
               <div class="book-info">
                 <span class="book-name-text">{{ book.name }}</span>
@@ -249,20 +256,22 @@
           <div class="card-head">
             <div class="card-title">
               <div class="card-icon purple"><lucide-angular name="pie-chart" [size]="16"></lucide-angular></div>
-              <div><h3>ملخص مالي</h3><p>الشهر الجاري</p></div>
+              <div>
+                <h3>ملخص مالي</h3>
+                <p>الشهر الجاري</p>
+              </div>
             </div>
           </div>
           <div class="fin-body">
             <div class="donut-wrap">
               <svg viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r="46" fill="none" stroke="#f1f5f9" stroke-width="14"/>
+                <circle cx="60" cy="60" r="46" fill="none" stroke="#f1f5f9" stroke-width="14" />
                 <circle cx="60" cy="60" r="46" fill="none" stroke="#22c55e" stroke-width="14"
-                  [attr.stroke-dasharray]="getProfitArc() + ' 289'"
-                  stroke-linecap="round" transform="rotate(-90 60 60)" class="arc-anim"/>
+                  [attr.stroke-dasharray]="getProfitArc() + ' 289'" stroke-linecap="round" transform="rotate(-90 60 60)"
+                  class="arc-anim" />
                 <circle cx="60" cy="60" r="46" fill="none" stroke="#f43f5e" stroke-width="14"
-                  [attr.stroke-dasharray]="getExpenseArc() + ' 289'"
-                  [attr.stroke-dashoffset]="-(getProfitArc())"
-                  stroke-linecap="round" transform="rotate(-90 60 60)" class="arc-anim"/>
+                  [attr.stroke-dasharray]="getExpenseArc() + ' 289'" [attr.stroke-dashoffset]="-(getProfitArc())"
+                  stroke-linecap="round" transform="rotate(-90 60 60)" class="arc-anim" />
               </svg>
               <div class="donut-center">
                 <span class="donut-pct">{{ getProfitMargin() }}%</span>
@@ -295,20 +304,20 @@
           <div class="card-head">
             <div class="card-title">
               <div class="card-icon blue"><lucide-angular name="activity" [size]="16"></lucide-angular></div>
-              <div><h3>آخر النشاطات</h3><p>الأحداث الأخيرة</p></div>
+              <div>
+                <h3>آخر النشاطات</h3>
+                <p>الأحداث الأخيرة</p>
+              </div>
             </div>
             <a routerLink="/invoices" class="more-link">
               الكل <lucide-angular name="arrow-left" [size]="13"></lucide-angular>
             </a>
           </div>
           <div class="feed">
-            <div *ngFor="let act of recentActivities; let i = index"
-                 class="feed-row"
-                 [style.animation-delay]="(i * 0.06) + 's'">
+            <div *ngFor="let act of recentActivities; let i = index" class="feed-row"
+              [style.animation-delay]="(i * 0.06) + 's'">
               <div class="feed-icon" [ngClass]="'fi-' + act.type">
-                <lucide-angular
-                  [name]="act.type === 'invoice' ? 'file-text' : 'folder'"
-                  [size]="13">
+                <lucide-angular [name]="act.type === 'invoice' ? 'file-text' : 'folder'" [size]="13">
                 </lucide-angular>
               </div>
               <div class="feed-body">
@@ -317,7 +326,7 @@
                   <span class="feed-time">{{ getTimeAgo(act.time) }}</span>
                 </div>
                 <p class="feed-desc">{{ act.description }}</p>
-                <span *ngIf="act.amount" class="feed-amount">+ {{ formatNumber(act.amount) }} ل.س</span>
+                <span *ngIf="act.amount" class="feed-amount en-num">+ {{ formatNumber(act.amount) }} ل.س</span>
               </div>
             </div>
             <div *ngIf="recentActivities.length === 0" class="empty-state">
@@ -338,21 +347,57 @@
       <div class="card-head">
         <div class="card-title">
           <div class="card-icon gray"><lucide-angular name="grid" [size]="16"></lucide-angular></div>
-          <div><h3>وصول سريع</h3><p>الأقسام الأكثر استخداماً</p></div>
+          <div>
+            <h3>وصول سريع</h3>
+            <p>الأقسام الأكثر استخداماً</p>
+          </div>
         </div>
       </div>
       <div class="quick-links">
-        <a routerLink="/books"                class="ql"><div class="ql-icon ql-green"><lucide-angular name="book-open"    [size]="20"></lucide-angular></div><span>إدارة الكتب</span></a>
-        <a routerLink="/books/sales/new"      class="ql"><div class="ql-icon ql-emerald"><lucide-angular name="shopping-cart" [size]="20"></lucide-angular></div><span>تسجيل بيع</span></a>
-        <a routerLink="/customers"            class="ql"><div class="ql-icon ql-blue"><lucide-angular name="users"        [size]="20"></lucide-angular></div><span>العملاء</span></a>
-        <a routerLink="/invoices/new"         class="ql"><div class="ql-icon ql-sky"><lucide-angular name="file-text"    [size]="20"></lucide-angular></div><span>فاتورة جديدة</span></a>
-        <a routerLink="/tasks"                class="ql"><div class="ql-icon ql-amber"><lucide-angular name="check-square" [size]="20"></lucide-angular></div><span>المهام</span></a>
-        <a routerLink="/suppliers"            class="ql"><div class="ql-icon ql-orange"><lucide-angular name="truck"       [size]="20"></lucide-angular></div><span>الموردون</span></a>
-        <a routerLink="/projects"             class="ql"><div class="ql-icon ql-purple"><lucide-angular name="briefcase"   [size]="20"></lucide-angular></div><span>المشاريع</span></a>
-        <a routerLink="/accounting/expenses"  class="ql"><div class="ql-icon ql-rose"><lucide-angular name="credit-card"  [size]="20"></lucide-angular></div><span>المصاريف</span></a>
-        <a routerLink="/accounting/reports"   class="ql"><div class="ql-icon ql-teal"><lucide-angular name="bar-chart-2"  [size]="20"></lucide-angular></div><span>التقارير</span></a>
-        <a routerLink="/calendar"             class="ql"><div class="ql-icon ql-cyan"><lucide-angular name="calendar"     [size]="20"></lucide-angular></div><span>التقويم</span></a>
-        <a routerLink="/settings"             class="ql"><div class="ql-icon ql-slate"><lucide-angular name="settings"    [size]="20"></lucide-angular></div><span>الإعدادات</span></a>
+        <a routerLink="/books" class="ql">
+          <div class="ql-icon ql-green"><lucide-angular name="book-open" [size]="20"></lucide-angular></div><span>إدارة
+            الكتب</span>
+        </a>
+        <a routerLink="/books/sales/new" class="ql">
+          <div class="ql-icon ql-emerald"><lucide-angular name="shopping-cart" [size]="20"></lucide-angular></div>
+          <span>تسجيل بيع</span>
+        </a>
+        <a routerLink="/customers" class="ql">
+          <div class="ql-icon ql-blue"><lucide-angular name="users" [size]="20"></lucide-angular></div>
+          <span>العملاء</span>
+        </a>
+        <a routerLink="/invoices/new" class="ql">
+          <div class="ql-icon ql-sky"><lucide-angular name="file-text" [size]="20"></lucide-angular></div><span>فاتورة
+            جديدة</span>
+        </a>
+        <a routerLink="/tasks" class="ql">
+          <div class="ql-icon ql-amber"><lucide-angular name="check-square" [size]="20"></lucide-angular></div>
+          <span>المهام</span>
+        </a>
+        <a routerLink="/suppliers" class="ql">
+          <div class="ql-icon ql-orange"><lucide-angular name="truck" [size]="20"></lucide-angular></div>
+          <span>الموردون</span>
+        </a>
+        <a routerLink="/projects" class="ql">
+          <div class="ql-icon ql-purple"><lucide-angular name="briefcase" [size]="20"></lucide-angular></div>
+          <span>المشاريع</span>
+        </a>
+        <a routerLink="/accounting/expenses" class="ql">
+          <div class="ql-icon ql-rose"><lucide-angular name="credit-card" [size]="20"></lucide-angular></div>
+          <span>المصاريف</span>
+        </a>
+        <a routerLink="/accounting/reports" class="ql">
+          <div class="ql-icon ql-teal"><lucide-angular name="bar-chart-2" [size]="20"></lucide-angular></div>
+          <span>التقارير</span>
+        </a>
+        <a routerLink="/calendar" class="ql">
+          <div class="ql-icon ql-cyan"><lucide-angular name="calendar" [size]="20"></lucide-angular></div>
+          <span>التقويم</span>
+        </a>
+        <a routerLink="/settings" class="ql">
+          <div class="ql-icon ql-slate"><lucide-angular name="settings" [size]="20"></lucide-angular></div>
+          <span>الإعدادات</span>
+        </a>
       </div>
     </div>
 

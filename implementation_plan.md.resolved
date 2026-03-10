@@ -1,0 +1,49 @@
+# Implementation Plan: DMS System Updates
+
+## 1. Projects & Items (المشاريع والعناصر)
+- **Goal:** Allow adding items to projects, where the project's total value is the sum of its items. Add the ability to apply discounts and notes.
+- **Changes:**
+  - Update [ProjectFormComponent](file:///d:/Dar%20Alzaibak%20-%20Managment%20System/DMS/src/app/features/projects/components/project-form/project-form.component.ts#15-237) (`project-form.component.ts/html`) to include a `FormArray` for Project Items (Tasks).
+  - Each item will have: Title, Quantity, Unit Price, Assignee (Freelancer), and Notes.
+  - Automatically calculate `total_price` as `SUM(qty * price)` minus any project-level or item-level discount.
+  - Update [ProjectsService](file:///d:/Dar%20Alzaibak%20-%20Managment%20System/DMS/src/app/features/projects/projects.service.ts#11-313) to save the items into the `project_tasks` table upon project creation.
+
+## 2. Freelancers & Profit Calculation (المستقلين وحساب الأرباح)
+- **Goal:** Link Freelancers to projects/items to calculate profit.
+- **Changes:**
+  - Add a "Freelancer" (Assignee) dropdown in the project items form, fetching profiles with `role = 'freelancer'`.
+  - In `ProjectDetailComponent`, calculate and display **Project Profit**: `Project Total Revenue - Total Freelancer Payments`.
+  - Add UI in the project details to log payments to freelancers using the `freelancer_payments` table for specific tasks.
+
+## 3. Miscellaneous Purchases (المشتريات العامة)
+- **Goal:** Allow adding general purchases (office supplies, pens, etc.).
+- **Changes:**
+  - Update the `ExpensesComponent` to include a streamlined form for general purchases.
+  - Set the default expense category to `supplies` or `other` for these items.
+
+## 4. Tasks Coordination (تنسيق المهام)
+- **Goal:** Fix task completion issues and ensure tasks can be tracked when assigned to Freelancers.
+- **Changes:**
+  - Enhance [task-board.component.ts](file:///d:/Dar%20Alzaibak%20-%20Managment%20System/DMS/src/app/features/tasks/components/task-board/task-board.component.ts) (Kanban Board) and [task-list.component.ts](file:///d:/Dar%20Alzaibak%20-%20Managment%20System/DMS/src/app/features/tasks/components/task-list/task-list.component.ts) to cleanly display task assignee (Freelancer).
+  - Ensure status updates (To Do -> In Progress -> Completed) work correctly and sync with the database.
+
+## 5. Global UI & Experience (الواجهات وتجربة المستخدم)
+- **Goal:** High professional UI, multi-select for project types, English numerals, LTR phones.
+- **Changes:**
+  - **Project Type Filter:** Change the single select to a Multi-select UI (using checkboxes or a custom dropdown) in the project list.
+  - **Numbers & Phone:** Add a global CSS rule ensuring `dir="ltr"` for phone numbers and force English numerals.
+  - **Dashboard:** Completely revamp `dashboard.component.html/scss` with a highly professional, modern design (gradients, glassmorphism, smooth animations, better layout).
+
+## User Review Required
+> [!IMPORTANT]
+> - Do you want the items added in the project form to be saved exactly as "Tasks" in the `project_tasks` table, or do you prefer a completely new table named `project_items`? (Using `project_tasks` works well because it already has `quantity`, `unit_price`, and `assignee_id`).
+> - For discounts, since there's no `discount` column in the `projects` table currently, I will calculate the final price after discount and store it in `total_price`, and note the discount in `notes`. Is this acceptable, or should we run a database migration to add a `discount` column?
+
+## Verification Plan
+### Automated Tests
+- Build the Angular app (`npm run build`) to ensure there are no compilation errors.
+### Manual Verification
+- Open the "Add Project" page and verify the "Items" section works and calculates totals correctly.
+- Add a new expense (supplies) and ensure it appears.
+- View the dashboard to verify the new professional design.
+- Verify all phone numbers show LTR and numbers are in English numerals.

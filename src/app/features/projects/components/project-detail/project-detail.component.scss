@@ -274,7 +274,52 @@ $info: #3B82F6;
 
         .task-text {
           h4 { margin: 0 0 0.25rem 0; font-size: 1rem; }
-          .assignee { font-size: 0.8rem; color: $text-light; display: flex; align-items: center; gap: 0.3rem; }
+          
+          .task-details-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.25rem;
+
+            .assignee { 
+              font-size: 0.85rem; 
+              color: $text-light; 
+              display: flex; 
+              align-items: center; 
+              gap: 0.3rem; 
+              
+              .role-badge {
+                background: rgba($primary, 0.1);
+                color: $primary;
+                padding: 0.1rem 0.4rem;
+                border-radius: 4px;
+                font-size: 0.7rem;
+                font-weight: 600;
+              }
+            }
+
+            .price-info {
+              font-size: 0.85rem;
+              color: $text-main;
+              display: flex;
+              align-items: center;
+              gap: 0.3rem;
+              background: #f1f5f9;
+              padding: 0.1rem 0.5rem;
+              border-radius: 6px;
+            }
+          }
+
+          .task-notes {
+            font-size: 0.8rem;
+            color: $text-light;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            opacity: 0.8;
+          }
         }
       }
 

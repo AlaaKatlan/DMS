@@ -57,7 +57,8 @@ export class ProjectsService extends BaseService<Project> {
           customer:customers(id, name, email, phone, country:countries(name)),
           tasks:project_tasks(
             id, title, status, priority, start_date, due_date,
-            assignee:profiles(id, full_name, avatar_url)
+            quantity, unit_price, description, task_type,
+            assignee:profiles(id, full_name, avatar_url, role)
           ),
           milestones:project_milestones(
             id, title, amount, due_date, status, completed_at
@@ -248,6 +249,46 @@ export class ProjectsService extends BaseService<Project> {
             observer.next(total);
             observer.complete();
           }
+        });
+    });
+  }
+
+  calculateFreelancerCost(projectId: string): Observable<number> {
+    return new Observable(observer => {
+      // 1. Get all task IDs for this project
+      this.supabase.client
+        .from('project_tasks')
+        .select('id')
+        .eq('project_id', projectId)
+        .then(({ data: tasks, error: tasksError }: any) => {
+          if (tasksError) {
+            observer.error(tasksError);
+            return;
+          }
+
+          if (!tasks || tasks.length === 0) {
+            observer.next(0);
+            observer.complete();
+            return;
+          }
+
+          const taskIds = tasks.map((t: any) => t.id);
+
+          // 2. Get all payments for these tasks
+          (this.supabase.client as any)
+            .from('freelancer_payments')
+            .select('amount')
+            .in('task_id', taskIds)
+            // .eq('paid', true) // Include this if you only want to count *paid* amounts as cost. For now, we count all logged amounts.
+            .then(({ data: payments, error: paymentsError }: any) => {
+              if (paymentsError) {
+                observer.error(paymentsError);
+              } else {
+                const total = (payments || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+                observer.next(total);
+                observer.complete();
+              }
+            });
         });
     });
   }
