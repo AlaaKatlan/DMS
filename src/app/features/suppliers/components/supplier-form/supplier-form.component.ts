@@ -40,7 +40,7 @@ export class SupplierFormComponent implements OnInit {
   ngOnInit() {
     this.suppliersService.getCountries().subscribe(data => this.countries = data);
 
-    // Check for edit mode
+    // ✅ FIX: قراءة الـ id بشكل صحيح
     this.supplierId = this.route.snapshot.paramMap.get('id');
     if (this.supplierId) {
       this.isEditMode = true;
@@ -53,15 +53,17 @@ export class SupplierFormComponent implements OnInit {
     this.suppliersService.getSupplierDetail(id).subscribe({
       next: (supplier) => {
         if (supplier) {
+          // ✅ FIX: الـ DB يخزن في حقل "type" لكن الفورم يستخدم "service_type"
           this.form.patchValue({
-            name: supplier.name,
-            service_type: (supplier as any).type || '',
-            country_id: supplier.country_id,
-            phone: supplier.phone,
-            tax_id: supplier.tax_id,
-            lead_time_days: supplier.lead_time_days,
-            default_currency: supplier.default_currency,
-            notes: supplier.notes
+            name: supplier.name || '',
+            // ✅ نقرأ من (supplier as any).type أو service_type
+            service_type: (supplier as any).type || (supplier as any).service_type || 'printing',
+            country_id: supplier.country_id || null,
+            phone: supplier.phone || '',
+            tax_id: (supplier as any).tax_id || '',
+            lead_time_days: (supplier as any).lead_time_days || 0,
+            default_currency: (supplier as any).default_currency || 'USD',
+            notes: supplier.notes || ''
           });
 
           // Load contacts
@@ -69,7 +71,7 @@ export class SupplierFormComponent implements OnInit {
           this.contacts.clear();
           for (const contact of contacts) {
             this.contacts.push(this.fb.group({
-              name: [contact.name, Validators.required],
+              name: [contact.name || '', Validators.required],
               role: [contact.role || ''],
               email: [contact.email || ''],
               phone: [contact.phone || '']
@@ -101,13 +103,17 @@ export class SupplierFormComponent implements OnInit {
   removeContact(index: number) { this.contacts.removeAt(index); }
 
   async onSubmit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     this.isSubmitting = true;
 
     const formValue = this.form.value;
+    // ✅ FIX: إرسال "type" للـ DB (اسم الحقل الحقيقي في جدول suppliers)
     const supplierData = {
       name: formValue.name,
-      type: formValue.service_type,
+      type: formValue.service_type,        // ✅ DB column name is "type"
       country_id: formValue.country_id,
       phone: formValue.phone,
       tax_id: formValue.tax_id,
@@ -127,7 +133,7 @@ export class SupplierFormComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        alert('حدث خطأ');
+        alert('حدث خطأ: ' + (err.message || 'خطأ غير معروف'));
         this.isSubmitting = false;
       }
     });

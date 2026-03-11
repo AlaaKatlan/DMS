@@ -23,6 +23,7 @@
   <!-- Form -->
   <div *ngIf="!loading" class="form-container">
     <form [formGroup]="projectForm" (ngSubmit)="onSubmit()">
+
       <!-- Basic Information -->
       <div class="form-card">
         <div class="card-header">
@@ -31,189 +32,212 @@
         </div>
         <div class="card-body">
           <div class="form-grid">
-            <!-- Title -->
             <div class="form-group full-width">
-              <label class="form-label">
-                عنوان المشروع <span class="required">*</span>
-              </label>
+              <label class="form-label">عنوان المشروع <span class="required">*</span></label>
               <input type="text" formControlName="title" class="form-input" [class.error]="titleError"
                 placeholder="أدخل عنوان المشروع" />
               <span class="error-message" *ngIf="titleError">{{ titleError }}</span>
             </div>
 
-            <!-- Customer -->
             <div class="form-group">
-              <label class="form-label">
-                العميل <span class="required">*</span>
-              </label>
+              <label class="form-label">العميل <span class="required">*</span></label>
               <select formControlName="customer_id" class="form-select" [class.error]="customerError">
                 <option value="">اختر العميل</option>
-                <option *ngFor="let customer of customers" [value]="customer.id">
-                  {{ customer.name }}
-                </option>
+                <option *ngFor="let customer of customers" [value]="customer.id">{{ customer.name }}</option>
               </select>
               <span class="error-message" *ngIf="customerError">{{ customerError }}</span>
             </div>
 
-            <!-- Project Type -->
             <div class="form-group">
               <label class="form-label">نوع المشروع</label>
               <select formControlName="project_type" class="form-select">
                 <option value="">اختر النوع</option>
-                <option *ngFor="let type of projectTypes" [value]="type">
-                  {{ type }}
-                </option>
+                <option *ngFor="let type of projectTypes" [value]="type">{{ type }}</option>
               </select>
             </div>
 
-            <!-- Status -->
             <div class="form-group">
               <label class="form-label">الحالة</label>
               <select formControlName="status" class="form-select">
-                <option *ngFor="let status of statuses" [value]="status">
-                  {{ getStatusLabel(status) }}
-                </option>
+                <option *ngFor="let status of statuses" [value]="status">{{ getStatusLabel(status) }}</option>
               </select>
             </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Financial Information -->
-      <div class="form-card">
-        <div class="card-header">
-          <lucide-angular name="dollar-sign" [size]="20"></lucide-angular>
-          <h3>المعلومات المالية</h3>
-        </div>
-        <div class="card-body">
-          <div class="form-grid">
-            <!-- Total Price -->
-            <div class="form-group">
-              <label class="form-label">السعر الإجمالي (بعد الخصم)</label>
-              <div class="input-with-icon">
-                <lucide-angular name="dollar-sign" [size]="18"></lucide-angular>
-                <input type="number" formControlName="total_price" class="form-input" [class.error]="priceError"
-                  placeholder="0" min="0" step="0.01" readonly />
-              </div>
-              <span class="error-message" *ngIf="priceError">{{ priceError }}</span>
-            </div>
-
-            <!-- Discount -->
-            <div class="form-group">
-              <label class="form-label">الخصم الإجمالي</label>
-              <div class="input-with-icon">
-                <lucide-angular name="scissors" [size]="18"></lucide-angular>
-                <input type="number" formControlName="discount" class="form-input" placeholder="0" min="0"
-                  step="0.01" />
-              </div>
-            </div>
-
-            <!-- Currency -->
-            <div class="form-group">
-              <label class="form-label">العملة</label>
-              <select formControlName="currency" class="form-select">
-                <option *ngFor="let currency of currencies" [value]="currency">
-                  {{ currency }}
-                </option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Schedule -->
-      <div class="form-card">
-        <div class="card-header">
-          <lucide-angular name="calendar" [size]="20"></lucide-angular>
-          <h3>الجدول الزمني</h3>
-        </div>
-        <div class="card-body">
-          <div class="form-grid">
-            <!-- Start Date -->
             <div class="form-group">
               <label class="form-label">تاريخ البدء</label>
-              <div class="input-with-icon">
-                <lucide-angular name="calendar" [size]="18"></lucide-angular>
-                <input type="date" formControlName="start_date" class="form-input" />
-              </div>
+              <input type="date" formControlName="start_date" class="form-input" />
             </div>
 
-            <!-- Due Date -->
             <div class="form-group">
               <label class="form-label">تاريخ التسليم</label>
-              <div class="input-with-icon">
-                <lucide-angular name="calendar" [size]="18"></lucide-angular>
-                <input type="date" formControlName="due_date" class="form-input" />
-              </div>
+              <input type="date" formControlName="due_date" class="form-input" />
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Items -->
-      <div class="form-card" formArrayName="items">
+      <!-- ✅ Items Card — NO formArrayName on this div -->
+      <div class="form-card items-card">
         <div class="card-header items-header">
           <div class="header-title">
             <lucide-angular name="list" [size]="20"></lucide-angular>
             <h3>عناصر المشروع</h3>
+            <span class="items-count" *ngIf="itemsFormArray.length > 0">{{ itemsFormArray.length }} عنصر</span>
           </div>
-          <button type="button" class="btn btn-outline-primary btn-sm" (click)="addItem()">
-            <lucide-angular name="plus" [size]="16"></lucide-angular>
-            إضافة عنصر
-          </button>
+          <div class="header-actions">
+            <span class="total-label">الإجمالي:</span>
+            <span class="total-value">
+              {{ projectForm.get('total_price')?.value | number:'1.0-2' }}
+              {{ projectForm.get('currency')?.value }}
+            </span>
+            <button type="button" class="btn-add-item" (click)="addItem()">
+              <lucide-angular name="plus" [size]="16"></lucide-angular>
+              إضافة عنصر
+            </button>
+          </div>
         </div>
+
         <div class="card-body">
-          <div *ngIf="itemsFormArray.controls.length === 0" class="empty-itemstext">
-            لا توجد عناصر مضافة حتى الآن. اضغط على أضف عنصر.
+
+          <!-- Empty state -->
+          <div *ngIf="itemsFormArray.controls.length === 0" class="empty-items">
+            <lucide-angular name="inbox" [size]="40"></lucide-angular>
+            <p>لا توجد عناصر مضافة بعد</p>
+            <button type="button" class="btn-add-first" (click)="addItem()">
+              <lucide-angular name="plus" [size]="16"></lucide-angular>
+              أضف أول عنصر
+            </button>
           </div>
-          <div *ngFor="let itemForm of itemsFormArray.controls; let i = index" [formGroupName]="i" class="item-row">
-            <div class="item-grid">
 
-              <!-- Title -->
-              <div class="form-group">
-                <label class="form-label" *ngIf="i === 0">الوصف / العنوان <span class="required">*</span></label>
-                <input type="text" formControlName="title" class="form-input" placeholder="اسم العنصر أو المهمة" />
-              </div>
+          <!-- ✅ formArrayName ONLY on this inner div -->
+          <div class="items-list" formArrayName="items">
+            <div *ngFor="let itemForm of itemsFormArray.controls; let i = index"
+                 [formGroupName]="i"
+                 class="item-card">
 
-              <!-- Assignee (Freelancer) -->
-              <div class="form-group">
-                <label class="form-label" *ngIf="i === 0">المُنفّذ (المستقل)</label>
-                <select formControlName="assignee_id" class="form-select">
-                  <option [ngValue]="null">بدون تعيين</option>
-                  <option *ngFor="let freelancer of freelancers" [value]="freelancer.id">
-                    {{ freelancer.full_name }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Quantity -->
-              <div class="form-group small-input">
-                <label class="form-label" *ngIf="i === 0">الكمية <span class="required">*</span></label>
-                <input type="number" formControlName="quantity" class="form-input text-center" min="1" />
-              </div>
-
-              <!-- Price -->
-              <div class="form-group small-input">
-                <label class="form-label" *ngIf="i === 0">السعر الإفرادي <span class="required">*</span></label>
-                <input type="number" formControlName="unit_price" class="form-input text-center" min="0" step="0.01" />
-              </div>
-
-              <!-- Notes -->
-              <div class="form-group flex-grow">
-                <label class="form-label" *ngIf="i === 0">ملاحظات</label>
-                <input type="text" formControlName="description" class="form-input" placeholder="ملاحظات حول العنصر" />
-              </div>
-
-              <!-- Remove Action -->
-              <div class="form-group action-col">
-                <label class="form-label invisible" *ngIf="i === 0">إجراء</label>
-                <button type="button" class="btn-icon btn-danger" (click)="removeItem(i)" title="حذف العنصر">
-                  <lucide-angular name="trash-2" [size]="18"></lucide-angular>
+              <!-- Item Header -->
+              <div class="item-card-header">
+                <div class="item-number"><span>{{ i + 1 }}</span></div>
+                <div class="item-title-preview">
+                  {{ itemForm.get('title')?.value || 'عنصر جديد' }}
+                </div>
+                <div class="item-subtotal"
+                     *ngIf="(itemForm.get('quantity')?.value || 0) > 0 && (itemForm.get('unit_price')?.value || 0) > 0">
+                  = {{ (itemForm.get('quantity')?.value * itemForm.get('unit_price')?.value) | number:'1.0-2' }}
+                  {{ projectForm.get('currency')?.value }}
+                </div>
+                <button type="button" class="btn-remove-item" (click)="removeItem(i)">
+                  <lucide-angular name="trash-2" [size]="16"></lucide-angular>
                 </button>
+              </div>
+
+              <!-- Item Body -->
+              <div class="item-card-body">
+                <!-- Row 1: Title + Assignee -->
+                <div class="item-row">
+                  <div class="form-group flex-3">
+                    <label class="form-label">الوصف / العنوان <span class="required">*</span></label>
+                    <input type="text" formControlName="title" class="form-input"
+                           placeholder="مثال: كتابة النص، تصميم الغلاف..." />
+                  </div>
+                  <div class="form-group flex-2">
+                    <label class="form-label">
+                      المُنفّذ
+                      <span *ngIf="freelancers.length === 0" class="no-freelancers">(لا يوجد مستقلون)</span>
+                    </label>
+                    <select formControlName="assignee_id" class="form-select">
+                      <option [ngValue]="null">— بدون تعيين —</option>
+                      <option *ngFor="let f of freelancers" [value]="f.id">
+                        {{ f.full_name }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Row 2: Qty + Price + Subtotal + Notes -->
+                <div class="item-row pricing-row">
+                  <div class="form-group flex-1">
+                    <label class="form-label">الكمية</label>
+                    <div class="number-input-wrapper">
+                      <button type="button" class="num-btn"
+                        (click)="decrementQty(itemForm)">−</button>
+                      <input type="number" formControlName="quantity"
+                             class="form-input text-center" min="1" />
+                      <button type="button" class="num-btn"
+                        (click)="incrementQty(itemForm)">+</button>
+                    </div>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label class="form-label">السعر الإفرادي</label>
+                    <input type="number" formControlName="unit_price" class="form-input"
+                           min="0" step="0.01" placeholder="0.00" />
+                  </div>
+                  <div class="form-group flex-1">
+                    <label class="form-label">الإجمالي</label>
+                    <div class="subtotal-display">
+                      {{ ((itemForm.get('quantity')?.value || 0) * (itemForm.get('unit_price')?.value || 0)) | number:'1.0-2' }}
+                      <span class="currency-tag">{{ projectForm.get('currency')?.value }}</span>
+                    </div>
+                  </div>
+                  <div class="form-group flex-2">
+                    <label class="form-label">ملاحظات</label>
+                    <input type="text" formControlName="description" class="form-input"
+                           placeholder="ملاحظات..." />
+                  </div>
+                </div>
               </div>
 
             </div>
           </div>
+          <!-- ✅ END formArrayName="items" -->
+
+          <!-- ✅ Add button at bottom -->
+          <div class="add-item-bottom" *ngIf="itemsFormArray.controls.length > 0">
+            <button type="button" class="btn-add-bottom" (click)="addItem()">
+              <lucide-angular name="plus-circle" [size]="18"></lucide-angular>
+              إضافة عنصر جديد
+            </button>
+          </div>
+
+          <!-- ✅ Summary — safely OUTSIDE formArrayName, uses projectForm controls directly -->
+          <div class="items-summary" *ngIf="itemsFormArray.length > 0">
+            <div class="summary-row">
+              <div class="summary-item">
+                <span class="s-label">المجموع قبل الخصم</span>
+                <span class="s-value">
+                  {{ ((projectForm.get('total_price')?.value || 0) + (projectForm.get('discount')?.value || 0)) | number:'1.0-2' }}
+                  {{ projectForm.get('currency')?.value }}
+                </span>
+              </div>
+
+              <!-- discount bound to projectForm.discount — NOT inside formArrayName -->
+              <div class="summary-item">
+                <span class="s-label">الخصم</span>
+                <div class="discount-input-wrapper">
+                  <input type="number" formControlName="discount"
+                         class="discount-input" placeholder="0" min="0" step="0.01" />
+                  <span class="currency-tag">{{ projectForm.get('currency')?.value }}</span>
+                </div>
+              </div>
+
+              <div class="summary-item total-item">
+                <span class="s-label">الإجمالي النهائي</span>
+                <span class="s-value total-final">
+                  {{ projectForm.get('total_price')?.value | number:'1.0-2' }}
+                  {{ projectForm.get('currency')?.value }}
+                </span>
+              </div>
+
+              <!-- currency bound to projectForm.currency — NOT inside formArrayName -->
+              <div class="summary-item">
+                <span class="s-label">العملة</span>
+                <select formControlName="currency" class="currency-select">
+                  <option *ngFor="let currency of currencies" [value]="currency">{{ currency }}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -225,8 +249,7 @@
         </div>
         <div class="card-body">
           <div class="form-group">
-            <label class="form-label">ملاحظات المشروع</label>
-            <textarea formControlName="notes" class="form-textarea" rows="4"
+            <textarea formControlName="notes" class="form-textarea" rows="3"
               placeholder="أي ملاحظات أو معلومات إضافية..."></textarea>
           </div>
         </div>
@@ -238,11 +261,12 @@
           <lucide-angular name="x" [size]="18"></lucide-angular>
           <span>إلغاء</span>
         </button>
-        <button type="submit" class="btn btn-primary" [disabled]="saving || projectForm.invalid"
-          [class.loading]="saving">
+        <button type="submit" class="btn btn-primary"
+                [disabled]="saving || projectForm.invalid"
+                [class.loading]="saving">
           <span *ngIf="!saving" class="btn-content">
             <lucide-angular name="check" [size]="18"></lucide-angular>
-            <span>{{ isEditMode ? 'تحديث' : 'حفظ' }}</span>
+            <span>{{ isEditMode ? 'تحديث المشروع' : 'حفظ المشروع' }}</span>
           </span>
           <span *ngIf="saving" class="btn-loading">
             <div class="spinner-small"></div>
@@ -250,6 +274,7 @@
           </span>
         </button>
       </div>
+
     </form>
   </div>
 </div>
