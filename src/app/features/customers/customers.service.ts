@@ -237,7 +237,7 @@ export class CustomersService extends BaseService<Customer> {
           'البلد': c.country?.name || '-',
           'نوع العميل': c.customer_type?.name || '-',
           'العنوان': c.address || '-',
-          'تاريخ التسجيل': new Date(c.created_at).toLocaleDateString('ar-SA')
+          'تاريخ التسجيل': new Date(c.created_at).toLocaleDateString('en-GB')
         }))
       )
     );

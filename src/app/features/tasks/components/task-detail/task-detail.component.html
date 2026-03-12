@@ -140,16 +140,16 @@
           <div class="card-body dates-list">
             <div class="date-item">
               <span class="label">البدء:</span>
-              <span class="value">{{ task.start_date | date:'mediumDate' : '' : 'ar-SA'  }}</span>
+              <span class="value">{{ task.start_date | date:'mediumDate' : '' : 'en-GB'  }}</span>
             </div>
             <div class="date-item">
               <span class="label">التسليم:</span>
-              <span class="value">{{ task.due_date | date:'mediumDate' : '' : 'ar-SA'  }}</span>
+              <span class="value">{{ task.due_date | date:'mediumDate' : '' : 'en-GB'  }}</span>
             </div>
             @if (task.completed_at) {
               <div class="date-item completed">
                 <span class="label">تم الإنجاز:</span>
-                <span class="value">{{ task.completed_at | date:'mediumDate' : '' : 'ar-SA' }}</span>
+                <span class="value">{{ task.completed_at | date:'mediumDate' : '' : 'en-GB' }}</span>
               </div>
             }
           </div>

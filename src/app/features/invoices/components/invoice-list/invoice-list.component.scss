@@ -330,3 +330,9 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     table { min-width: 800px; } // Force scroll on small screens
   }
 }
+.btn-print-project {
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  &:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79,70,229,0.4); }
+}

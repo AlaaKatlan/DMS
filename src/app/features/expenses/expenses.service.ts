@@ -287,14 +287,14 @@ export class ExpensesService extends BaseService<Expense> {
                     'المبلغ': e.amount,
                     'العملة': e.currency,
                     'الفئة': e.category || '-',
-                    'تاريخ المصروف': new Date(e.expense_date.toString()).toLocaleDateString('ar-SA'),
+                    'تاريخ المصروف': new Date(e.expense_date.toString()).toLocaleDateString('en-GB'),
                     'المشروع': e.project?.title || '-',
                     'طريقة الدفع': e.payment_method || '-',
                     'معتمد': e.approved ? 'نعم' : 'لا',
                     'المعتمد من': e.approved_by_user?.full_name || '-',
                     'إيصال': e.receipt_path ? 'نعم' : 'لا',
                     'المُدخل بواسطة': e.entered_by_user?.full_name || '-',
-                    'تاريخ الإنشاء': new Date(e.created_at).toLocaleDateString('ar-SA')
+                    'تاريخ الإنشاء': new Date(e.created_at).toLocaleDateString('en-GB')
                 }))
             )
         );

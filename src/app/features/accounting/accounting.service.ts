@@ -393,8 +393,8 @@ export class AccountingService extends BaseService<LedgerEntry> {
           'الفئة': e.category || '-',
           'المرجع': e.reference_type || '-',
           'الوصف': e.description || '-',
-          'تاريخ القيد': new Date(e.entry_date).toLocaleDateString('ar-SA'),
-          'تاريخ الإنشاء': new Date(e.created_at).toLocaleDateString('ar-SA')
+          'تاريخ القيد': new Date(e.entry_date).toLocaleDateString('en-GB'),
+          'تاريخ الإنشاء': new Date(e.created_at).toLocaleDateString('en-GB')
         }))
       )
     );

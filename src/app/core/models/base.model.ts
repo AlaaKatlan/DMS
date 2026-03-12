@@ -227,6 +227,8 @@ export interface ProjectTask extends BaseEntity {
   assignee?: UserProfile;
   dependencies?: ProjectTask[];
   dependent_tasks?: ProjectTask[];
+  supplier_id?: string | null;
+  supplier?: any;
 }
 
 export type TaskStatus = 'todo' | 'in_progress' | 'completed' | 'blocked' | 'cancelled';

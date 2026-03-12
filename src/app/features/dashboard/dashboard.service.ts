@@ -142,7 +142,7 @@ export class DashboardService {
         }, {});
 
         return Object.keys(grouped).map(date => ({
-          name: new Date(date).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' }),
+          name: new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
           value: grouped[date]
         }));
       })

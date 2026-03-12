@@ -110,11 +110,11 @@ formatCurrency(amount: number | null | undefined, currency: string = 'USD'): str
     SYP: 'SYP'
   };
 
-  return `${symbols[currency] || ''} ${safeAmount.toLocaleString('ar-SA')}`;
+  return `${symbols[currency] || ''} ${safeAmount.toLocaleString('en-GB')}`;
 }
 
   formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('ar-SA');
+    return new Date(dateString).toLocaleDateString('en-GB');
   }
 
   getStatusColor(status: string): string {

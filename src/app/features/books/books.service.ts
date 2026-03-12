@@ -514,7 +514,7 @@ getBooksForDropdown(): Observable<any[]> {
           'السعر (دولار)': b.price_usd || 0,
           'التكلفة (دولار)': b.cost_usd || 0,
           'البلد': b.country?.name || '-',
-          'تاريخ الإضافة': new Date(b.created_at).toLocaleDateString('ar-SA')
+          'تاريخ الإضافة': new Date(b.created_at).toLocaleDateString('en-GB')
         }))
       )
     );

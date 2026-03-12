@@ -132,7 +132,7 @@ export class BookListComponent implements OnInit {
       'السعر (SYP)': this.toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')),
       'الكمية': this.getStockStatus(book.stock_quantity || 0),
       'عدد الصفحات': book.pages ? this.toEnglishNumbers(book.pages) : '-',
-      'تاريخ الإضافة': new Date(book.created_at).toLocaleDateString('ar-SA')
+      'تاريخ الإضافة': new Date(book.created_at).toLocaleDateString('en-GB')
     }));
 
     this.excelService.exportToExcel(

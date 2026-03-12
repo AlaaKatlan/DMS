@@ -80,6 +80,6 @@ export class LedgerComponent implements OnInit {
 
   // تنسيق العملة
   formatCurrency(amount: number, currency: string = 'USD'): string {
-    return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: currency }).format(amount);
+    return new Intl.NumberFormat('en-GB', { style: 'currency', currency: currency }).format(amount);
   }
 }

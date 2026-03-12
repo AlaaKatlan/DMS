@@ -355,7 +355,7 @@ export class BookSalesListComponent implements OnInit {
     <div class="invoice-meta">
       <div class="invoice-title">فاتورة مبيعات</div>
       <div class="invoice-number">#${inv.invoice_number}</div>
-      <div class="invoice-date">${new Date(inv.sale_date).toLocaleDateString('ar-SA')}</div>
+      <div class="invoice-date">${new Date(inv.sale_date).toLocaleDateString('en-GB')}</div>
     </div>
   </div>
 
@@ -442,7 +442,7 @@ export class BookSalesListComponent implements OnInit {
         invoice.items.forEach((item, idx) => {
           exportData.push({
             'رقم الفاتورة': invoice.invoice_number,
-            'التاريخ': new Date(invoice.sale_date).toLocaleDateString('ar-SA'),
+            'التاريخ': new Date(invoice.sale_date).toLocaleDateString('en-GB'),
             'العميل': invoice.customer_name || 'عميل نقدي',
             'البائع': invoice.seller_name || '-',
             'الكتاب': item.book?.title || '-',
@@ -458,7 +458,7 @@ export class BookSalesListComponent implements OnInit {
       } else {
         exportData.push({
           'رقم الفاتورة': invoice.invoice_number,
-          'التاريخ': new Date(invoice.sale_date).toLocaleDateString('ar-SA'),
+          'التاريخ': new Date(invoice.sale_date).toLocaleDateString('en-GB'),
           'العميل': invoice.customer_name || 'عميل نقدي',
           'البائع': invoice.seller_name || '-',
           'الكتاب': '-', 'الكمية': '-', 'سعر الوحدة': '-',

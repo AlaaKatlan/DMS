@@ -1,7 +1,8 @@
- <!-- invoice-detail.component.html -->
+<!-- invoice-detail.component.html -->
 @if (!loading && invoice) {
   <div class="invoice-viewer-page" dir="rtl">
 
+    <!-- Toolbar -->
     <div class="toolbar no-print">
       <button class="btn-back" routerLink="/invoices">
         <lucide-angular name="arrow-right" [size]="20"></lucide-angular>
@@ -12,20 +13,31 @@
           <lucide-angular name="edit-3" [size]="18"></lucide-angular>
           تعديل
         </button>
-        <button class="btn-action btn-download" (click)="downloadInvoice()">
-          <lucide-angular name="download" [size]="18"></lucide-angular>
-          تحميل PDF
-        </button>
+
+        <!-- زر تسجيل دفعة — يظهر فقط إذا في متبقي -->
+        @if (remaining > 0) {
+          <button class="btn-action btn-pay" (click)="openPaymentModal()">
+            <lucide-angular name="credit-card" [size]="18"></lucide-angular>
+            تسجيل دفعة
+          </button>
+        }
+
         <button class="btn-action btn-print" (click)="printInvoice()">
           <lucide-angular name="printer" [size]="18"></lucide-angular>
           طباعة
         </button>
+        @if (hasProject) {
+          <button class="btn-action btn-print-project" (click)="printWithProjectDetails()">
+            <lucide-angular name="folder" [size]="18"></lucide-angular>
+            طباعة مع المشروع
+          </button>
+        }
       </div>
     </div>
 
+    <!-- Invoice Paper -->
     <div class="invoice-paper" id="print-section">
 
-      <!-- Header with Logo and Branding -->
       <header class="invoice-header">
         <div class="brand-section">
           <div class="logo-container">
@@ -46,11 +58,10 @@
             <div class="contact-details">
               <span><lucide-angular name="map-pin" [size]="14"></lucide-angular> دمشق - سوريا</span>
               <span><lucide-angular name="phone" [size]="14"></lucide-angular> 0112233445</span>
-              <span><lucide-angular name="mail" [size]="14"></lucide-angular> info@alzaybaq.com</span>
+              <span><lucide-angular name="mail" [size]="14"></lucide-angular> info@al-zaibak.com</span>
             </div>
           </div>
         </div>
-
         <div class="invoice-badge">
           <div class="badge-label">فاتورة مبيعات</div>
           <div class="badge-number">#{{ invoice.invoice_number }}</div>
@@ -78,13 +89,8 @@
               <lucide-angular name="mail" [size]="14"></lucide-angular>
               <span>{{ invoice.customer?.email }}</span>
             </div>
-            <div class="detail-row" *ngIf="invoice.customer?.address">
-              <lucide-angular name="map-pin" [size]="14"></lucide-angular>
-              <span>{{ invoice.customer?.address }}</span>
-            </div>
           </div>
         </div>
-
         <div class="info-box dates-box">
           <div class="box-header">
             <lucide-angular name="calendar" [size]="18"></lucide-angular>
@@ -116,7 +122,6 @@
           <lucide-angular name="shopping-cart" [size]="20"></lucide-angular>
           <h3>بنود الفاتورة</h3>
         </div>
-
         <div class="table-wrapper">
           <table class="items-table">
             <thead>
@@ -145,22 +150,35 @@
 
       <!-- Summary Section -->
       <div class="summary-section">
-        <div class="payment-methods">
-          <div class="methods-header">
+        <div class="payments-box">
+          <div class="box-header">
             <lucide-angular name="credit-card" [size]="18"></lucide-angular>
-            <h4>طرق الدفع المتاحة</h4>
+            <h3>سجل الدفعات</h3>
           </div>
-          <ul class="methods-list">
-            @for (method of paymentMethods; track method.id) {
-              <li class="method-item">
-                <lucide-angular name="check-circle" [size]="16"></lucide-angular>
-                <div class="method-details">
-                  <strong>{{ method.name }}</strong>
-                  <span>{{ method.details }}</span>
-                </div>
-              </li>
-            }
-          </ul>
+          @if (invoice.payments?.length) {
+            <table class="payments-table">
+              <thead>
+                <tr>
+                  <th>التاريخ</th>
+                  <th>طريقة الدفع</th>
+                  <th>المبلغ</th>
+                  <th>ملاحظات</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of invoice.payments; track p.id) {
+                  <tr>
+                    <td>{{ p.paid_at | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ p.payment_method || '-' }}</td>
+                    <td class="paid-amount">{{ p.amount | number:'1.2-2' }} {{ invoice.currency }}</td>
+                    <td>{{ p.notes || '-' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="no-payments">لا توجد دفعات مسجلة</p>
+          }
         </div>
 
         <div class="totals-box">
@@ -180,30 +198,91 @@
         </div>
       </div>
 
+      <!-- ملخص المشروع -->
+      @if (hasProject) {
+        <div class="project-summary-section">
+          <div class="section-header">
+            <lucide-angular name="folder" [size]="20"></lucide-angular>
+            <h3>ملخص المشروع: {{ invoice.project?.title }}</h3>
+          </div>
+          @if (projectInvoicesLoading) {
+            <div class="loading-mini"><div class="spinner-mini"></div><span>جاري تحميل بيانات المشروع...</span></div>
+          } @else {
+            <div class="project-stats-grid">
+              <div class="project-stat-card">
+                <span class="stat-label">قيمة المشروع الكاملة</span>
+                <span class="stat-value">{{ projectTotalPrice | number:'1.2-2' }} {{ invoice.currency }}</span>
+              </div>
+              <div class="project-stat-card paid-card">
+                <span class="stat-label">إجمالي المدفوع</span>
+                <span class="stat-value paid">{{ projectTotalPaid | number:'1.2-2' }} {{ invoice.currency }}</span>
+              </div>
+              <div class="project-stat-card" [class.warning-card]="projectRemaining > 0" [class.success-card]="projectRemaining === 0">
+                <span class="stat-label">المتبقي على المشروع</span>
+                <span class="stat-value" [class.remaining]="projectRemaining > 0" [class.zero]="projectRemaining === 0">
+                  {{ projectRemaining | number:'1.2-2' }} {{ invoice.currency }}
+                </span>
+              </div>
+            </div>
+            @if (projectInvoices.length > 1) {
+              <div class="project-invoices-table">
+                <h4>جميع فواتير المشروع</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>رقم الفاتورة</th><th>التاريخ</th><th>المبلغ</th>
+                      <th>المدفوع</th><th>المتبقي</th><th>الحالة</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (pinv of projectInvoices; track pinv.id) {
+                      <tr [class.current-invoice]="pinv.id === invoice.id">
+                        <td>
+                          @if (pinv.id === invoice.id) { <span class="current-badge">الحالية</span> }
+                          {{ pinv.invoice_number }}
+                        </td>
+                        <td>{{ pinv.issue_date | date:'dd/MM/yyyy' }}</td>
+                        <td class="amount-cell">{{ pinv.amount_due | number:'1.2-2' }}</td>
+                        <td class="paid-cell">{{ getInvoicePaid(pinv) | number:'1.2-2' }}</td>
+                        <td class="remaining-cell">{{ getInvoiceRemaining(pinv) | number:'1.2-2' }}</td>
+                        <td>
+                          <span class="status-pill" [ngClass]="getStatusClass(pinv.status)">
+                            {{ getStatusLabel(pinv.status) }}
+                          </span>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="2"><strong>الإجمالي</strong></td>
+                      <td class="amount-cell"><strong>{{ projectTotalInvoiced | number:'1.2-2' }}</strong></td>
+                      <td class="paid-cell"><strong>{{ projectTotalPaid | number:'1.2-2' }}</strong></td>
+                      <td class="remaining-cell"><strong>{{ projectRemaining | number:'1.2-2' }}</strong></td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            }
+          }
+        </div>
+      }
+
       <!-- Signatures -->
       <div class="signatures-section">
-        <div class="signature-box">
-          <div class="signature-line"></div>
-          <span class="signature-label">المحاسب</span>
-        </div>
-        <div class="signature-box">
-          <div class="signature-line"></div>
-          <span class="signature-label">المدير العام</span>
-        </div>
-        <div class="signature-box">
-          <div class="signature-line"></div>
-          <span class="signature-label">المستلم</span>
-        </div>
+        <div class="signature-box"><div class="signature-line"></div><span class="signature-label">المحاسب</span></div>
+        <div class="signature-box"><div class="signature-line"></div><span class="signature-label">المدير العام</span></div>
+        <div class="signature-box"><div class="signature-line"></div><span class="signature-label">المستلم</span></div>
       </div>
 
-      <!-- Footer -->
       <footer class="invoice-footer">
         <div class="footer-decoration"></div>
         <p class="footer-text">شكراً لتعاملكم مع دار الزيبق • نسعد بخدمتكم دائماً</p>
         <div class="footer-pattern"></div>
       </footer>
 
-    </div>
+    </div><!-- end invoice-paper -->
   </div>
 }
 
@@ -211,5 +290,116 @@
   <div class="loading-state">
     <div class="spinner-ring"></div>
     <p>جاري تحميل تفاصيل الفاتورة...</p>
+  </div>
+}
+
+<!-- ================================================================ -->
+<!--  Payment Modal                                                    -->
+<!-- ================================================================ -->
+@if (showPaymentModal) {
+  <div class="modal-overlay" (click)="closePaymentModal()" dir="rtl">
+    <div class="payment-modal" (click)="$event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <div class="modal-title">
+          <lucide-angular name="credit-card" [size]="20"></lucide-angular>
+          <h3>تسجيل دفعة جديدة</h3>
+        </div>
+        <button class="modal-close" (click)="closePaymentModal()">
+          <lucide-angular name="x" [size]="20"></lucide-angular>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+
+        <!-- بنود الفاتورة للاختيار -->
+        @if ((invoice?.items || []).length > 0) {
+          <div class="modal-section">
+            <div class="section-label">
+              <span>اختر البنود المرتبطة بهذه الدفعة</span>
+              <div class="select-actions">
+                <button type="button" class="btn-text-sm" (click)="allItemsSelected ? deselectAllItems() : selectAllItems()">
+                  {{ allItemsSelected ? 'إلغاء الكل' : 'تحديد الكل' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="items-checklist">
+              @for (item of invoice?.items || []; track item.id) {
+                <div class="item-check-row" [class.selected]="isItemSelectedForPayment(item.id)"
+                     (click)="toggleItemInPayment(item.id)">
+                  <div class="check-box" [class.checked]="isItemSelectedForPayment(item.id)">
+                    @if (isItemSelectedForPayment(item.id)) {
+                      <lucide-angular name="check" [size]="11"></lucide-angular>
+                    }
+                  </div>
+                  <span class="item-desc">{{ item.description }}</span>
+                  <span class="item-total">{{ item.total | number:'1.2-2' }} {{ invoice?.currency }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="items-subtotal">
+              <span>مجموع البنود المحددة:</span>
+              <strong>{{ selectedItemsTotal | number:'1.2-2' }} {{ invoice?.currency }}</strong>
+            </div>
+          </div>
+        }
+
+        <!-- حقول الدفعة -->
+        <div class="modal-section">
+          <div class="modal-grid">
+
+            <div class="form-group">
+              <label>المبلغ <span class="req">*</span></label>
+              <div class="amount-input-wrap">
+                <input type="number" [(ngModel)]="paymentForm.amount" min="0.01"
+                       [max]="remaining" step="0.01" class="amount-input">
+                <span class="currency-tag">{{ invoice?.currency }}</span>
+              </div>
+              <span class="hint-sm">المتبقي: {{ remaining | number:'1.2-2' }} {{ invoice?.currency }}</span>
+            </div>
+
+            <div class="form-group">
+              <label>طريقة الدفع <span class="req">*</span></label>
+              <select [(ngModel)]="paymentForm.payment_method_id" (change)="onPaymentMethodChange()">
+                <option value="">اختر طريقة الدفع</option>
+                @for (m of paymentMethods; track m.id) {
+                  <option [value]="m.id">{{ m.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>تاريخ الدفع</label>
+              <input type="date" [(ngModel)]="paymentForm.paid_at">
+            </div>
+
+            <div class="form-group full-width">
+              <label>ملاحظات</label>
+              <input type="text" [(ngModel)]="paymentForm.notes" placeholder="اختياري...">
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- end modal-body -->
+
+      <!-- Modal Footer -->
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closePaymentModal()">إلغاء</button>
+        <button class="btn btn-pay-confirm" (click)="submitPayment()" [disabled]="paymentSubmitting">
+          @if (paymentSubmitting) {
+            <lucide-angular name="loader-2" class="animate-spin" [size]="16"></lucide-angular>
+          } @else {
+            <lucide-angular name="check" [size]="16"></lucide-angular>
+          }
+          {{ paymentSubmitting ? 'جاري الحفظ...' : 'تأكيد الدفعة' }}
+        </button>
+      </div>
+
+    </div>
   </div>
 }

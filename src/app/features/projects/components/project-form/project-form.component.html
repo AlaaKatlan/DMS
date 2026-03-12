@@ -111,9 +111,7 @@
 
           <!-- ✅ formArrayName ONLY on this inner div -->
           <div class="items-list" formArrayName="items">
-            <div *ngFor="let itemForm of itemsFormArray.controls; let i = index"
-                 [formGroupName]="i"
-                 class="item-card">
+            <div *ngFor="let itemForm of itemsFormArray.controls; let i = index" [formGroupName]="i" class="item-card">
 
               <!-- Item Header -->
               <div class="item-card-header">
@@ -122,7 +120,7 @@
                   {{ itemForm.get('title')?.value || 'عنصر جديد' }}
                 </div>
                 <div class="item-subtotal"
-                     *ngIf="(itemForm.get('quantity')?.value || 0) > 0 && (itemForm.get('unit_price')?.value || 0) > 0">
+                  *ngIf="(itemForm.get('quantity')?.value || 0) > 0 && (itemForm.get('unit_price')?.value || 0) > 0">
                   = {{ (itemForm.get('quantity')?.value * itemForm.get('unit_price')?.value) | number:'1.0-2' }}
                   {{ projectForm.get('currency')?.value }}
                 </div>
@@ -138,18 +136,26 @@
                   <div class="form-group flex-3">
                     <label class="form-label">الوصف / العنوان <span class="required">*</span></label>
                     <input type="text" formControlName="title" class="form-input"
-                           placeholder="مثال: كتابة النص، تصميم الغلاف..." />
+                      placeholder="مثال: كتابة النص، تصميم الغلاف..." />
                   </div>
                   <div class="form-group flex-2">
                     <label class="form-label">
                       المُنفّذ
                       <span *ngIf="freelancers.length === 0" class="no-freelancers">(لا يوجد مستقلون)</span>
                     </label>
+                    <!-- project-form.component.html -->
                     <select formControlName="assignee_id" class="form-select">
                       <option [ngValue]="null">— بدون تعيين —</option>
-                      <option *ngFor="let f of freelancers" [value]="f.id">
-                        {{ f.full_name }}
-                      </option>
+                      <optgroup label="👤 موظفون">
+                        <option *ngFor="let f of getEmployees()" [value]="f.id">
+                          {{ f.full_name }}
+                        </option>
+                      </optgroup>
+                      <optgroup label="🔧 مستقلون">
+                        <option *ngFor="let f of getFreelancersList()" [value]="f.id">
+                          {{ f.full_name }}
+                        </option>
+                      </optgroup>
                     </select>
                   </div>
                 </div>
@@ -159,30 +165,27 @@
                   <div class="form-group flex-1">
                     <label class="form-label">الكمية</label>
                     <div class="number-input-wrapper">
-                      <button type="button" class="num-btn"
-                        (click)="decrementQty(itemForm)">−</button>
-                      <input type="number" formControlName="quantity"
-                             class="form-input text-center" min="1" />
-                      <button type="button" class="num-btn"
-                        (click)="incrementQty(itemForm)">+</button>
+                      <button type="button" class="num-btn" (click)="decrementQty(itemForm)">−</button>
+                      <input type="number" formControlName="quantity" class="form-input text-center" min="1" />
+                      <button type="button" class="num-btn" (click)="incrementQty(itemForm)">+</button>
                     </div>
                   </div>
                   <div class="form-group flex-1">
                     <label class="form-label">السعر الإفرادي</label>
-                    <input type="number" formControlName="unit_price" class="form-input"
-                           min="0" step="0.01" placeholder="0.00" />
+                    <input type="number" formControlName="unit_price" class="form-input" min="0" step="0.01"
+                      placeholder="0.00" />
                   </div>
                   <div class="form-group flex-1">
                     <label class="form-label">الإجمالي</label>
                     <div class="subtotal-display">
-                      {{ ((itemForm.get('quantity')?.value || 0) * (itemForm.get('unit_price')?.value || 0)) | number:'1.0-2' }}
+                      {{ ((itemForm.get('quantity')?.value || 0) * (itemForm.get('unit_price')?.value || 0)) |
+                      number:'1.0-2' }}
                       <span class="currency-tag">{{ projectForm.get('currency')?.value }}</span>
                     </div>
                   </div>
                   <div class="form-group flex-2">
                     <label class="form-label">ملاحظات</label>
-                    <input type="text" formControlName="description" class="form-input"
-                           placeholder="ملاحظات..." />
+                    <input type="text" formControlName="description" class="form-input" placeholder="ملاحظات..." />
                   </div>
                 </div>
               </div>
@@ -205,7 +208,8 @@
               <div class="summary-item">
                 <span class="s-label">المجموع قبل الخصم</span>
                 <span class="s-value">
-                  {{ ((projectForm.get('total_price')?.value || 0) + (projectForm.get('discount')?.value || 0)) | number:'1.0-2' }}
+                  {{ ((projectForm.get('total_price')?.value || 0) + (projectForm.get('discount')?.value || 0)) |
+                  number:'1.0-2' }}
                   {{ projectForm.get('currency')?.value }}
                 </span>
               </div>
@@ -214,8 +218,8 @@
               <div class="summary-item">
                 <span class="s-label">الخصم</span>
                 <div class="discount-input-wrapper">
-                  <input type="number" formControlName="discount"
-                         class="discount-input" placeholder="0" min="0" step="0.01" />
+                  <input type="number" formControlName="discount" class="discount-input" placeholder="0" min="0"
+                    step="0.01" />
                   <span class="currency-tag">{{ projectForm.get('currency')?.value }}</span>
                 </div>
               </div>
@@ -261,9 +265,8 @@
           <lucide-angular name="x" [size]="18"></lucide-angular>
           <span>إلغاء</span>
         </button>
-        <button type="submit" class="btn btn-primary"
-                [disabled]="saving || projectForm.invalid"
-                [class.loading]="saving">
+        <button type="submit" class="btn btn-primary" [disabled]="saving || projectForm.invalid"
+          [class.loading]="saving">
           <span *ngIf="!saving" class="btn-content">
             <lucide-angular name="check" [size]="18"></lucide-angular>
             <span>{{ isEditMode ? 'تحديث المشروع' : 'حفظ المشروع' }}</span>

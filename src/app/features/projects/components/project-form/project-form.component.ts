@@ -34,7 +34,7 @@ export class ProjectFormComponent implements OnInit {
   customers: Customer[] = [];
   currencies: Currency[] = ['USD', 'AED', 'QR', 'SYP', 'OMR'];
   statuses: ProjectStatus[] = ['active', 'completed', 'cancelled', 'on_hold'];
-  freelancers: UserProfile[] = [];
+  freelancers: any[] = [];
   projectTypes = ['قصة', 'رسم', 'تحريك', 'أغنية', 'كتاب', 'تصميم', 'برمجة', 'تسويق'];
 
   // ✅ expose Math for template
@@ -99,50 +99,59 @@ export class ProjectFormComponent implements OnInit {
     });
   }
 
-  loadProject(id: string): void {
+ loadProject(id: string): void {
     this.loading = true;
-    this.cd.detectChanges();
-
     this.projectsService.getProjectDetail(id).subscribe({
       next: (project) => {
-        if (project) {
-          this.projectForm.patchValue({
-            title: project.title,
-            customer_id: project.customer_id,
-            project_type: project.project_type || '',
-            total_price: project.total_price || 0,
-            discount: 0,
-            currency: project.currency || 'USD',
-            status: project.status || 'active',
-            start_date: project.start_date || '',
-            due_date: project.due_date || '',
-            notes: project.notes || ''
-          });
-
-          if (project.tasks && project.tasks.length > 0) {
-            this.itemsFormArray.clear();
-            for (const task of project.tasks) {
-              this.itemsFormArray.push(this.fb.group({
-                id: [task.id],
-                title: [task.title, Validators.required],
-                quantity: [task.quantity || 1, [Validators.required, Validators.min(1)]],
-                unit_price: [task.unit_price || 0, [Validators.min(0)]],
-                assignee_id: [task.assignee_id || null],
-                description: [task.description || '']
-              }));
-            }
-            this.calculateTotalPrice();
-          }
+        // ✅ إضافة شرط للتأكد من أن المشروع ليس null
+        if (!project) {
+          this.loading = false;
+          alert('لم يتم العثور على المشروع');
+          this.router.navigate(['/projects']);
+          return;
         }
+
+        // 1. تعبئة المعلومات الأساسية للمشروع
+        this.projectForm.patchValue({
+          title: project.title,
+          customer_id: project.customer_id,
+          project_type: project.project_type,
+          total_price: project.total_price,
+          currency: project.currency,
+          start_date: project.start_date,
+          due_date: project.due_date,
+          notes: project.notes,
+          status: project.status
+        });
+
+        // 2. تفريغ المصفوفة أولاً لتجنب التكرار
+        this.itemsFormArray.clear();
+
+        // 3. تعبئة العناصر (المهام) القديمة داخل الفورم لكي تظهر للمستخدم
+        if (project.tasks && project.tasks.length > 0) {
+          // داخل الـ if (project.tasks && project.tasks.length > 0)
+project.tasks.forEach(task => {
+  this.itemsFormArray.push(this.fb.group({
+    id: [task.id],
+    title: [task.title, Validators.required],
+    quantity: [task.quantity || 1, [Validators.required, Validators.min(1)]],
+    unit_price: [task.unit_price || 0, [Validators.required, Validators.min(0)]],
+    // ✅ هنا الدمج: نأخذ الموجود منهما لكي يظهر الاسم الصحيح في القائمة المنسدلة
+    assignee_id: [task.assignee_id || task.supplier_id || ''],
+    description: [task.description || '']
+  }));
+});
+        } else {
+          // إذا لم يكن هناك عناصر سابقة، أضف صفاً فارغاً افتراضياً
+          this.addItem();
+        }
+
         this.loading = false;
         this.cd.detectChanges();
       },
-      error: (error) => {
-        console.error('Error loading project:', error);
-        alert('حدث خطأ أثناء تحميل بيانات المشروع');
+      error: () => {
         this.loading = false;
-        this.cd.detectChanges();
-        this.router.navigate(['/projects']);
+        // معالجة الخطأ...
       }
     });
   }
@@ -204,53 +213,76 @@ export class ProjectFormComponent implements OnInit {
     }
 
     this.saving = true;
-    const formData = { ...this.projectForm.value };
-    const items = formData.items;
+    const formData = { ...this.projectForm.getRawValue() };
+
+    // ✅ معالجة العناصر بذكاء للفصل بين المورد والموظف
+    const items = (formData.items || []).map((item: any) => {
+      // نبحث هل الـ ID المختار يعود لمورد؟
+      const isSupplier = this.freelancers.some(f => f.id === item.assignee_id && f.source === 'supplier');
+
+      return {
+        ...item,
+        // إذا كان مورداً، نضع الـ ID في حقل المورد ونفرغ حقل الموظف والعكس صحيح
+        supplier_id: isSupplier ? item.assignee_id : null,
+        assignee_id: isSupplier ? null : (item.assignee_id || null)
+      };
+    });
     delete formData.items;
 
-    // Add discount info to notes if any
     const discount = formData.discount;
     if (discount && discount > 0) {
       const discountNote = `(خصم: ${discount} ${formData.currency})`;
       formData.notes = formData.notes ? `${formData.notes}\n${discountNote}` : discountNote;
     }
     delete formData.discount;
-
-    // ✅ FIX: Remove updated_at — not a valid column in projects table trigger
     delete formData.updated_at;
 
-    if (this.isEditMode && this.projectId) {
-      // ✅ استخدام updateProject() التي تتجاوز supabase.service وتمنع إرسال updated_at
-      this.projectsService.updateProject(this.projectId, formData).subscribe({
-        next: async () => {
-          await this.saveProjectItems(this.projectId!, items);
-          alert('تم تحديث بيانات المشروع بنجاح');
-          this.saving = false;
-          this.router.navigate(['/projects', this.projectId]);
-        },
-        error: (error) => {
-          console.error('Error updating project:', error);
-          alert('حدث خطأ: ' + (error.message || JSON.stringify(error)));
-          this.saving = false;
-        }
-      });
-
-    } else {
-      this.projectsService.create(formData).subscribe({
-        next: async (project) => {
-          await this.saveProjectItems(project.id, items);
-          alert('تم إضافة المشروع بنجاح');
-          this.router.navigate(['/projects', project.id]);
-        },
-        error: (error) => {
-          console.error('Error creating project:', error);
-          alert('حدث خطأ: ' + (error.message || JSON.stringify(error)));
-          this.saving = false;
-        }
-      });
+    try {
+      if (this.isEditMode && this.projectId) {
+        this.projectsService.updateProject(this.projectId, formData).subscribe({
+          next: async () => {
+            try {
+              await this.saveProjectItems(this.projectId!, items);
+              alert('تم تحديث بيانات المشروع بنجاح');
+              this.router.navigate(['/projects', this.projectId]);
+            } catch (itemErr: any) {
+              alert('تم التحديث لكن فشل حفظ العناصر: \n' + (itemErr.message || JSON.stringify(itemErr)));
+            } finally {
+              this.saving = false;
+            }
+          },
+          error: (error) => {
+            console.error('Error updating project:', error);
+            alert('حدث خطأ: ' + (error.message || ''));
+            this.saving = false;
+          }
+        });
+      } else {
+        this.projectsService.create(formData).subscribe({
+          next: async (project: any) => {
+            try {
+              const newProjectId = Array.isArray(project) ? project[0].id : project.id;
+              await this.saveProjectItems(newProjectId, items);
+              alert('تم إضافة المشروع بنجاح');
+              this.router.navigate(['/projects', newProjectId]);
+            } catch (itemErr: any) {
+              alert('تم إنشاء المشروع لكن فشل حفظ العناصر: \n' + (itemErr.message || JSON.stringify(itemErr)));
+            } finally {
+              this.saving = false;
+            }
+          },
+          error: (error) => {
+            console.error('Error creating project:', error);
+            alert('حدث خطأ: ' + (error.message || ''));
+            this.saving = false;
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error:', err);
+      this.saving = false;
     }
   }
-
   // ✅ delegate to service — supabase access is clean there
   async saveProjectItems(projectId: string, items: any[]): Promise<void> {
     await this.projectsService.saveProjectItems(projectId, items);
@@ -299,5 +331,12 @@ export class ProjectFormComponent implements OnInit {
       'on_hold': 'متوقف'
     };
     return labels[status] || status;
+  }
+  getEmployees(): any[] {
+    return this.freelancers.filter(f => f.source === 'employee');
+  }
+
+  getFreelancersList(): any[] {
+    return this.freelancers.filter(f => f.source === 'supplier');
   }
 }

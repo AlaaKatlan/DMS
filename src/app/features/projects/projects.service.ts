@@ -21,64 +21,110 @@ export class ProjectsService extends BaseService<Project> {
 
   // ==================== FREELANCERS ====================
 
-  getFreelancers(): Observable<UserProfile[]> {
+ // src/app/features/projects/projects.service.ts
+// src/app/features/projects/projects.service.ts
+
+  // 1. إعادة دالة الجلب من الجدولين
+  getFreelancers(): Observable<any[]> {
     return new Observable(observer => {
-      // Support different supabase client property names across base service versions
-      const client = (this.supabase as any)?.client
-                  || (this.supabase as any)?.supabaseClient
-                  || (this.supabase as any);
-      client
-        .from('profiles')
-        .select('id, full_name, role, email, phone')
-        .eq('role', 'freelancer')
-        .order('full_name', { ascending: true })
-        .then(({ data, error }: any) => {
-          if (error) {
-            console.error('getFreelancers error:', error);
-            observer.next([]);
-          } else {
-            console.log('✅ Freelancers loaded:', data?.length ?? 0, data);
-            observer.next((data || []) as UserProfile[]);
-          }
-          observer.complete();
-        });
+      const client = (this.supabase as any)?.client || (this.supabase as any);
+
+      Promise.all([
+        client.from('profiles').select('id, full_name, role, phone, email').in('role', ['freelancer', 'employee', 'manager']),
+        client.from('suppliers').select('id, name, type, phone').eq('type', 'freelancer')
+      ]).then(([profilesRes, suppliersRes]: any[]) => {
+        const profiles = (profilesRes.data || []).map((p: any) => ({
+          id: p.id, full_name: p.full_name, role: p.role, phone: p.phone || null, source: 'employee'
+        }));
+        const suppliers = (suppliersRes.data || []).map((s: any) => ({
+          id: s.id, full_name: s.name, role: 'freelancer', phone: s.phone || null, source: 'supplier'
+        }));
+
+        observer.next([...profiles, ...suppliers]);
+        observer.complete();
+      }).catch((err: any) => {
+        console.error('getFreelancers error:', err);
+        observer.next([]);
+        observer.complete();
+      });
     });
   }
 
-  /**
-   * ✅ حفظ عناصر المشروع بدون updated_at
-   */
+  // 2. تحديث دالة الحفظ لتدعم supplier_id
   async saveProjectItems(projectId: string, items: any[]): Promise<void> {
+    const { error: deleteError } = await (this.supabase.client as any)
+      .from('project_tasks')
+      .delete()
+      .eq('project_id', projectId);
+
+    if (deleteError) throw deleteError;
     if (!items || items.length === 0) return;
 
-    for (const item of items) {
-      const taskData = {
+    const tasksToInsert = items.map(item => {
+      const { id, ...itemWithoutId } = item;
+      return {
+        ...itemWithoutId,
         project_id: projectId,
-        title: item.title,
-        quantity: item.quantity || 1,
-        unit_price: item.unit_price || 0,
-        assignee_id: item.assignee_id || null,
+        quantity: Number(item.quantity) || 1,
+        unit_price: Number(item.unit_price) || 0,
+        // ✅ إضافة الحقلين معاً
+        assignee_id: (item.assignee_id && item.assignee_id !== 'null' && item.assignee_id !== '') ? item.assignee_id : null,
+        supplier_id: (item.supplier_id && item.supplier_id !== 'null' && item.supplier_id !== '') ? item.supplier_id : null,
         description: item.description || null,
         task_type: 'parallel',
         status: 'todo',
         priority: 'medium'
-        // ✅ لا updated_at ولا created_at — لا يوجد trigger عليهم في project_tasks
       };
+    });
 
-      if (item.id) {
-        const { error } = await (this.supabase.client as any)
-          .from('project_tasks')
-          .update(taskData)
-          .eq('id', item.id);
-        if (error) console.error('Error updating task:', item.id, error);
-      } else {
-        const { error } = await (this.supabase.client as any)
-          .from('project_tasks')
-          .insert(taskData);
-        if (error) console.error('Error inserting task:', error);
-      }
-    }
+    const { data, error: insertError } = await (this.supabase.client as any)
+      .from('project_tasks')
+      .insert(tasksToInsert)
+      .select();
+
+    if (insertError) throw insertError;
   }
+
+  // 3. إضافة الحقل الجديد لاستعلام الجلب لكي تظهر البيانات عند التعديل
+  getProjectDetail(projectId: string): Observable<Project | null> {
+    this.setLoading(true);
+    return new Observable(observer => {
+      (this.supabase.client as any)
+        .from(this.tableName)
+        .select(`
+          *,
+          customer:customers(id, name, email, phone, country:countries(name)),
+          tasks:project_tasks(
+            id, title, status, priority, start_date, due_date,
+            quantity, unit_price, description, task_type, assignee_id, supplier_id,
+            assignee:profiles(id, full_name, avatar_url, role),
+            supplier:suppliers(id, name)
+          ),
+          milestones:project_milestones(id, title, amount, due_date, status, completed_at),
+          invoices:invoices(id, invoice_number, amount_due, status),
+          expenses:expenses(id, title, amount, expense_date, approved)
+        `)
+        .eq('id', projectId)
+        .single()
+        .then(({ data, error }: any) => {
+          if (error) {
+            this.setError(error.message);
+            observer.error(error);
+          } else {
+            this.clearError();
+            observer.next(data as Project);
+            observer.complete();
+          }
+          this.setLoading(false);
+        });
+    });
+  }
+/**
+ * ✅ حفظ عناصر المشروع — حذف القديمة وإعادة الإدراج لتجاوز مشكلة trigger updated_at
+ */
+/**
+   * ✅ حفظ عناصر المشروع — حذف القديمة وإعادة الإدراج
+   */
 
   // ==================== PROJECTS UPDATE (bypass updated_at) ====================
 
@@ -141,38 +187,7 @@ export class ProjectsService extends BaseService<Project> {
     });
   }
 
-  getProjectDetail(projectId: string): Observable<Project | null> {
-    this.setLoading(true);
-    return new Observable(observer => {
-      (this.supabase.client as any)
-        .from(this.tableName)
-        .select(`
-          *,
-          customer:customers(id, name, email, phone, country:countries(name)),
-          tasks:project_tasks(
-            id, title, status, priority, start_date, due_date,
-            quantity, unit_price, description, task_type, assignee_id,
-            assignee:profiles(id, full_name, avatar_url, role)
-          ),
-          milestones:project_milestones(id, title, amount, due_date, status, completed_at),
-          invoices:invoices(id, invoice_number, amount_due, status),
-          expenses:expenses(id, title, amount, expense_date, approved)
-        `)
-        .eq('id', projectId)
-        .single()
-        .then(({ data, error }: any) => {
-          if (error) {
-            this.setError(error.message);
-            observer.error(error);
-          } else {
-            this.clearError();
-            observer.next(data as Project);
-            observer.complete();
-          }
-          this.setLoading(false);
-        });
-    });
-  }
+
 
   getProjectsByStatus(status: ProjectStatus): Observable<Project[]> {
     return this.getFiltered({ column: 'status', value: status });
@@ -374,7 +389,7 @@ export class ProjectsService extends BaseService<Project> {
           'العملة': p.currency,
           'تاريخ البدء': p.start_date || '-',
           'تاريخ التسليم': p.due_date || '-',
-          'تاريخ الإنشاء': new Date(p.created_at).toLocaleDateString('ar-SA')
+          'تاريخ الإنشاء': new Date(p.created_at).toLocaleDateString('en-GB')
         }))
       )
     );

@@ -447,7 +447,7 @@ unassignTask(taskId: string): Observable<ProjectTask> {
           'تاريخ البدء': t.start_date || '-',
           'تاريخ التسليم': t.due_date || '-',
           'السعر': t.unit_price ? t.unit_price * (t.quantity || 1) : 0,
-          'تاريخ الإنشاء': new Date(t.created_at).toLocaleDateString('ar-SA')
+          'تاريخ الإنشاء': new Date(t.created_at).toLocaleDateString('en-GB')
         }))
       )
     );

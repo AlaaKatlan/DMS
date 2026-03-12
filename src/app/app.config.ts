@@ -39,7 +39,7 @@ localeArModified[14] = localeEnData[14];
 localeArModified[15] = localeEnData[15];
 
 // تسجيل اللغة المعدلة
-registerLocaleData(localeArModified, 'ar-SA');
+registerLocaleData(localeArModified, 'en-GB');
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -61,7 +61,6 @@ export const appConfig: ApplicationConfig = {
       Info, ArrowUp, PieChart, BarChart2,
     })),
 
-    // استخدام اللغة العربية (التي عدلناها لتقبل تنسيق الأرقام الإنجليزي)
-    { provide: LOCALE_ID, useValue: 'ar-SA' }
+     { provide: LOCALE_ID, useValue: 'en-GB' }
   ]
 };

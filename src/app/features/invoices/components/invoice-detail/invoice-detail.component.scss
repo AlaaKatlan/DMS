@@ -1,4 +1,4 @@
- // invoice-detail.component.scss
+// invoice-detail.component.scss
 @use 'sass:color';
 
 // Brand Colors from Logo
@@ -30,14 +30,7 @@ $status-partial: #F59E0B;
 }
 
 @media print {
-  :host { padding: 0; background: white; }
-  .no-print { display: none !important; }
-  .invoice-paper {
-    box-shadow: none !important;
-    margin: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-  }
+  :host { padding: 0; }
 }
 
 // Toolbar
@@ -669,19 +662,574 @@ $status-partial: #F59E0B;
 
 // Print Styles
 @media print {
-  .invoice-paper {
-    padding: 1.5cm;
+  /* إخفاء كل شي في الصفحة */
+  app-root > * {
+    display: none !important;
   }
 
-  .invoice-header {
-    page-break-after: avoid;
+  /* إظهار فقط الـ invoice viewer */
+  app-invoice-detail {
+    display: block !important;
   }
 
-  .items-section {
-    page-break-inside: avoid;
+  /* داخل الـ invoice detail، إخفاء كل شي */
+  app-invoice-detail > * {
+    display: none !important;
   }
 
-  .signatures-section {
-    page-break-before: avoid;
+  /* إظهار الفاتورة فقط */
+  app-invoice-detail #print-section {
+    display: block !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 1cm !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: white !important;
+    z-index: 9999 !important;
+  }
+
+  /* إظهار كل عناصر الفاتورة */
+  app-invoice-detail #print-section * {
+    display: revert !important;
+    visibility: visible !important;
+  }
+}
+// ─── أضف هذا في نهاية invoice-detail.component.scss ─────────────────────────
+
+// زر تسجيل الدفعة في الـ toolbar
+.btn-pay {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 3px 10px rgba(5, 150, 105, 0.35);
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(5, 150, 105, 0.45) !important;
+  }
+}
+
+// ─── Modal Overlay ────────────────────────────────────────────────────────────
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+}
+
+// ─── Modal Container ──────────────────────────────────────────────────────────
+.payment-modal {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.25s ease;
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+    border-radius: 16px 16px 0 0;
+
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #059669;
+
+      h3 { margin: 0; font-size: 16px; font-weight: 700; color: #1f2937; }
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      transition: all 0.15s;
+
+      &:hover { background: #fee2e2; color: #ef4444; }
+    }
+  }
+
+  .modal-body {
+    padding: 20px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .modal-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  // ─── Items Checklist ───────────────────────────────────────────────────────
+  .section-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 2px;
+
+    .select-actions { }
+
+    .btn-text-sm {
+      background: none;
+      border: none;
+      color: #6366f1;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: underline;
+      padding: 0;
+
+      &:hover { color: #4338ca; }
+    }
+  }
+
+  .items-checklist {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    overflow: hidden;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .item-check-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.12s;
+    border-bottom: 1px solid #f3f4f6;
+
+    &:last-child { border-bottom: none; }
+
+    &:hover { background: #f9fafb; }
+    &.selected { background: #f0fdf4; }
+
+    .check-box {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      border: 2px solid #d1d5db;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+
+      &.checked {
+        background: #059669;
+        border-color: #059669;
+        color: white;
+      }
+    }
+
+    .item-desc {
+      flex: 1;
+      font-size: 13px;
+      color: #374151;
+    }
+
+    .item-total {
+      font-size: 13px;
+      font-weight: 600;
+      color: #059669;
+      flex-shrink: 0;
+    }
+  }
+
+  .items-subtotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f0fdf4;
+    border-radius: 8px;
+    border: 1px solid #d1fae5;
+    font-size: 13px;
+    color: #374151;
+
+    strong { color: #059669; font-size: 14px; }
+  }
+
+  // ─── Form Fields ───────────────────────────────────────────────────────────
+  .modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+
+    .full-width { grid-column: 1 / -1; }
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #374151;
+
+      .req { color: #ef4444; }
+    }
+
+    input, select {
+      padding: 9px 12px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1f2937;
+      background: white;
+      transition: border-color 0.15s;
+      font-family: inherit;
+
+      &:focus { outline: none; border-color: #059669; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); }
+    }
+
+    .amount-input-wrap {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+
+      &:focus-within { border-color: #059669; box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1); }
+
+      .amount-input {
+        flex: 1;
+        border: none;
+        padding: 9px 12px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #059669;
+
+        &:focus { outline: none; box-shadow: none; }
+      }
+
+      .currency-tag {
+        padding: 0 12px;
+        background: #f0fdf4;
+        color: #059669;
+        font-size: 12px;
+        font-weight: 700;
+        border-right: 1.5px solid #d1fae5;
+        height: 100%;
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    .hint-sm {
+      font-size: 11px;
+      color: #9ca3af;
+    }
+  }
+
+  // ─── Modal Footer ─────────────────────────────────────────────────────────
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 22px;
+    border-top: 1px solid #e5e7eb;
+    background: #fafafa;
+    border-radius: 0 0 16px 16px;
+
+    .btn-secondary {
+      padding: 9px 20px;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 8px;
+      background: white;
+      color: #374151;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+
+      &:hover { background: #f9fafb; border-color: #d1d5db; }
+    }
+
+    .btn-pay-confirm {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 22px;
+      background: linear-gradient(135deg, #059669 0%, #047857 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 3px 10px rgba(5, 150, 105, 0.3);
+
+      &:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(5, 150, 105, 0.4); }
+      &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    }
+  }
+}
+
+// ─── btn-print-project ────────────────────────────────────────────────────────
+.btn-print-project {
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  &:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4) !important; }
+}
+
+// ─── payments-box ─────────────────────────────────────────────────────────────
+.payments-box {
+  background: $bg-page;
+  border-radius: 16px;
+  border: 1px solid $border;
+  overflow: hidden;
+
+  .box-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 2px solid $border;
+
+    lucide-angular { color: $primary-green; }
+    h3 { font-size: 1rem; font-weight: 700; color: $text-main; margin: 0; }
+  }
+
+  .payments-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead tr {
+      background: #f3f4f6;
+      th {
+        padding: 0.625rem 1rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: $text-light;
+        text-align: right;
+      }
+    }
+
+    tbody tr {
+      border-bottom: 1px solid $border;
+      &:last-child { border-bottom: none; }
+      td {
+        padding: 0.875rem 1rem;
+        font-size: 0.875rem;
+        color: $text-secondary;
+        &.paid-amount { font-weight: 700; color: $status-paid; }
+      }
+    }
+  }
+
+  .no-payments {
+    padding: 1.5rem;
+    text-align: center;
+    color: $text-light;
+    font-style: italic;
+    font-size: 0.875rem;
+  }
+}
+
+// ─── Project Summary Section ──────────────────────────────────────────────────
+.project-summary-section {
+  background: #f0fdf4;
+  border-radius: 16px;
+  border: 1px solid #d1fae5;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+    border-bottom: 1px solid #d1fae5;
+
+    lucide-angular { color: $primary-green; }
+    h3 { font-size: 1rem; font-weight: 700; color: #065f46; margin: 0; }
+  }
+
+  .loading-mini {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1.5rem;
+    color: $text-light;
+    font-size: 0.875rem;
+
+    .spinner-mini {
+      width: 18px; height: 18px;
+      border: 2px solid rgba($primary-green, 0.2);
+      border-top-color: $primary-green;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+
+  // بطاقات الإجماليات
+  .project-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    padding: 1.5rem;
+    padding-bottom: 0;
+
+    @media (max-width: 768px) { grid-template-columns: 1fr; }
+  }
+
+  .project-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.125rem;
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: $text-light;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: $text-main;
+      &.paid { color: $status-paid; }
+      &.remaining { color: $status-unpaid; }
+      &.zero { color: $status-paid; }
+    }
+
+    &.paid-card { border-color: #d1fae5; }
+    &.warning-card { border-color: #fecaca; }
+    &.success-card { border-color: #d1fae5; }
+  }
+
+  // جدول فواتير المشروع
+  .project-invoices-table {
+    padding: 1.5rem;
+
+    h4 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: $text-secondary;
+      margin: 0 0 0.875rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+
+      thead tr {
+        background: linear-gradient(135deg, $primary-green, $accent-green);
+        th {
+          padding: 0.75rem 1rem;
+          text-align: right;
+          color: white;
+          font-size: 0.75rem;
+          font-weight: 600;
+        }
+      }
+
+      tbody tr {
+        border-bottom: 1px solid #f0f0f0;
+        transition: background 0.15s;
+        &:hover { background: #fafafa; }
+        &.current-invoice { background: #f0fdf4; }
+        &:last-child { border-bottom: none; }
+
+        td {
+          padding: 0.75rem 1rem;
+          font-size: 0.8125rem;
+          color: $text-secondary;
+          &.amount-cell { font-weight: 600; text-align: center; }
+          &.paid-cell { font-weight: 700; color: $status-paid; text-align: center; }
+          &.remaining-cell { font-weight: 700; color: $status-unpaid; text-align: center; }
+        }
+      }
+
+      tfoot tr {
+        background: #f9fafb;
+        border-top: 2px solid #e5e7eb;
+        td { padding: 0.75rem 1rem; font-size: 0.8125rem; font-weight: 700; color: $text-main;
+          &.paid-cell { color: $status-paid; text-align: center; }
+          &.remaining-cell { color: $status-unpaid; text-align: center; }
+          &.amount-cell { text-align: center; }
+        }
+      }
+    }
+
+    .current-badge {
+      display: inline-block;
+      background: $primary-green;
+      color: white;
+      font-size: 0.625rem;
+      padding: 2px 7px;
+      border-radius: 99px;
+      margin-left: 6px;
+      font-weight: 700;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      &.paid { background: rgba($status-paid,0.1); color: $status-paid; }
+      &.unpaid { background: rgba($status-unpaid,0.1); color: $status-unpaid; }
+      &.partially_paid { background: rgba($status-partial,0.1); color: $status-partial; }
+    }
   }
 }

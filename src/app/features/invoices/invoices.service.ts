@@ -152,4 +152,20 @@ export class InvoicesService extends BaseService<Invoice> {
     }
     return `${prefix}001`;
   }
+
+
+  getInvoicesByProject(projectId: string): Observable<Invoice[]> {
+  return from(
+    this.supabase.client
+      .from(this.tableName)
+      .select(`*, payments:invoice_payments(*)`)
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: true })
+  ).pipe(
+    map((res: any) => {
+      if (res.error) throw res.error;
+      return res.data as Invoice[];
+    })
+  );
+}
 }

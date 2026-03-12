@@ -149,11 +149,11 @@ export class ProjectDetailComponent implements OnInit {
       QR: 'ر.ق',
       SYP: 'SYP'
     };
-    return `${symbols[currency] || ''} ${amount.toLocaleString('ar-SA')}`;
+    return `${symbols[currency] || ''} ${amount.toLocaleString('en-GB')}`;
   }
 
   formatDate(dateString: string): string {
-    return new Date(dateString).toLocaleDateString('ar-SA');
+    return new Date(dateString).toLocaleDateString('en-GB');
   }
 
   getStatusColor(status: string): string {

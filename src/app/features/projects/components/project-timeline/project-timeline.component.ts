@@ -48,7 +48,7 @@ export class ProjectTimelineComponent implements OnInit {
     projects.forEach(project => {
       const date = new Date(project.start_date || project.created_at);
       // تنسيق التاريخ: "يناير 2024"
-      const key = date.toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' });
+      const key = date.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
 
       if (!groups[key]) {
         groups[key] = [];
