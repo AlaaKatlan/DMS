@@ -18,7 +18,7 @@ import {
   UserPlus, Phone, Tag, CheckCircle, Flag, Handshake, TrendingDown, Image, XCircle, CircleX, Pen, ShoppingCart,
   User, Sliders, Download, Percent, RefreshCw, ChevronDown,
   LogOut, Save, Shield, RotateCw, Scissors,
-  Info, ArrowUp, PieChart, BarChart2,
+  Info, ArrowUp, PieChart, BarChart2,ChevronUp,
   ClipboardList,
 } from 'lucide-angular';
 
@@ -58,7 +58,7 @@ export const appConfig: ApplicationConfig = {
       LogIn, Trash2, Edit, Filter, Columns2, Tag, Banknote, ChevronDown,
       User, X, Shield, RotateCw,
       LogOut, Save, Percent, RefreshCw, Scissors, ClipboardList,
-      Info, ArrowUp, PieChart, BarChart2,
+      Info, ArrowUp, PieChart, BarChart2,ChevronUp
     })),
 
      { provide: LOCALE_ID, useValue: 'en-GB' }

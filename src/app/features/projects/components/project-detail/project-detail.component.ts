@@ -6,11 +6,12 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ProjectsService } from '../../projects.service';
 import { Project, ProjectTask } from '../../../../core/models/base.model';
 import { MilestonesComponent } from '../milestones/milestones.component';
+import { ProjectQuotationComponent } from '../project-quotation/project-quotation.component';
 
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, LucideAngularModule, MilestonesComponent],
+  imports: [CommonModule, RouterModule, LucideAngularModule, MilestonesComponent,ProjectQuotationComponent],
   templateUrl: './project-detail.component.html',
   styleUrls: ['./project-detail.component.scss']
 })

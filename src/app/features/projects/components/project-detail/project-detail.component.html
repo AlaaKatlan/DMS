@@ -111,6 +111,7 @@
 
     @if (activeTab === 'overview') {
     <div class="overview-tab">
+
       <div class="content-card description-card">
         <h3>تفاصيل المشروع</h3>
         <p class="description-text">{{ project.description || 'لا يوجد وصف متاح لهذا المشروع.' }}</p>
@@ -129,6 +130,7 @@
             <span class="val">{{ formatDate(project.created_at) }}</span>
           </div>
         </div>
+
       </div>
 
       @if (project.customer) {
@@ -220,6 +222,8 @@
     }
 
     @if (activeTab === 'invoices') {
+       <app-project-quotation *ngIf="project" [project]="project">
+      </app-project-quotation>
     <div class="financials-tab">
       <div class="section-block">
         <h3>الفواتير</h3>
