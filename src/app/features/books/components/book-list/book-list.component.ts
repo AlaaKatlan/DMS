@@ -130,6 +130,8 @@ export class BookListComponent implements OnInit {
       'التصنيف': book.category || '-',
       'السعر (USD)': this.toEnglishNumbers((book.price_usd || 0).toFixed(2)),
       'السعر (SYP)': this.toEnglishNumbers((book.price_syp || 0).toLocaleString('en-US')),
+            'السعر بالريال القطري': this.toEnglishNumbers((book.price_qr || 0).toLocaleString('en-US')),
+
       'الكمية': this.getStockStatus(book.stock_quantity || 0),
       'عدد الصفحات': book.pages ? this.toEnglishNumbers(book.pages) : '-',
       'تاريخ الإضافة': new Date(book.created_at).toLocaleDateString('en-GB')
